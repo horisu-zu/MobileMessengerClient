@@ -1,0 +1,82 @@
+<resources>
+    <!-- Пошук -->
+    <string name="tab_users">Користувачі</string>
+    <string name="tab_groups">Групи</string>
+
+    <!-- Аутентифікація -->
+    <string name="auth_sign_label">Зареєструватися</string>
+    <string name="auth_login_label">Увійти</string>
+    <string name="auth_email">Електронна пошта</string>
+    <string name="auth_password">Пароль</string>
+    <string name="auth_first_name">Ім\я</string>
+    <string name="auth_last_name">Прізвище (необов\язково)</string>
+    <string name="auth_nickname">Нікнейм</string>
+    <string name="auth_sign">Немає акаунта? Зареєструватися</string>
+    <string name="auth_login">Вже маєте акаунт? Увійти</string>
+
+    <!-- Navigation -->
+    <string name="nav_main">Головна</string>
+    <string name="nav_settings">Налаштування</string>
+    <string name="nav_rules">Правила та інформація</string>
+    <string name="nav_new">Що нового</string>
+    <string name="nav_logout">Вийти з аккаунту</string>
+
+    <!-- User Status -->
+    <string name="status_online">В мережі</string>
+    <string name="status_now">У мережі — щойно</string>
+    <string name="status_minute_ago">У мережі — %1$d хвилину тому</string>
+    <string name="status_minutes_ago">У мережі — %1$d хвилин тому</string>
+    <string name="status_hour_ago">У мережі — %1$d годину тому</string>
+    <string name="status_hours_ago">У мережі — %1$d години тому</string>
+    <string name="status_hours_ago_v2">У мережі — %1$d годин тому</string>
+    <string name="status_days">У мережі — %1$s</string>
+
+    <!-- Settings -->
+    <string name="profile_username">Нікнейм</string>
+    <string name="profile_empty_bio_title">Біо</string>
+    <string name="profile_bio_subtitle">Біо</string>
+    <string name="profile_empty_bio_subtitle">Додайте кілька слів про себе</string>
+    <string name="profile_account">Акаунт</string>
+    <string name="profile_settings">Налаштування</string>
+    <string name="profile_language">Мова</string>
+    <string name="profile_chat_settings">Налаштування чату</string>
+
+    <!-- Profile Menu -->
+    <string name="profile_menu_edit_info">Редагувати</string>
+    <string name="profile_menu_change_avatar">Змінити аватар</string>
+    <string name="profile_menu_change_color">Змінити колір</string>
+
+    <!-- Profile Page -->
+    <string name="propage_edit_bio">Інформація профілю</string>
+    <string name="propage_edit_username">Юзернейм</string>
+    <string name="propage_edit_language">Мова</string>
+    <string name="propage_edit_chat">Налаштування чату</string>
+
+    <!-- Bio Page -->
+    <string name="bio_first_name">Ім\'я (обов\'язково)</string>
+    <string name="bio_last_name">Прізвище</string>
+
+    <!-- Chat Page -->
+    <string name="chat_color_title">Змініть колір відображення</string>
+
+    <!-- Username -->
+    <string name="username_description">Ви можете змінити своє ім\'я користувача.
+        \n\nВам доступні літери [a-z], [0-9] та підкреслення, але без пробілів. Мінімальна довжина: 6 символів</string>
+
+    <!-- Language -->
+    <string name="language_english">Англійська</string>
+    <string name="language_ukrainian">Українська</string>
+
+    <!-- ChatBottomSheet -->
+    <string name="cbs_description">Опис:</string>
+    <string name="cbs_created_at">Створений:</string>
+    <string name="cbs_chat_type">Тип:</string>
+    <string name="cbs_public_type">Публічний</string>
+    <string name="cbs_private_type">Приватний</string>
+    <string name="cbs_members">Учасники чату</string>
+
+    <!-- ChatDropdown -->
+    <string name="cdd_info">Інформація про чат</string>
+    <string name="cdd_leave">Покинути чат</string>
+
+</resources>

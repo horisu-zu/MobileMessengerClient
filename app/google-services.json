@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "540622425329",
+    "project_id": "newmessenger-16794",
+    "storage_bucket": "newmessenger-16794.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:540622425329:android:c5373038347d3056186d50",
+        "android_client_info": {
+          "package_name": "com.example.testapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDq_hzktt1U3DeokMQYHHt_Lc-blnk7aAM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
