@@ -7,6 +7,7 @@ object ApiServices {
     private var userApiService: UserApiService? = null
     private var chatApiService: ChatApiService? = null
     private var messageApiService: MessageApiService? = null
+    private var reactionApiService: ReactionApiService? = null
 
     fun initialize(dataStoreUtil: DataStoreUtil) {
         userApiService = RetrofitFactory.createApiService(
@@ -26,6 +27,12 @@ object ApiServices {
             MessageApiService::class.java,
             dataStoreUtil
         )
+
+        reactionApiService = RetrofitFactory.createApiService(
+            "${Defaults.baseUrl}:${Defaults.REACTION_SERVICE_PORT}/",
+            ReactionApiService::class.java,
+            dataStoreUtil
+        )
     }
 
     fun userApiService(): UserApiService {
@@ -38,5 +45,9 @@ object ApiServices {
 
     fun messageApiService(): MessageApiService {
         return messageApiService ?: throw IllegalStateException("ApiServices must be initialized before use")
+    }
+
+    fun reactionApiService(): ReactionApiService {
+        return reactionApiService ?: throw IllegalStateException("ApiServices must be initialized before use")
     }
 }

@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,7 +19,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.example.testapp.R
 import com.example.testapp.domain.dto.message.MessageRequest
 import com.example.testapp.domain.dto.message.MessageUpdateRequest
 import com.example.testapp.domain.models.message.Message
@@ -30,6 +33,7 @@ fun MessageInput(
     messageRequest: MessageRequest?,
     onMessageChange: (String) -> Unit,
     onSendMessage: (MessageRequest) -> Unit,
+    onMediaClick: () -> Unit,
     onUpdateMessage: (String, MessageUpdateRequest) -> Unit
 ) {
     Row(
@@ -53,6 +57,13 @@ fun MessageInput(
             //visualTransformation = MessageVisualTransformation(availableStyles),
             colors = messageInputColors()
         )
+        IconButton(onClick = onMediaClick ) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_clip),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+        }
         IconButton(
             onClick = {
                 if (editingMessage != null) {

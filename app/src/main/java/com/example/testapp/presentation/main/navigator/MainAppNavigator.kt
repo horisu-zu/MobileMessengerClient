@@ -8,7 +8,11 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -20,12 +24,16 @@ import androidx.navigation.navArgument
 import com.example.testapp.presentation.chat.ChatScreen
 import com.example.testapp.presentation.main.MainScreen
 import com.example.testapp.presentation.main.group.GroupAddNavigator
+import com.example.testapp.presentation.viewmodel.gallery.MediaViewModel
 import com.example.testapp.presentation.viewmodel.ThemeViewModel
 import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
 import com.example.testapp.presentation.viewmodel.message.MessageViewModel
+import com.example.testapp.presentation.viewmodel.reaction.ReactionViewModel
 import com.example.testapp.presentation.viewmodel.user.AuthManager
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
 import com.example.testapp.utils.DataStoreUtil
+import com.example.testapp.utils.Defaults.fetchEmojiUrls
+import com.google.firebase.storage.FirebaseStorage
 
 @Composable
 fun MainAppNavigator(
@@ -34,6 +42,8 @@ fun MainAppNavigator(
     chatViewModel: ChatViewModel,
     messageViewModel: MessageViewModel,
     themeViewModel: ThemeViewModel,
+    reactionViewModel: ReactionViewModel,
+    mediaViewModel: MediaViewModel,
     dataStoreUtil: DataStoreUtil,
     parentNavController: NavController
 ) {
@@ -42,6 +52,12 @@ fun MainAppNavigator(
     val currentBackStackEntry by mainNavController.currentBackStackEntryAsState()
     val currentUserState by userViewModel.currentUserState.collectAsStateWithLifecycle()
     val isInChat = currentBackStackEntry?.destination?.route?.startsWith("chatScreen") == true
+
+    var reactionUrls by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        reactionUrls = fetchEmojiUrls(FirebaseStorage.getInstance())
+    }
 
     AnimatedContent(
         targetState = isInChat,
@@ -85,6 +101,9 @@ fun MainAppNavigator(
                     messageViewModel = messageViewModel,
                     currentUser = currentUserState.data,
                     chatViewModel = chatViewModel,
+                    reactionViewModel = reactionViewModel,
+                    mediaViewModel = mediaViewModel,
+                    reactionUrls = reactionUrls,
                     mainNavController = mainNavController
                 )
             }

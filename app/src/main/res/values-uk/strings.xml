@@ -75,6 +75,11 @@
     <string name="cbs_private_type">Приватний</string>
     <string name="cbs_members">Учасники чату</string>
 
+    <!-- UserBottomSheet -->
+    <string name="ubs_members">Учасник з...</string>
+    <string name="ubs_message">Повідомлення</string>
+    <string name="ubs_report">Скарга</string>
+
     <!-- ChatDropdown -->
     <string name="cdd_info">Інформація про чат</string>
     <string name="cdd_leave">Покинути чат</string>

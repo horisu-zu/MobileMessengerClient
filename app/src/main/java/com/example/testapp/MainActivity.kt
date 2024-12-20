@@ -20,18 +20,20 @@ import androidx.navigation.compose.rememberNavController
 import com.example.testapp.di.api.ApiServices
 import com.example.testapp.di.websocket.MessageWebSocketClient
 import com.example.testapp.di.websocket.MetadataWebSocketClient
+import com.example.testapp.di.websocket.ReactionWebSocketClient
 import com.example.testapp.di.websocket.UserStatusWebSocketClient
 import com.example.testapp.domain.dto.user.UserStatusRequest
 import com.example.testapp.presentation.auth.AuthScreen
-import com.example.testapp.presentation.main.group.GroupAddNavigator
 import com.example.testapp.presentation.main.navigator.MainAppNavigator
 import com.example.testapp.presentation.profile.ProfileNavigator
 import com.example.testapp.presentation.splash.SplashScreen
+import com.example.testapp.presentation.viewmodel.gallery.MediaViewModel
 import com.example.testapp.presentation.viewmodel.ThemeViewModel
 import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
 import com.example.testapp.presentation.viewmodel.gallery.GalleryViewModel
 import com.example.testapp.presentation.viewmodel.main.MainViewModel
 import com.example.testapp.presentation.viewmodel.message.MessageViewModel
+import com.example.testapp.presentation.viewmodel.reaction.ReactionViewModel
 import com.example.testapp.presentation.viewmodel.user.AuthManager
 import com.example.testapp.presentation.viewmodel.user.AuthState
 import com.example.testapp.presentation.viewmodel.user.AuthViewModel
@@ -42,7 +44,6 @@ import com.example.testapp.utils.AvatarService
 import com.example.testapp.utils.DataStoreUtil
 import com.example.testapp.utils.Defaults
 import com.google.firebase.storage.FirebaseStorage
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -56,9 +57,11 @@ class MainActivity : ComponentActivity() {
     private lateinit var userViewModel: UserViewModel
     private lateinit var chatViewModel: ChatViewModel
     private lateinit var messageViewModel: MessageViewModel
+    private lateinit var reactionViewModel: ReactionViewModel
     private lateinit var webSocketClient: UserStatusWebSocketClient
     private lateinit var metadataWebSocketClient: MetadataWebSocketClient
     private lateinit var messageWebSocketClient: MessageWebSocketClient
+    private lateinit var reactionWebSocketClient: ReactionWebSocketClient
 
     override fun onResume() {
         super.onResume()
@@ -78,6 +81,7 @@ class MainActivity : ComponentActivity() {
         webSocketClient = UserStatusWebSocketClient(dataStoreUtil, Defaults.baseUrl)
         metadataWebSocketClient = MetadataWebSocketClient(dataStoreUtil)
         messageWebSocketClient = MessageWebSocketClient(dataStoreUtil)
+        reactionWebSocketClient = ReactionWebSocketClient(dataStoreUtil)
         ApiServices.initialize(dataStoreUtil)
 
         val systemTheme =
@@ -90,6 +94,7 @@ class MainActivity : ComponentActivity() {
         val userRepository = ApiServices.userApiService()
         val chatRepository = ApiServices.chatApiService()
         val messageRepository = ApiServices.messageApiService()
+        val reactionRepository = ApiServices.reactionApiService()
         themeViewModel = ThemeViewModel(dataStoreUtil, systemTheme)
         tokenManager = TokenManager(
             apiService = userRepository,
@@ -102,7 +107,9 @@ class MainActivity : ComponentActivity() {
             tokenManager = tokenManager,
             avatarService = avatarService
         )
+        //Maybe I should combine them...
         val galleryViewModel = GalleryViewModel()
+        val mediaViewModel = MediaViewModel()
         authViewModel = AuthViewModel(authManager)
         mainViewModel = MainViewModel(authManager)
         lifecycleScope.launch {
@@ -112,6 +119,7 @@ class MainActivity : ComponentActivity() {
                         userViewModel = UserViewModel(userRepository, dataStoreUtil, webSocketClient)
                         chatViewModel = ChatViewModel(chatRepository, dataStoreUtil, userViewModel, metadataWebSocketClient)
                         messageViewModel = MessageViewModel(messageRepository, dataStoreUtil, messageWebSocketClient)
+                        reactionViewModel = ReactionViewModel(reactionRepository, reactionWebSocketClient)
                     }
                     else -> {}
                 }
@@ -157,6 +165,8 @@ class MainActivity : ComponentActivity() {
                             chatViewModel = chatViewModel,
                             messageViewModel = messageViewModel,
                             themeViewModel = themeViewModel,
+                            reactionViewModel = reactionViewModel,
+                            mediaViewModel = mediaViewModel,
                             dataStoreUtil = dataStoreUtil,
                             parentNavController = navController
                         )

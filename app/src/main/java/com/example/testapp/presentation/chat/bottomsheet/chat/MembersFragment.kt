@@ -127,12 +127,12 @@ fun ChatMemberItem(
     ) {
         Box {
             Avatar(
-                avatarUrl = user.avatarUrl
+                avatarUrl = user.avatarUrl,
+                isGroupChat = true
             )
             OnlineFragment(
                 isOnline = userStatus.onlineStatus,
                 modifier = Modifier
-                    .padding(1.dp)
                     .align(Alignment.BottomEnd)
             )
         }
@@ -159,8 +159,10 @@ fun OnlineFragment(
 ) {
     Box(
         modifier = modifier
-            .size(12.dp)
+            .size(18.dp)
             .clip(CircleShape)
-            .background(if (isOnline) Color.Green else Color.Gray)
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(3.dp)
+            .background(if (isOnline) Color.Green else Color.LightGray, shape = CircleShape)
     )
 }

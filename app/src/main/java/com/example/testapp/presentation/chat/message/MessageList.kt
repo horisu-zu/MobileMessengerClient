@@ -8,20 +8,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.models.message.Message
+import com.example.testapp.domain.models.reaction.Reaction
+import com.example.testapp.utils.Converter.groupMessagesInSequence
+import com.example.testapp.utils.Converter.groupReactions
 
 @Composable
 fun MessageList(
     currentUserId: String,
     messages: Map<String, Message>,
     usersData: Map<String, UserResponse>,
+    reactionsMap: Map<String, List<Reaction>>,
+    reactionUrls: List<String>,
     onAvatarClick: (UserResponse) -> Unit,
     onReplyClick: (Message) -> Unit,
     onEditClick: (Message) -> Unit,
-    onDeleteClick: (String) -> Unit
+    onDeleteClick: (String) -> Unit,
+    onReactionClick: (String, String, String) -> Unit,
+    onReactionLongClick: (String) -> Unit
 ) {
     val listState = rememberLazyListState()
 
@@ -50,8 +56,13 @@ fun MessageList(
                     usersData[senderId]
                 }
 
+                val messageReactions = reactionsMap[message.messageId]?.let { reactions ->
+                    groupReactions(reactions)
+                } ?: emptyMap()
+
                 usersData[message.senderId]?.let { user ->
                     MessageItem(
+                        currentUserId = currentUserId,
                         isCurrentUser = currentUserId == message.senderId,
                         isFirstInGroup = isFirstInGroup,
                         isLastInGroup = isLastInGroup,
@@ -59,25 +70,18 @@ fun MessageList(
                         onReplyClick = onReplyClick,
                         onEditClick = onEditClick,
                         onDeleteClick = onDeleteClick,
+                        onReactionClick = onReactionClick,
+                        onReactionLongClick = onReactionLongClick,
                         message = message,
                         replyMessage = replyMessage,
                         replyUserData = replyUserData,
-                        userData = user
+                        reactionsMap = messageReactions,
+                        reactionUrls = reactionUrls,
+                        userData = user,
+                        usersData = usersData
                     )
                 }
             }
         }
-    }
-}
-
-fun groupMessagesInSequence(messages: Map<String, Message>): List<List<Message>> {
-    val sortedMessages = messages.values.sortedByDescending { it.createdAt }
-    return sortedMessages.fold(mutableListOf<MutableList<Message>>()) { groups, message ->
-        if (groups.isEmpty() || groups.last().first().senderId != message.senderId) {
-            groups.add(mutableListOf(message))
-        } else {
-            groups.last().add(message)
-        }
-        groups
     }
 }

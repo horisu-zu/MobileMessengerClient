@@ -21,15 +21,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
 import com.example.testapp.domain.dto.message.MessageRequest
-import com.example.testapp.domain.dto.message.MessageUpdateRequest
 import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.domain.models.message.Message
 import com.example.testapp.presentation.chat.bottomsheet.chat.ChatBottomSheet
 import com.example.testapp.presentation.chat.message.MessageList
+import com.example.testapp.presentation.templates.media.MediaBottomSheet
+import com.example.testapp.presentation.templates.media.MediaType
+import com.example.testapp.presentation.viewmodel.gallery.MediaViewModel
 import com.example.testapp.presentation.user.bottomsheet.UserBottomSheet
 import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
 import com.example.testapp.presentation.viewmodel.message.MessageViewModel
+import com.example.testapp.presentation.viewmodel.reaction.ReactionViewModel
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
 import com.example.testapp.utils.Resource
 import kotlinx.coroutines.launch
@@ -41,6 +44,9 @@ fun ChatScreen(
     userViewModel: UserViewModel,
     chatViewModel: ChatViewModel,
     messageViewModel: MessageViewModel,
+    reactionViewModel: ReactionViewModel,
+    mediaViewModel: MediaViewModel,
+    reactionUrls: List<String>,
     mainNavController: NavController
 ) {
     val context = LocalContext.current
@@ -50,6 +56,14 @@ fun ChatScreen(
     val messagesState by messageViewModel.chatMessagesState.collectAsState()
     val chatState by chatViewModel.chatState.collectAsState()
     val participantsState by chatViewModel.chatParticipantsState.collectAsState()
+    val reactionsState by reactionViewModel.chatReactionsState.collectAsState()
+
+    //MediaViewModel states
+    val images by mediaViewModel.images.collectAsState()
+    val documents by mediaViewModel.documents.collectAsState()
+    val audio by mediaViewModel.audio.collectAsState()
+    val videos by mediaViewModel.videos.collectAsState()
+    val showMediaBottomSheet = remember { mutableStateOf(false) }
 
     val coroutineScope = rememberCoroutineScope()
     val showBottomSheet = remember { mutableStateOf(false) }
@@ -97,6 +111,18 @@ fun ChatScreen(
             userIds?.let {
                 userViewModel.getUsersByIds(userIds)
             }
+        }
+    }
+
+    val messageIds = remember(messagesState) {
+        if (messagesState is Resource.Success) {
+            messagesState.data?.mapNotNull { it.messageId } ?: emptyList()
+        } else emptyList()
+    }
+
+    LaunchedEffect(messageIds) {
+        if (messageIds.isNotEmpty()) {
+            reactionViewModel.loadReactionsForMessages(messageIds)
         }
     }
 
@@ -166,6 +192,8 @@ fun ChatScreen(
                                     currentUserId = currentUser?.userId ?: "bruh",
                                     messages = messagesState.data?.associateBy { it.messageId!! } ?: emptyMap(),
                                     usersData = it.associateBy { user -> user.userId },
+                                    reactionsMap = reactionsState.data ?: emptyMap(),
+                                    reactionUrls = reactionUrls,
                                     onAvatarClick = { userResponse ->
                                         selectedUser.value = userResponse
                                         showPersonalBottomSheet.value = true
@@ -182,6 +210,14 @@ fun ChatScreen(
                                         coroutineScope.launch {
                                             messageViewModel.deleteMessage(messageId)
                                         }
+                                    },
+                                    onReactionClick = { messageId, userId, emoji ->
+                                        coroutineScope.launch {
+                                            reactionViewModel.toggleReaction(messageId, userId, emoji)
+                                        }
+                                    },
+                                    onReactionLongClick = {
+
                                     }
                                 )
                             }
@@ -234,6 +270,7 @@ fun ChatScreen(
                             clearInputState()
                         }
                     },
+                    onMediaClick = { showMediaBottomSheet.value = true },
                     onUpdateMessage = { messageId, updateRequest ->
                         coroutineScope.launch {
                             messageViewModel.updateMessage(messageId, updateRequest)
@@ -269,6 +306,8 @@ fun ChatScreen(
                                 currentUserId = currentUser?.userId ?: "meh",
                                 userData = userData,
                                 userStatus = userStatus,
+                                chatParticipant = participantsState.data?.find { it.userId == userData.userId },
+                                avatarUrl = metadataState.data?.avatar,
                                 onDismiss = { showPersonalBottomSheet.value = false },
                                 showBottomSheet = showPersonalBottomSheet.value,
                                 context = context
@@ -276,6 +315,27 @@ fun ChatScreen(
                         }
                     }
                 }
+            }
+            if(showMediaBottomSheet.value) {
+                MediaBottomSheet(
+                    images = images,
+                    documents = documents,
+                    audio = audio,
+                    videos = videos,
+                    onMediaSelected = { uri, type ->
+                        when (type) {
+                            MediaType.IMAGES -> { /**/ }
+                            MediaType.DOCUMENTS -> { /**/ }
+                            MediaType.AUDIO -> { /**/ }
+                            MediaType.VIDEO -> { /**/ }
+                        }
+                    },
+                    onDismiss = { showMediaBottomSheet.value = false },
+                    onRequestPermission = { mediaType ->
+                        mediaViewModel.loadMedia(context, mediaType)
+                    },
+                    context = context
+                )
             }
         }
     }

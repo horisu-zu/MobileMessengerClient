@@ -20,8 +20,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.testapp.R
 import com.example.testapp.domain.dto.user.UserResponse
 
 @Composable
@@ -42,13 +44,13 @@ fun UserInteraction(
             verticalAlignment = Alignment.CenterVertically
         ) {
             UserInteractionItem(
-                title = "Message",
+                title = stringResource(id = R.string.ubs_message),
                 icon = Icons.Default.Email,
                 onItemClick = { onMessageClick(userData.userId) },
                 modifier = Modifier.weight(1f)
             )
             UserInteractionItem(
-                title = "Report",
+                title = stringResource(id = R.string.ubs_report),
                 icon = Icons.Default.Warning,
                 onItemClick = onReportClick,
                 modifier = Modifier.weight(1f)

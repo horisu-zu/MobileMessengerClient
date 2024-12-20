@@ -14,6 +14,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.testapp.domain.dto.user.UserResponse
+import com.example.testapp.domain.models.chat.Chat
+import com.example.testapp.domain.models.chat.ChatParticipant
 import com.example.testapp.domain.models.user.UserStatus
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -22,6 +24,8 @@ fun UserBottomSheet(
     currentUserId: String,
     userData: UserResponse,
     userStatus: UserStatus,
+    chatParticipant: ChatParticipant? = null,
+    avatarUrl: String? = null,
     showBottomSheet: Boolean = false,
     onDismiss: () -> Unit,
     context: Context
@@ -47,6 +51,13 @@ fun UserBottomSheet(
                     userStatus = userStatus,
                     context = context
                 )
+                avatarUrl?.let {
+                    MemberInfo(
+                        userData = userData,
+                        chatParticipant = chatParticipant!!,
+                        avatarUrl = it
+                    )
+                }
                 UserInteraction(
                     userData = userData,
                     onMessageClick = { },

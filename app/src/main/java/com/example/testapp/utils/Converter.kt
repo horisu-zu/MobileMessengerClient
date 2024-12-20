@@ -1,6 +1,9 @@
 package com.example.testapp.utils
 
+import android.util.Log
 import com.example.testapp.domain.models.message.Attachment
+import com.example.testapp.domain.models.message.Message
+import com.example.testapp.domain.models.reaction.Reaction
 
 object Converter {
     fun getAttachmentDescription(attachments: List<Attachment>): String {
@@ -23,6 +26,25 @@ object Converter {
             }
             counts.size > 1 -> "${attachments.size} medias"
             else -> "No attachments"
+        }
+    }
+
+    fun groupReactions(reactions: List<Reaction>): Map<String, List<Reaction>> {
+        Log.d("ReactionsList", "Reactions: $reactions")
+        return reactions
+            .sortedBy { it.createdAt }
+            .groupBy { it.emojiReaction }
+    }
+
+    fun groupMessagesInSequence(messages: Map<String, Message>): List<List<Message>> {
+        val sortedMessages = messages.values.sortedByDescending { it.createdAt }
+        return sortedMessages.fold(mutableListOf<MutableList<Message>>()) { groups, message ->
+            if (groups.isEmpty() || groups.last().first().senderId != message.senderId) {
+                groups.add(mutableListOf(message))
+            } else {
+                groups.last().add(message)
+            }
+            groups
         }
     }
 }

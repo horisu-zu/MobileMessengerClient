@@ -76,6 +76,11 @@
     <string name="cbs_private_type">Private</string>
     <string name="cbs_members">Chat Members</string>
 
+    <!-- UserBottomSheet -->
+    <string name="ubs_members">Member since...</string>
+    <string name="ubs_message">Message</string>
+    <string name="ubs_report">Report</string>
+
     <!-- ChatDropdown -->
     <string name="cdd_info">Chat Info</string>
     <string name="cdd_leave">Leave Chat</string>

@@ -2,10 +2,9 @@ package com.example.testapp.di.websocket
 
 import android.util.Log
 import com.example.testapp.di.InstantAdapter
-import com.example.testapp.di.MessageEventJsonAdapter
-import com.example.testapp.domain.dto.message.MessageEvent
-import com.example.testapp.domain.dto.message.MessageEventWrapper
-import com.example.testapp.domain.dto.message.MessageStreamMode
+import com.example.testapp.di.ReactionEventJsonAdapter
+import com.example.testapp.domain.dto.reaction.ReactionEvent
+import com.example.testapp.domain.dto.reaction.ReactionEventWrapper
 import com.example.testapp.presentation.viewmodel.user.AuthInterceptor
 import com.example.testapp.utils.DataStoreUtil
 import com.example.testapp.utils.Defaults
@@ -23,92 +22,83 @@ import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
 
-class MessageWebSocketClient(
+class ReactionWebSocketClient(
     private val dataStoreUtil: DataStoreUtil
 ) {
     private var webSocket: WebSocket? = null
-    private val messageUpdatesChannel = Channel<Map<String, MessageEvent>>(Channel.CONFLATED)
+    private val reactionUpdatesChannel = Channel<Map<String, ReactionEvent>>(Channel.CONFLATED)
     private val moshi = Moshi.Builder()
         .add(KotlinJsonAdapterFactory())
         .add(InstantAdapter())
-        //.add(MessageEventJsonAdapter())
+        //.add(ReactionEventJsonAdapter())
         .build()
 
     private val okHttpClient = OkHttpClient.Builder()
         .addInterceptor(AuthInterceptor(dataStoreUtil))
         .build()
 
-    fun connect(chatIds: List<String>, mode: MessageStreamMode) {
+    fun connect(messageIds: List<String>) {
         val request = Request.Builder()
             .url(
-                "${baseUrl.trimEnd('/')}:${Defaults.MESSAGE_SERVICE_PORT}/ws/messages?chatIds=${
-                    chatIds.joinToString(
-                        ","
-                    )
-                }&mode=${mode.name}"
+                "${baseUrl.trimEnd('/')}:${Defaults.REACTION_SERVICE_PORT}" +
+                        "/ws/reactions?messageIds=${messageIds.joinToString(",")}"
             )
             .build()
 
         webSocket = okHttpClient.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
-                Log.d("MessageWebSocket", "Connection opened with protocol: ${response.protocol}")
+                Log.d("ReactionWebSocket", "Connection opened with protocol: ${response.protocol}")
             }
 
             override fun onMessage(webSocket: WebSocket, text: String) {
-                Log.d("MessageWebSocket", "Received message: $text")
+                Log.d("ReactionWebSocket", "Received message: $text")
                 try {
-                    val messageMap = parseMessageUpdate(text)
-                    Log.d("MessageWebSocket", "Parsed message map: $messageMap")
-                    messageUpdatesChannel.trySend(messageMap)
+                    val reactionMap = parseReactionUpdate(text)
+                    Log.d("ReactionWebSocket", "Parsed message map: $reactionMap")
+                    reactionUpdatesChannel.trySend(reactionMap)
                 } catch (e: Exception) {
-                    Log.e("MessageWebSocket", "Error parsing message", e)
+                    Log.e("ReactionWebSocket", "Error parsing message", e)
                 }
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
-                Log.e("MessageWebSocket", "WebSocket failed", t)
+                Log.e("ReactionWebSocket", "WebSocket failed", t)
             }
 
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
-                Log.d("MessageWebSocket", "WebSocket closed: $reason")
+                Log.d("ReactionWebSocket", "WebSocket closed: $reason")
             }
         })
     }
 
     fun disconnect() {
-        Log.d("MessageWebSocket", "Disconnected")
+        Log.d("ReactionWebSocket", "Disconnected")
         webSocket?.close(1000, "Closing connection")
         webSocket = null
     }
 
-    fun getMessageUpdates(): Flow<Map<String, MessageEvent>> = messageUpdatesChannel.receiveAsFlow()
+    fun getReactionUpdates(): Flow<Map<String, ReactionEvent>> = reactionUpdatesChannel.receiveAsFlow()
 
-    private fun parseMessageUpdate(json: String): Map<String, MessageEvent> {
+    private fun parseReactionUpdate(json: String): Map<String, ReactionEvent> {
         val mapType = Types.newParameterizedType(
             Map::class.java,
             String::class.java,
-            MessageEventWrapper::class.java
+            ReactionEventWrapper::class.java
         )
-        val mapAdapter = moshi.adapter<Map<String, MessageEventWrapper>>(mapType)
+        val mapAdapter = moshi.adapter<Map<String, ReactionEventWrapper>>(mapType)
 
         return try {
             val wrappedMap = mapAdapter.fromJson(json) ?: return emptyMap()
             wrappedMap.mapValues { (_, wrapper) ->
                 when (wrapper.type) {
-                    "MessageCreated" -> MessageEvent.MessageCreated(wrapper.message)
-                    "MessageUpdated" -> MessageEvent.MessageUpdated(wrapper.message)
-                    "MessageDeleted" -> MessageEvent.MessageDeleted(wrapper.message)
+                    "ReactionAdded" -> { ReactionEvent.ReactionAdded(wrapper.reaction) }
+                    "ReactionRemoved" -> { ReactionEvent.ReactionRemoved(wrapper.reaction) }
                     else -> throw JsonDataException("Unknown message event type: ${wrapper.type}")
                 }
             }
         } catch (e: Exception) {
-            Log.e("MessageWebSocket", "Error parsing JSON: $json", e)
+            Log.e("ReactionWebSocket", "Error parsing JSON: $json", e)
             throw e
         }
     }
-
-    /*private fun parseMessageEvent(json: String): MessageEvent {
-        val jsonAdapter = moshi.adapter(MessageEvent::class.java)
-        return jsonAdapter.fromJson(json) ?: throw IllegalArgumentException("Invalid message event")
-    }*/
 }

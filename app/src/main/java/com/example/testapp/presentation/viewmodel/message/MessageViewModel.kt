@@ -51,6 +51,7 @@ class MessageViewModel(
     }
 
     private fun processWebSocketUpdates(updates: Map<String, MessageEvent>) {
+        Log.d("MessageViewModel", "Event: $updates")
         updates.forEach { (chatId, event) ->
             when (currentMode) {
                 MessageStreamMode.FULL_CHAT -> {
@@ -58,11 +59,7 @@ class MessageViewModel(
                         currentChatMessages = currentChatMessages.toMutableList().apply {
                             when (event) {
                                 is MessageEvent.MessageCreated -> add(event.message)
-                                is MessageEvent.MessageUpdated -> {
-                                    val index = indexOfFirst { it.messageId == event.message.messageId }
-                                    if (index != -1) set(index, event.message)
-                                        else add(event.message)
-                                }
+                                is MessageEvent.MessageUpdated -> add(event.message)
                                 is MessageEvent.MessageDeleted -> {
                                     removeAll { it.messageId == event.message.messageId }
                                 }
