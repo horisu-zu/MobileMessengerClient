@@ -111,10 +111,10 @@ private fun IconBox(size: Dp, content: @Composable () -> Unit) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun inputColors() = TextFieldDefaults.textFieldColors(
-    containerColor = MaterialTheme.colorScheme.onPrimary,
+fun inputColors() = TextFieldDefaults.colors(
+    unfocusedContainerColor = MaterialTheme.colorScheme.onPrimary,
+    focusedContainerColor = MaterialTheme.colorScheme.onPrimary,
     unfocusedIndicatorColor = Color.Transparent,
     focusedIndicatorColor = Color.Transparent,
     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,

@@ -9,9 +9,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
@@ -26,6 +34,8 @@ import com.example.testapp.domain.models.message.Message
 import com.example.testapp.domain.models.reaction.Reaction
 import com.example.testapp.presentation.chat.dropdown.MessageDropdown
 import com.example.testapp.presentation.templates.Avatar
+import com.example.testapp.presentation.templates.MessageSwipeBackground
+import kotlin.math.absoluteValue
 
 @Composable
 fun MessageItem(
@@ -55,12 +65,42 @@ fun MessageItem(
 
     val topPadding = when {
         isFirstInGroup -> 8.dp
-        else -> 2.dp
+        else -> 0.dp
     }
 
     val bottomPadding = when {
         isLastInGroup -> 8.dp
-        else -> 2.dp
+        else -> 0.dp
+    }
+
+    val thresholdValue = 240f
+    var lastKnownOffset by remember { mutableFloatStateOf(0f) }
+
+    val dismissState = rememberSwipeToDismissBoxState(
+        positionalThreshold = { thresholdValue },
+        confirmValueChange = { value ->
+            when (value) {
+                SwipeToDismissBoxValue.EndToStart -> {
+                    if (lastKnownOffset >= thresholdValue) {
+                        onReplyClick(message)
+                    }
+                    false
+                }
+                else -> false
+            }
+        }
+    )
+
+    LaunchedEffect(dismissState) {
+        snapshotFlow {
+            try {
+                dismissState.requireOffset()
+            } catch (e: IllegalStateException) {
+                0f
+            }
+        }.collect { offset ->
+            lastKnownOffset = offset.absoluteValue
+        }
     }
 
     BoxWithConstraints(
@@ -70,118 +110,131 @@ fun MessageItem(
     ) {
         val maxWidth = maxWidth
 
-        ConstraintLayout(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            val (avatar, messageSurface, reactionFragment, dateFragment) = createRefs()
-
-            if (!isCurrentUser && isLastInGroup) {
-                Avatar(
-                    avatarUrl = userData.avatarUrl,
-                    modifier = Modifier.constrainAs(avatar) {
-                        start.linkTo(parent.start)
-                        bottom.linkTo(messageSurface.bottom)
-                    },
-                    onClick = { onAvatarClick(userData) }
+        SwipeToDismissBox(
+            state = dismissState,
+            modifier = Modifier.fillMaxWidth(),
+            enableDismissFromStartToEnd = false,
+            backgroundContent = {
+                MessageSwipeBackground(
+                    dismissState = dismissState,
+                    threshold = thresholdValue,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
-
-            Surface(
-                shape = messageShape(isCurrentUser, isFirstInGroup, isLastInGroup),
-                color = backgroundColor,
-                modifier = Modifier
-                    .constrainAs(messageSurface) {
-                        top.linkTo(parent.top)
-                        if (isCurrentUser) {
-                            end.linkTo(parent.end)
-                        } else {
-                            if (isLastInGroup) {
-                                start.linkTo(avatar.end, margin = 8.dp)
-                            } else {
-                                start.linkTo(parent.start, margin = 56.dp)
-                            }
-                        }
-                        width = Dimension.preferredWrapContent.atMost(0.75 * maxWidth)
-                    }
+        ) {
+            ConstraintLayout(
+                modifier = Modifier.fillMaxWidth()
             ) {
-                Column(
+                val (avatar, messageSurface, reactionFragment, dateFragment) = createRefs()
+
+                if (!isCurrentUser && isLastInGroup) {
+                    Avatar(
+                        avatarUrl = userData.avatarUrl,
+                        modifier = Modifier.constrainAs(avatar) {
+                            start.linkTo(parent.start)
+                            bottom.linkTo(messageSurface.bottom)
+                        },
+                        onClick = { onAvatarClick(userData) }
+                    )
+                }
+
+                Surface(
+                    shape = messageShape(isCurrentUser, isFirstInGroup, isLastInGroup),
+                    color = backgroundColor,
                     modifier = Modifier
-                        .width(IntrinsicSize.Max)
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onTap = { offset ->
-                                    dropdownPosition.value = offset
-                                    showDropdown.value = true
+                        .constrainAs(messageSurface) {
+                            top.linkTo(parent.top)
+                            if (isCurrentUser) {
+                                end.linkTo(parent.end)
+                            } else {
+                                if (isLastInGroup) {
+                                    start.linkTo(avatar.end, margin = 8.dp)
+                                } else {
+                                    start.linkTo(parent.start, margin = 56.dp)
                                 }
-                            )
+                            }
+                            width = Dimension.preferredWrapContent.atMost(0.75 * maxWidth)
                         }
                 ) {
-                    val attachmentsExists = attachments.isNotEmpty()
+                    Column(
+                        modifier = Modifier
+                            .width(IntrinsicSize.Max)
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = { offset ->
+                                        dropdownPosition.value = offset
+                                        showDropdown.value = true
+                                    }
+                                )
+                            }
+                    ) {
+                        val attachmentsExists = attachments.isNotEmpty()
 
-                    if (replyMessage != null && replyUserData != null) {
-                        ReplyFragment(
-                            replyMessage = replyMessage,
-                            userData = replyUserData,
-                            onReplyClick = { /**/ },
-                            modifier = Modifier
-                                .padding(start = 12.dp, end = 12.dp, top = 8.dp)
-                                .fillMaxWidth()
-                        )
-                    }
+                        if (replyMessage != null && replyUserData != null) {
+                            ReplyFragment(
+                                replyMessage = replyMessage,
+                                userData = replyUserData,
+                                onReplyClick = { /**/ },
+                                modifier = Modifier
+                                    .padding(start = 12.dp, end = 12.dp, top = 8.dp)
+                                    .fillMaxWidth()
+                            )
+                        }
 
-                    message.message?.let {
-                        MessageTextFragment(
-                            message = message.message,
-                            replyMessage = replyMessage != null,
-                        )
-                    }
-                }
-            }
-
-            MessageDateFragment(
-                isCurrentUser = isCurrentUser,
-                messageData = message,
-                modifier = Modifier.constrainAs(dateFragment) {
-                    if (isCurrentUser) {
-                        end.linkTo(messageSurface.start, margin = 8.dp)
-                    } else {
-                        start.linkTo(messageSurface.end, margin = 8.dp)
-                    }
-                    bottom.linkTo(messageSurface.bottom, margin = 4.dp)
-                }
-            )
-
-            message.messageId?.let { messageId ->
-                ReactionFragment(
-                    groupedReactions = reactionsMap,
-                    messageId = messageId,
-                    currentUserId = currentUserId,
-                    usersData = usersData,
-                    onReactionClick = onReactionClick,
-                    onReactionLongClick = onReactionLongClick,
-                    modifier = Modifier.constrainAs(reactionFragment) {
-                        top.linkTo(messageSurface.bottom)
-                        if (isCurrentUser) {
-                            end.linkTo(parent.end)
-                        } else {
-                            start.linkTo(messageSurface.start)
+                        message.message?.let {
+                            MessageTextFragment(
+                                message = message.message,
+                                replyMessage = replyMessage != null,
+                            )
                         }
                     }
+                }
+
+                MessageDateFragment(
+                    isCurrentUser = isCurrentUser,
+                    messageData = message,
+                    modifier = Modifier.constrainAs(dateFragment) {
+                        if (isCurrentUser) {
+                            end.linkTo(messageSurface.start, margin = 8.dp)
+                        } else {
+                            start.linkTo(messageSurface.end, margin = 8.dp)
+                        }
+                        bottom.linkTo(messageSurface.bottom, margin = 4.dp)
+                    }
+                )
+
+                message.messageId?.let { messageId ->
+                    ReactionFragment(
+                        groupedReactions = reactionsMap,
+                        messageId = messageId,
+                        currentUserId = currentUserId,
+                        usersData = usersData,
+                        onReactionClick = onReactionClick,
+                        onReactionLongClick = onReactionLongClick,
+                        modifier = Modifier.constrainAs(reactionFragment) {
+                            top.linkTo(messageSurface.bottom)
+                            if (isCurrentUser) {
+                                end.linkTo(parent.end)
+                            } else {
+                                start.linkTo(messageSurface.start)
+                            }
+                        }
+                    )
+                }
+
+                MessageDropdown(
+                    reactionUrls = reactionUrls,
+                    currentUserId = currentUserId,
+                    expanded = showDropdown.value,
+                    horizontalOffset = dropdownPosition.value.x.dp,
+                    onDismissRequest = { showDropdown.value = false },
+                    messageData = message,
+                    onReplyMessage = onReplyClick,
+                    onEditMessage = onEditClick,
+                    onDeleteMessage = onDeleteClick,
+                    onToggleReaction = onReactionClick
                 )
             }
-
-            MessageDropdown(
-                reactionUrls = reactionUrls,
-                currentUserId = currentUserId,
-                expanded = showDropdown.value,
-                horizontalOffset = dropdownPosition.value.x.dp,
-                onDismissRequest = { showDropdown.value = false },
-                messageData = message,
-                onReplyMessage = onReplyClick,
-                onEditMessage = onEditClick,
-                onDeleteMessage = onDeleteClick,
-                onToggleReaction = onReactionClick
-            )
         }
     }
 }

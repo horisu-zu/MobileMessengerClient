@@ -89,10 +89,10 @@ fun MessageInput(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun messageInputColors() = TextFieldDefaults.textFieldColors(
-    containerColor = MaterialTheme.colorScheme.surfaceVariant,
+fun messageInputColors() = TextFieldDefaults.colors(
+    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
     unfocusedIndicatorColor = Color.Transparent,
     focusedIndicatorColor = Color.Transparent,
     unfocusedTextColor = MaterialTheme.colorScheme.onSurface,

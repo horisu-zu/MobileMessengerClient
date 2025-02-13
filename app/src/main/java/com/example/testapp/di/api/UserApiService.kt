@@ -16,13 +16,13 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface UserApiService {
-    @POST("auth/login")
+    @POST("api/users/auth/login")
     suspend fun login(@Body userLogin: UserLogin): AuthResponse
 
-    @POST("auth/register")
+    @POST("api/users/auth/register")
     suspend fun register(@Body user: UserRequest): AuthResponse
 
-    @POST("auth/refresh")
+    @POST("api/users/auth/refresh")
     suspend fun refreshTokens(@Body request: RefreshTokenRequest): AuthResponse
 
     @GET("api/users/{id}")

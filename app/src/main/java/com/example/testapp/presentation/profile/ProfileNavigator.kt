@@ -31,7 +31,7 @@ fun ProfileNavigator(
 ) {
     val profileNavController = rememberNavController()
     val currentBackStackEntry by profileNavController.currentBackStackEntryAsState()
-    val currentRoute = currentBackStackEntry?.destination?.route ?: "profileScreen"
+    val currentRoute = currentBackStackEntry?.destination?.route
     val currentUserState by userViewModel.currentUserState.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
@@ -66,8 +66,7 @@ fun ProfileNavigator(
             }
             composable(route = "languageScreen") {
                 LanguageScreen(
-                    onLanguageSelected = {
-                    },
+                    onLanguageSelected = {},
                     profileNavController = profileNavController
                 )
             }

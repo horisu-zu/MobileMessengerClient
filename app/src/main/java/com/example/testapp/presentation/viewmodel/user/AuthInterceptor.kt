@@ -13,7 +13,7 @@ class AuthInterceptor(private val dataStoreUtil: DataStoreUtil) : Interceptor {
 
         val accessToken = runBlocking { dataStoreUtil.getAccessToken().first() }
 
-        if (originalRequest.url.encodedPath.startsWith("/auth/")) {
+        if (originalRequest.url.encodedPath.startsWith("/api/users/auth/")) {
             return chain.proceed(originalRequest)
         }
 

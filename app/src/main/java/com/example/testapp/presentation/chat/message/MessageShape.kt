@@ -30,7 +30,12 @@ fun messageShape(
                     )
                 }
                 else -> {
-                    RoundedCornerShape(16.dp)
+                    RoundedCornerShape(
+                        topStart = 16.dp,
+                        bottomStart = 16.dp,
+                        topEnd = 4.dp,
+                        bottomEnd = 4.dp
+                    )
                 }
             }
         }
@@ -53,7 +58,12 @@ fun messageShape(
                     )
                 }
                 else -> {
-                    RoundedCornerShape(16.dp)
+                    RoundedCornerShape(
+                        topStart = 4.dp,
+                        bottomStart = 4.dp,
+                        topEnd = 16.dp,
+                        bottomEnd = 16.dp
+                    )
                 }
             }
         }
