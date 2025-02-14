@@ -49,4 +49,23 @@ interface MessageApiService {
         @Path("messageId") messageId: String,
         @Body attachmentUrl: String
     )
+
+    @POST("/{chatId}/{messageId}/mark-read")
+    fun markMessagesAsRead(
+        @Path("chatId") chatId: String,
+        @Path("messageId") messageId: String,
+        @Body userId: String
+    ): Int
+
+    @GET("/{chatId}/{userId}/count")
+    fun getUnreadMessagesCount(
+        @Path("chatId") chatId: String,
+        @Path("messageId") userId: String,
+    ): Int
+
+    @GET("/{chatId}/{userId}/messages")
+    fun getUnreadMessages(
+        @Path("chatId") chatId: String,
+        @Path("messageId") userId: String,
+    ): List<Message>
 }

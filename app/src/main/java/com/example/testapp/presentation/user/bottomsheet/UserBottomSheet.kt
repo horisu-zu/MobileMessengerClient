@@ -14,7 +14,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.example.testapp.domain.dto.user.UserResponse
-import com.example.testapp.domain.models.chat.Chat
 import com.example.testapp.domain.models.chat.ChatParticipant
 import com.example.testapp.domain.models.user.UserStatus
 

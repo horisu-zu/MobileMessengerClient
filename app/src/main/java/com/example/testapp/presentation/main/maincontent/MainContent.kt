@@ -1,75 +1,48 @@
 package com.example.testapp.presentation.main.maincontent
 
-import android.util.Log
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
-import com.example.testapp.presentation.viewmodel.message.MessageViewModel
-import com.example.testapp.presentation.viewmodel.user.UserViewModel
+import com.example.testapp.presentation.viewmodel.chat.ChatDisplayViewModel
 import com.example.testapp.utils.Resource
 
 @Composable
 fun MainContent(
-    chatViewModel: ChatViewModel,
-    userViewModel: UserViewModel,
-    messageViewModel: MessageViewModel,
+    chatDisplayViewModel: ChatDisplayViewModel = hiltViewModel(),
     currentUserId: String,
     mainNavController: NavController
 ) {
-    val chatsListState by chatViewModel.userChatsState.collectAsStateWithLifecycle()
-    val chatDisplayDataState by chatViewModel.chatDisplayDataState.collectAsStateWithLifecycle()
-    val lastMessagesState by messageViewModel.lastMessagesState.collectAsStateWithLifecycle()
+    val chatDisplayDataState = chatDisplayViewModel.chatListItemsState.collectAsState()
 
-    val effectKey = remember(currentUserId) { currentUserId }
-    LaunchedEffect(effectKey) {
-        Log.d("MainScreen", "Start observing chats triggered")
-        chatViewModel.startObservingChats(currentUserId)
+    LaunchedEffect(currentUserId) {
+        chatDisplayViewModel.startObservingChats(userId = currentUserId)
     }
 
-    when (chatsListState) {
-        is Resource.Loading -> {
-            //LoadingIndicator()
-        }
-
-        is Resource.Error -> {
-            //ErrorContent(...
-        }
-
+    when(chatDisplayDataState.value) {
+        is Resource.Error -> { /*TODO*/ }
+        is Resource.Loading -> { /*TODO*/ }
         is Resource.Success -> {
-            val chats = chatsListState.data ?: emptyList()
-            val chatIds = chats.mapNotNull { it.chatId }
+            val chatDisplayData = chatDisplayDataState.value.data
 
-            LaunchedEffect(chatIds) {
-                if (chatIds.isNotEmpty()) {
-                    messageViewModel.getLastMessages(chatIds)
+            LazyColumn(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                items(chatDisplayData?.entries?.toList() ?: emptyList()) { (_, chatItem) ->
+                    ChatItem(
+                        currentUserId = currentUserId,
+                        chat = chatItem,
+                        onChatClick = { chatId ->
+                            mainNavController.navigate("chatScreen/${chatId}")
+                        }
+                    )
                 }
             }
-
-            LaunchedEffect(chats.map { it.chatId }) {
-                Log.d("MainScreen", "Load chat display data triggered")
-                chats.filter { chat ->
-                    chat.chatId?.let { chatId ->
-                        chatDisplayDataState[chatId] !is Resource.Success
-                    } ?: false
-                }.forEach { chat ->
-                    chatViewModel.loadChatDisplayData(chat, currentUserId)
-                }
-            }
-
-            ChatsList(
-                currentUserId = currentUserId,
-                chats = chats,
-                displayDataState = chatDisplayDataState,
-                lastMessages = lastMessagesState.data,
-                userViewModel = userViewModel,
-                onChatClick = { chatId ->
-                    mainNavController.navigate("chatScreen/$chatId")
-                }
-            )
         }
     }
 }

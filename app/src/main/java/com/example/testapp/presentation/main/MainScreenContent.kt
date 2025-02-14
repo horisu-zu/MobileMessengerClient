@@ -8,20 +8,19 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.testapp.presentation.main.maincontent.MainContent
 import com.example.testapp.presentation.main.searchscreen.SearchScreen
 import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
-import com.example.testapp.presentation.viewmodel.message.MessageViewModel
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
 
 @Composable
 fun MainScreenContent(
     onSearchTypeChange: (SearchType) -> Unit,
     isSearchActive: Boolean,
-    userViewModel: UserViewModel,
-    chatViewModel: ChatViewModel,
-    messageViewModel: MessageViewModel,
+    userViewModel: UserViewModel = hiltViewModel(),
+    chatViewModel: ChatViewModel = hiltViewModel(),
     userId: String?,
     mainNavController: NavController
 ) {
@@ -46,17 +45,8 @@ fun MainScreenContent(
                 mainNavController = mainNavController
             )
         } else {
-            /*Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                LogoIcon(LogoSize.LARGE)
-            }*/
             userId?.let {
                 MainContent(
-                    userViewModel = userViewModel,
-                    chatViewModel = chatViewModel,
-                    messageViewModel = messageViewModel,
                     currentUserId = userId,
                     mainNavController = mainNavController
                 )

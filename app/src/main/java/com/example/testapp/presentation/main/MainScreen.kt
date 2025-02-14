@@ -17,6 +17,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.navigation.navigationItemList
@@ -31,15 +32,12 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun MainScreen(
+    authManager: AuthManager,
     parentNavController: NavController,
     mainNavController: NavController,
-    userViewModel: UserViewModel,
+    userViewModel: UserViewModel = hiltViewModel(),
     currentUser: UserResponse?,
-    chatViewModel: ChatViewModel,
-    messageViewModel: MessageViewModel,
-    themeViewModel: ThemeViewModel,
-    dataStoreUtil: DataStoreUtil,
-    authManager: AuthManager
+    chatViewModel: ChatViewModel = hiltViewModel()
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
@@ -55,9 +53,7 @@ fun MainScreen(
                 drawerState = drawerState,
                 scope = scope,
                 authManager = authManager,
-                parentNavController = parentNavController,
-                userViewModel = userViewModel,
-                themeViewModel = themeViewModel
+                parentNavController = parentNavController
             )
         },
         drawerState = drawerState
@@ -96,9 +92,6 @@ fun MainScreen(
                 MainScreenContent(
                     onSearchTypeChange = { currentSearchType = it },
                     isSearchActive = isSearchActive,
-                    userViewModel = userViewModel,
-                    chatViewModel = chatViewModel,
-                    messageViewModel = messageViewModel,
                     userId = currentUser?.userId,
                     mainNavController = mainNavController
                 )

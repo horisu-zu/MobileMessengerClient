@@ -9,6 +9,7 @@ import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.models.user.UserStatus
 import com.example.testapp.utils.DataStoreUtil
 import com.example.testapp.utils.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -20,8 +21,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class UserViewModel(
+@HiltViewModel
+class UserViewModel @Inject constructor(
     private val userRepository: UserApiService,
     private val dataStoreUtil: DataStoreUtil,
     private val webSocketClient: UserStatusWebSocketClient

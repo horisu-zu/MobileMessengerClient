@@ -16,8 +16,9 @@ import kotlinx.coroutines.flow.firstOrNull
 import retrofit2.HttpException
 import java.io.IOException
 import java.util.UUID
+import javax.inject.Inject
 
-class AuthManager(
+class AuthManager @Inject constructor(
     private val userApiService: UserApiService,
     private val dataStoreUtil: DataStoreUtil,
     private val tokenManager: TokenManager,

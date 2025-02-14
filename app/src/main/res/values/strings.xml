@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">TestApp</string>
+    <string name="app_name" translatable="false">Messenger</string>
     <!-- Search -->
     <string name="tab_users">Users</string>
     <string name="tab_groups">Groups</string>

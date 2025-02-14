@@ -9,14 +9,17 @@ import com.example.testapp.domain.dto.reaction.ReactionEvent
 import com.example.testapp.domain.dto.reaction.ReactionRequest
 import com.example.testapp.domain.models.reaction.Reaction
 import com.example.testapp.utils.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ReactionViewModel(
+@HiltViewModel
+class ReactionViewModel @Inject constructor(
     private val reactionRepository: ReactionApiService,
     private val reactionWebSocketClient: ReactionWebSocketClient
 ): ViewModel() {

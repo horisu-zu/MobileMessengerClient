@@ -13,10 +13,8 @@ import com.example.testapp.domain.models.chat.ChatMetadata
 import com.example.testapp.domain.models.chat.ChatParticipant
 import com.example.testapp.di.api.ChatApiService
 import com.example.testapp.di.websocket.MetadataWebSocketClient
-import com.example.testapp.domain.dto.chat.ChatDisplayData
-import com.example.testapp.presentation.viewmodel.user.UserViewModel
-import com.example.testapp.utils.DataStoreUtil
 import com.example.testapp.utils.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -28,11 +26,11 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ChatViewModel(
+@HiltViewModel
+class ChatViewModel @Inject constructor(
     private val chatRepository: ChatApiService,
-    private val dataStoreUtil: DataStoreUtil,
-    private val userViewModel: UserViewModel,
     private val metadataWebSocketClient: MetadataWebSocketClient
 ) : ViewModel() {
     private val _chatState = MutableStateFlow<Resource<Chat>>(Resource.Loading())
@@ -49,19 +47,6 @@ class ChatViewModel(
         MutableStateFlow<Resource<Map<ChatMetadata, Int>>>(Resource.Loading())
     val groupSearchState: StateFlow<Resource<Map<ChatMetadata, Int>>> = _groupSearchState
 
-    private val _userChatsState = MutableStateFlow<Resource<List<Chat>>>(Resource.Loading())
-    val userChatsState: StateFlow<Resource<List<Chat>>> = _userChatsState
-
-    private val _userChatsMetadataState =
-        MutableStateFlow<Resource<List<ChatMetadata>>>(Resource.Loading())
-    val userChatsMetadataState: StateFlow<Resource<List<ChatMetadata>>> = _userChatsMetadataState
-
-    private val _chatDisplayDataState =
-        MutableStateFlow<Map<String, Resource<ChatDisplayData>>>(emptyMap())
-    val chatDisplayDataState: StateFlow<Map<String, Resource<ChatDisplayData>>> =
-        _chatDisplayDataState
-
-    //private val currentUserIdFlow = dataStoreUtil.getUserId()
     private var searchJob: Job? = null
 
     init {
@@ -90,19 +75,6 @@ class ChatViewModel(
                         metadataUpdates[currentState.data?.chatId]?.let {
                             Resource.Success(it)
                         } ?: currentState
-                    }
-
-                    else -> currentState
-                }
-            }
-
-            _userChatsMetadataState.update { currentState ->
-                when (currentState) {
-                    is Resource.Success -> {
-                        val updatedList = currentState.data?.map { existing ->
-                            metadataUpdates[existing.chatId] ?: existing
-                        }
-                        Resource.Success(updatedList)
                     }
 
                     else -> currentState
@@ -138,55 +110,6 @@ class ChatViewModel(
         }
     }
 
-    fun loadChatDisplayData(chat: Chat, currentUserId: String) {
-        val chatId = chat.chatId ?: return
-
-        if (_chatDisplayDataState.value[chatId] is Resource.Success) {
-            return
-        }
-
-        viewModelScope.launch {
-            if (chatId !in _chatDisplayDataState.value) {
-                _chatDisplayDataState.value += (chatId to Resource.Loading())
-            }
-
-            try {
-                val displayData = when (chat.chatTypeId) {
-                    1 -> {
-                        val otherUserId = chatRepository.getChatParticipants(chatId)
-                            .filter { it.userId != currentUserId }
-
-                        val otherUser = userViewModel.getUserById(otherUserId.first().userId)
-                        ChatDisplayData(
-                            chatId = chatId,
-                            name = otherUser.nickname ?: "Unknown User",
-                            avatarUrl = otherUser.avatarUrl,
-                            isLoading = false
-                        )
-                    }
-
-                    2 -> {
-                        val metadata = chatRepository.getChatMetadata(chatId)
-                        ChatDisplayData(
-                            chatId = chatId,
-                            name = metadata.name ?: "Unknown Group",
-                            avatarUrl = metadata.avatar,
-                            isLoading = false
-                        )
-                    }
-
-                    else -> throw IllegalStateException("Unknown chat type")
-                }
-
-                _chatDisplayDataState.value += (chatId to Resource.Success(displayData))
-            } catch (e: Exception) {
-                _chatDisplayDataState.value += (chatId to Resource.Error(
-                    e.message ?: "Error loading chat data"
-                ))
-            }
-        }
-    }
-
     suspend fun getChatById(chatId: String) {
         _chatState.value = Resource.Loading()
         try {
@@ -194,29 +117,6 @@ class ChatViewModel(
             _chatState.value = Resource.Success(response)
         } catch (e: Exception) {
             _chatState.value = Resource.Error(e.message ?: "Couldn't load chat data")
-        }
-    }
-
-    fun startObservingChats(userId: String) {
-        viewModelScope.launch {
-            try {
-                val chats = chatRepository.getUserChats(userId)
-                _userChatsState.value = Resource.Success(chats)
-
-                /*val groupChatsMetadata = chats
-                    .filter { it.chatTypeId == 2 } // GroupTypeId = 2
-                    .mapNotNull { chat ->
-                        chat.chatId?.let { id ->
-                            async { chatRepository.getChatMetadata(id) }
-                        }
-                    }
-                    .awaitAll()
-                _userChatsMetadataState.value = Resource.Success(groupChatsMetadata)*/
-            } catch (e: Exception) {
-                _userChatsState.value = Resource.Error(e.message ?: "Error fetching chats")
-                _userChatsMetadataState.value =
-                    Resource.Error(e.message ?: "Error fetching chat metadata")
-            }
         }
     }
 
@@ -242,7 +142,7 @@ class ChatViewModel(
         }
     }
 
-    suspend fun createGroupChat(groupChatRequest: GroupChatRequest): Flow<Resource<ChatCreateResponse>> =
+    fun createGroupChat(groupChatRequest: GroupChatRequest): Flow<Resource<ChatCreateResponse>> =
         flow {
             emit(Resource.Loading())
             try {
@@ -257,7 +157,7 @@ class ChatViewModel(
         chatRepository.createPersonalChat(personalChatRequest)
     }
 
-    suspend fun joinChat(chatId: String, request: ChatJoinRequest): Flow<Resource<ChatDBResponse>> =
+    fun joinChat(chatId: String, request: ChatJoinRequest): Flow<Resource<ChatDBResponse>> =
         flow {
             emit(Resource.Loading())
             try {
@@ -295,7 +195,7 @@ class ChatViewModel(
         }
     }
 
-    suspend fun getUserConversations(userId: String): Flow<Resource<List<String>>> = flow {
+    fun getUserConversations(userId: String): Flow<Resource<List<String>>> = flow {
         emit(Resource.Loading())
         try {
             Log.d("GroupAddNavigator", "Fetching conversations for user: $userId")

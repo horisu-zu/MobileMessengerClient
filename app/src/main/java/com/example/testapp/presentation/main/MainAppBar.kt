@@ -5,6 +5,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -38,19 +39,12 @@ fun MainAppBar(
     TopAppBar(
         title = {
             if (isSearchActive) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(80.dp)
-                        .padding(vertical = 14.dp)
-                ) {
-                    SearchTitle(
-                        searchQuery = searchQuery,
-                        onSearchQueryChange = { query ->
-                            onSearchQueryChange(query, searchType)
-                        }
-                    )
-                }
+                SearchTitle(
+                    searchQuery = searchQuery,
+                    onSearchQueryChange = { query ->
+                        onSearchQueryChange(query, searchType)
+                    }
+                )
             } else {
                 Text(text = "Messenger", modifier = Modifier.padding(start = 16.dp))
             }
@@ -79,7 +73,8 @@ fun MainAppBar(
 @Composable
 private fun SearchTitle(
     searchQuery: String,
-    onSearchQueryChange: (String) -> Unit
+    onSearchQueryChange: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     val textStyle = TextStyle(
         color = MaterialTheme.colorScheme.onSurface,
@@ -95,7 +90,7 @@ private fun SearchTitle(
             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
         ) },
         shape = RoundedCornerShape(12.dp),
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 18.dp)
             .border(

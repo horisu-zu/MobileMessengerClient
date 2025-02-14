@@ -13,6 +13,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -38,12 +39,11 @@ import com.google.firebase.storage.FirebaseStorage
 @Composable
 fun MainAppNavigator(
     authManager: AuthManager,
-    userViewModel: UserViewModel,
-    chatViewModel: ChatViewModel,
-    messageViewModel: MessageViewModel,
-    themeViewModel: ThemeViewModel,
-    reactionViewModel: ReactionViewModel,
-    mediaViewModel: MediaViewModel,
+    userViewModel: UserViewModel = hiltViewModel(),
+    chatViewModel: ChatViewModel = hiltViewModel(),
+    messageViewModel: MessageViewModel = hiltViewModel(),
+    reactionViewModel: ReactionViewModel = hiltViewModel(),
+    mediaViewModel: MediaViewModel = hiltViewModel(),
     dataStoreUtil: DataStoreUtil,
     parentNavController: NavController
 ) {
@@ -77,12 +77,7 @@ fun MainAppNavigator(
                 if (!inChat) {
                     MainScreen(
                         authManager = authManager,
-                        themeViewModel = themeViewModel,
-                        userViewModel = userViewModel,
                         currentUser = currentUserState.data,
-                        chatViewModel = chatViewModel,
-                        messageViewModel = messageViewModel,
-                        dataStoreUtil = dataStoreUtil,
                         parentNavController = parentNavController,
                         mainNavController = mainNavController
                     )
@@ -97,12 +92,7 @@ fun MainAppNavigator(
             ) { backStackEntry ->
                 ChatScreen(
                     chatId = backStackEntry.arguments?.getString("chatId"),
-                    userViewModel = userViewModel,
-                    messageViewModel = messageViewModel,
                     currentUser = currentUserState.data,
-                    chatViewModel = chatViewModel,
-                    reactionViewModel = reactionViewModel,
-                    mediaViewModel = mediaViewModel,
                     reactionUrls = reactionUrls,
                     mainNavController = mainNavController
                 )
@@ -110,9 +100,6 @@ fun MainAppNavigator(
             composable("groupAddScreen") {
                 GroupAddNavigator(
                     currentUser = currentUserState.data,
-                    chatViewModel = chatViewModel,
-                    userViewModel = userViewModel,
-                    dataStoreUtil = dataStoreUtil,
                     mainNavController = mainNavController
                 )
             }

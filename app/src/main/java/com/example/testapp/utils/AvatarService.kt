@@ -18,11 +18,14 @@ import java.io.IOException
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.UUID
+import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
-class AvatarService(private val storage: FirebaseStorage) {
+class AvatarService @Inject constructor(
+    private val storage: FirebaseStorage
+) {
     private val formatter = DateTimeFormatter.ISO_INSTANT
 
     suspend fun createUserAvatar(userId: String, firstName: String, lastName: String, userColor: String): String {

@@ -14,23 +14,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import chat.service.course.dto.GroupChatRequest
 import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
-import com.example.testapp.utils.DataStoreUtil
 import com.example.testapp.utils.Resource
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @Composable
 fun GroupAddNavigator(
     currentUser: UserResponse?,
-    dataStoreUtil: DataStoreUtil,
-    userViewModel: UserViewModel,
-    chatViewModel: ChatViewModel,
+    userViewModel: UserViewModel = hiltViewModel(),
+    chatViewModel: ChatViewModel = hiltViewModel(),
     mainNavController: NavController
 ) {
     var currentStep by remember { mutableIntStateOf(1) }
@@ -49,16 +47,7 @@ fun GroupAddNavigator(
             )
         )
     }
-    /*var chatMetadata by remember {
-        mutableStateOf(
-            ChatMetadata(
-                members = emptyList(),
-                creatorId = currentUserId,
-                maxMembers = 0,
-                inviteCode = InviteCodeGenerator.generateCode()
-            )
-        )
-    }*/
+
     val totalSteps = 3
     val usersState by userViewModel.participantsState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()

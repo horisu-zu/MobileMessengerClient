@@ -7,6 +7,7 @@ import androidx.compose.foundation.background
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -19,8 +20,8 @@ import com.example.testapp.utils.DataStoreUtil
 fun AuthScreen(
     parentNavController: NavController,
     dataStoreUtil: DataStoreUtil,
-    authViewModel: AuthViewModel,
-    themeViewModel: ThemeViewModel
+    authViewModel: AuthViewModel = hiltViewModel(),
+    themeViewModel: ThemeViewModel = hiltViewModel()
 ) {
     val authNavController = rememberNavController()
 

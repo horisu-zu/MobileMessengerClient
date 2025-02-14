@@ -19,6 +19,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.testapp.domain.dto.message.MessageRequest
 import com.example.testapp.domain.dto.user.UserResponse
@@ -41,11 +42,11 @@ import kotlinx.coroutines.launch
 fun ChatScreen(
     chatId: String?,
     currentUser: UserResponse?,
-    userViewModel: UserViewModel,
-    chatViewModel: ChatViewModel,
-    messageViewModel: MessageViewModel,
-    reactionViewModel: ReactionViewModel,
-    mediaViewModel: MediaViewModel,
+    userViewModel: UserViewModel = hiltViewModel(),
+    chatViewModel: ChatViewModel = hiltViewModel(),
+    messageViewModel: MessageViewModel = hiltViewModel(),
+    reactionViewModel: ReactionViewModel = hiltViewModel(),
+    mediaViewModel: MediaViewModel = hiltViewModel(),
     reactionUrls: List<String>,
     mainNavController: NavController
 ) {

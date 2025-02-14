@@ -17,10 +17,10 @@ import okhttp3.Request
 import okhttp3.Response
 import okhttp3.WebSocket
 import okhttp3.WebSocketListener
+import javax.inject.Inject
 
-class UserStatusWebSocketClient(
-    private val dataStoreUtil: DataStoreUtil,
-    private val baseUrl: String
+class UserStatusWebSocketClient @Inject constructor(
+    private val dataStoreUtil: DataStoreUtil
 ) {
     private var webSocket: WebSocket? = null
     private val statusUpdatesChannel = Channel<Map<String, UserStatus>>(Channel.CONFLATED)
@@ -35,7 +35,7 @@ class UserStatusWebSocketClient(
 
     fun connect(userIds: List<String>) {
         val request = Request.Builder()
-            .url("${baseUrl.trimEnd('/')}:${Defaults.USER_SERVICE_PORT}/ws/status?userIds=${userIds.joinToString(",")}")
+            .url("${Defaults.baseUrl.trimEnd('/')}:${Defaults.USER_SERVICE_PORT}/ws/status?userIds=${userIds.joinToString(",")}")
             .build()
 
         webSocket = okHttpClient.newWebSocket(request, object : WebSocketListener() {

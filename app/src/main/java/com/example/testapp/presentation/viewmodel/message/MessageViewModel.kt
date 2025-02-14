@@ -12,12 +12,15 @@ import com.example.testapp.domain.dto.message.MessageUpdateRequest
 import com.example.testapp.domain.models.message.Message
 import com.example.testapp.utils.DataStoreUtil
 import com.example.testapp.utils.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MessageViewModel(
+@HiltViewModel
+class MessageViewModel @Inject constructor(
     private val messageRepository: MessageApiService,
     private val dataStoreUtil: DataStoreUtil,
     private val messageWebSocketClient: MessageWebSocketClient

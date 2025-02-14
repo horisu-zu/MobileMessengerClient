@@ -6,13 +6,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.testapp.presentation.templates.media.MediaType
 import com.example.testapp.utils.MediaLoader
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class MediaViewModel: ViewModel() {
+@HiltViewModel
+class MediaViewModel @Inject constructor(): ViewModel() {
     private val _images = MutableStateFlow<List<Uri>>(emptyList())
     private val _documents = MutableStateFlow<List<Uri>>(emptyList())
     private val _audio = MutableStateFlow<List<Uri>>(emptyList())

@@ -18,31 +18,28 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.testapp.R
-import com.example.testapp.domain.models.chat.Chat
-import com.example.testapp.domain.models.message.Message
+import com.example.testapp.domain.models.chat.ChatDisplayData
+import com.example.testapp.utils.Converter.ChatAvatar
+import com.example.testapp.utils.Converter.formatTimestamp
 
 @Composable
 fun ChatItem(
+    chat: ChatDisplayData,
     currentUserId: String,
-    chat: Chat,
-    chatName: String,
-    chatAvatar: String?,
-    senderName: String?,
-    lastMessage: Message?,
-    onChatClick: () -> Unit
+    onChatClick: (String) -> Unit
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onChatClick() }
+            .clickable { onChatClick(chat.chatId) }
             .padding(horizontal = 24.dp, vertical = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         ChatAvatar(
-            avatarUrl = chatAvatar ?: "Shouldn't happen",
+            avatarUrl = chat.avatarUrl ?: "Shouldn't happen",
             chatType = chat.chatTypeId,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier.size(48.dp)
         )
 
         Column(
@@ -54,13 +51,13 @@ fun ChatItem(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text = chatName,
+                    text = chat.name,
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier.weight(1f)
                 )
 
                 Text(
-                    text = lastMessage?.let { formatTimestamp(it.createdAt) } ?: "",
+                    text = chat.lastMessage?.let { formatTimestamp(it.createdAt) } ?: "",
                     fontWeight = FontWeight.Light,
                     fontSize = 12.sp,
                     modifier = Modifier.padding(start = 8.dp)
@@ -73,8 +70,8 @@ fun ChatItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 val displayMessage = when {
-                    chat.chatTypeId == 1 -> lastMessage?.message
-                    lastMessage != null -> "$senderName: ${lastMessage.message}"
+                    chat.chatTypeId == 1 -> chat.lastMessage?.message
+                    chat.lastMessage != null -> "Placeholder: ${chat.lastMessage.message}"
                     else -> ""
                 }
 
@@ -89,12 +86,12 @@ fun ChatItem(
                     )
                 }
 
-                if (currentUserId == lastMessage?.senderId) {
+                if (currentUserId == chat.lastMessage?.senderId) {
                     Icon(
                         painter = painterResource(
-                            id = if (lastMessage.isRead) R.drawable.ic_check else R.drawable.ic_send
+                            id = if (chat.lastMessage.isRead) R.drawable.ic_check else R.drawable.ic_send
                         ),
-                        contentDescription = if (lastMessage.isRead) {
+                        contentDescription = if (chat.lastMessage.isRead) {
                             "Message read"
                         } else {
                             "Message sent"

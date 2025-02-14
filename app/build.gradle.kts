@@ -2,8 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.google.services)
+    alias(libs.plugins.hilt)
     id("kotlin-kapt")
     alias(libs.plugins.compose.compiler)
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
 
 android {
@@ -41,6 +43,10 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+    hilt {
+        enableAggregatingTask = false
     }
     composeOptions {
         kotlinCompilerExtensionVersion = "1.5.1"
@@ -100,11 +106,15 @@ dependencies {
     //Hilt
     implementation (libs.hilt.android)
     kapt (libs.hilt.android.compiler)
+    implementation(libs.hilt.navigation.compose)
 
     //Constraint
     implementation (libs.androidx.constraintlayout.compose)
 
-    //Scallable DP and SP
+    //Scalable DP and SP
     implementation (libs.sdp.android)
     implementation (libs.ssp.android)
+
+    //Gemini
+    implementation(libs.generativeai)
 }

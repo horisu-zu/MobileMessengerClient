@@ -14,12 +14,12 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.navigation.NavigationItemData
 import com.example.testapp.presentation.viewmodel.ThemeViewModel
 import com.example.testapp.presentation.viewmodel.user.AuthManager
-import com.example.testapp.presentation.viewmodel.user.UserViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
@@ -30,8 +30,7 @@ fun MainNavigationDrawer(
     drawerState: DrawerState,
     scope: CoroutineScope,
     navigationData: List<NavigationItemData>,
-    themeViewModel: ThemeViewModel,
-    userViewModel: UserViewModel,
+    themeViewModel: ThemeViewModel = hiltViewModel(),
     authManager: AuthManager
 ) {
     val switchState by themeViewModel.isDarkThemeEnabled.collectAsState()

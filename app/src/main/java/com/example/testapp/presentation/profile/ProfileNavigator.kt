@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -24,8 +25,8 @@ import com.example.testapp.utils.AvatarService
 @SuppressLint("UnusedContentLambdaTargetStateParameter")
 @Composable
 fun ProfileNavigator(
-    userViewModel: UserViewModel,
-    galleryViewModel: GalleryViewModel,
+    userViewModel: UserViewModel = hiltViewModel(),
+    galleryViewModel: GalleryViewModel = hiltViewModel(),
     avatarService: AvatarService,
     mainNavController: NavController
 ) {
