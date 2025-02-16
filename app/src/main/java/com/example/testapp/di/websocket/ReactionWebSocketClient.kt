@@ -2,7 +2,6 @@ package com.example.testapp.di.websocket
 
 import android.util.Log
 import com.example.testapp.di.InstantAdapter
-import com.example.testapp.di.ReactionEventJsonAdapter
 import com.example.testapp.domain.dto.reaction.ReactionEvent
 import com.example.testapp.domain.dto.reaction.ReactionEventWrapper
 import com.example.testapp.presentation.viewmodel.user.AuthInterceptor

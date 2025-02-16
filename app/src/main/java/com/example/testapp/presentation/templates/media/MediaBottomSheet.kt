@@ -25,10 +25,7 @@ import androidx.core.content.ContextCompat
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MediaBottomSheet(
-    images: List<Uri>,
-    documents: List<Uri>,
-    audio: List<Uri>,
-    videos: List<Uri>,
+    mediaState: Map<MediaType, List<Uri>>,
     onMediaSelected: (Uri, MediaType) -> Unit,
     onDismiss: () -> Unit,
     onRequestPermission: (MediaType) -> Unit,
@@ -100,19 +97,19 @@ fun MediaBottomSheet(
 
             when (selectedTab) {
                 0 -> ImageGrid(
-                    items = images,
+                    items = mediaState[MediaType.IMAGES] ?: emptyList(),
                     onItemSelected = { onMediaSelected(it, MediaType.IMAGES) }
                 )
                 1 -> DocumentList(
-                    documents = documents,
+                    documents = mediaState[MediaType.DOCUMENTS] ?: emptyList(),
                     onDocumentSelected = { onMediaSelected(it, MediaType.DOCUMENTS) }
                 )
                 2 -> AudioList(
-                    audioFiles = audio,
+                    audioFiles = mediaState[MediaType.AUDIO] ?: emptyList(),
                     onAudioSelected = { onMediaSelected(it, MediaType.AUDIO) }
                 )
                 3 -> VideoGrid(
-                    items = videos,
+                    items = mediaState[MediaType.VIDEO] ?: emptyList(),
                     onItemSelected = { onMediaSelected(it, MediaType.VIDEO) }
                 )
             }

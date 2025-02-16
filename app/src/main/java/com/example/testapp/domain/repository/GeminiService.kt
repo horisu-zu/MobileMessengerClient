@@ -9,12 +9,12 @@ import javax.inject.Inject
 class GeminiService @Inject constructor(
     private val generativeModel: GenerativeModel
 ): AIService {
-    override suspend fun summarizeMessages(messages: List<Message>, locale: Locale): String {
+    override suspend fun summarizeMessages(messages: List<Pair<String, Message>>, locale: Locale): String {
         return try {
             val messageText = messages
-                .sortedBy { it.createdAt }
+                .sortedBy { it.second.createdAt }
                 .joinToString("\n") {
-                    "Message from ${it.senderId}: ${it.message}"
+                    "Message from ${it.first}: ${it.second.message}"
                 }
 
             val prompt = """

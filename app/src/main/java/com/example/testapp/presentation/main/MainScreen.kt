@@ -22,12 +22,9 @@ import androidx.navigation.NavController
 import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.navigation.navigationItemList
 import com.example.testapp.presentation.main.navigationdrawer.MainNavigationDrawer
-import com.example.testapp.presentation.viewmodel.ThemeViewModel
 import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
-import com.example.testapp.presentation.viewmodel.message.MessageViewModel
 import com.example.testapp.presentation.viewmodel.user.AuthManager
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
-import com.example.testapp.utils.DataStoreUtil
 import kotlinx.coroutines.launch
 
 @Composable
@@ -102,8 +99,4 @@ fun MainScreen(
 
 enum class SearchType {
     USERS, GROUPS
-}
-
-enum class ScreenState {
-    MAIN, SEARCH, PROFILE
 }

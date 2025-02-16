@@ -25,14 +25,8 @@ import androidx.navigation.navArgument
 import com.example.testapp.presentation.chat.ChatScreen
 import com.example.testapp.presentation.main.MainScreen
 import com.example.testapp.presentation.main.group.GroupAddNavigator
-import com.example.testapp.presentation.viewmodel.gallery.MediaViewModel
-import com.example.testapp.presentation.viewmodel.ThemeViewModel
-import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
-import com.example.testapp.presentation.viewmodel.message.MessageViewModel
-import com.example.testapp.presentation.viewmodel.reaction.ReactionViewModel
 import com.example.testapp.presentation.viewmodel.user.AuthManager
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
-import com.example.testapp.utils.DataStoreUtil
 import com.example.testapp.utils.Defaults.fetchEmojiUrls
 import com.google.firebase.storage.FirebaseStorage
 
@@ -40,11 +34,6 @@ import com.google.firebase.storage.FirebaseStorage
 fun MainAppNavigator(
     authManager: AuthManager,
     userViewModel: UserViewModel = hiltViewModel(),
-    chatViewModel: ChatViewModel = hiltViewModel(),
-    messageViewModel: MessageViewModel = hiltViewModel(),
-    reactionViewModel: ReactionViewModel = hiltViewModel(),
-    mediaViewModel: MediaViewModel = hiltViewModel(),
-    dataStoreUtil: DataStoreUtil,
     parentNavController: NavController
 ) {
     val mainNavController = rememberNavController()

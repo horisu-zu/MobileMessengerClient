@@ -110,6 +110,7 @@ fun ChatInfoHeader(
                 onAvatarClick = onAvatarClick
             )
         }
+
         else -> {
             PersonalChatHeader(
                 userData = userData,
@@ -177,7 +178,7 @@ fun PersonalChatHeader(
             verticalArrangement = Arrangement.SpaceAround
         ) {
             Text(
-                text = "${userData?.firstName} ${userData?.lastName}",
+                text = "${userData?.firstName ?: ""} ${userData?.lastName ?: ""}",
                 style = MaterialTheme.typography.titleSmall,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis

@@ -8,6 +8,7 @@ import com.example.testapp.di.api.MessageApiService
 import com.example.testapp.di.api.UserApiService
 import com.example.testapp.di.websocket.MessageWebSocketClient
 import com.example.testapp.domain.dto.message.MessageEvent
+import com.example.testapp.domain.dto.message.MessageStreamMode
 import com.example.testapp.domain.models.chat.Chat
 import com.example.testapp.domain.models.chat.ChatDisplayData
 import com.example.testapp.utils.Resource
@@ -30,17 +31,51 @@ class ChatDisplayViewModel @Inject constructor(
     private val _chatListItemsState = MutableStateFlow<Resource<Map<String, ChatDisplayData>>>(Resource.Loading())
     val chatListItemsState: StateFlow<Resource<Map<String, ChatDisplayData>>> = _chatListItemsState
 
-    private var currentItems = mutableMapOf<String, ChatDisplayData>()
-
     init {
-        viewModelScope.launch {
-            messageWebSocketClient.getMessageUpdates()
-                .catch { e ->
-                    Log.e("ChatListItem", "Error in message updates", e)
+        //if(_chatListItemsState.value is Resource.Success) {
+            viewModelScope.launch {
+                messageWebSocketClient.getMessageUpdates()
+                    .catch { e ->
+                        Log.e("WebSocket", "Error in updates", e)
+                    }
+                    .collect { updates ->
+                        processLastMessagesUpdates(updates)
+                    }
+            }
+        //}
+    }
+
+    private suspend fun processLastMessagesUpdates(updates: Map<String, MessageEvent>) {
+        _chatListItemsState.update { currentState ->
+            when (currentState) {
+                is Resource.Success -> {
+                    val updatedMap = currentState.data?.toMutableMap() ?: mutableMapOf()
+                    updates.forEach { (chatId, event) ->
+                        updatedMap[chatId] = when (event) {
+                            is MessageEvent.MessageCreated -> {
+                                val sender = userRepository.getUserById(event.message.senderId)
+                                val currentData = updatedMap[chatId] ?: throw IllegalStateException("Chat ${event.message.chatId} not initialized")
+
+                                val isNewMessage = currentData.lastMessage?.createdAt?.let { lastTimestamp ->
+                                    event.message.createdAt > lastTimestamp
+                                } ?: true
+
+                                currentData.copy(
+                                    lastMessage = event.message,
+                                    senderName = sender.nickname,
+                                    unreadCount = if (isNewMessage) currentData.unreadCount + 1 else currentData.unreadCount
+                                )
+                            }
+                            is MessageEvent.MessageUpdated ->
+                                updatedMap[chatId]?.copy(lastMessage = event.message)
+                            is MessageEvent.MessageDeleted ->
+                                updatedMap[chatId]?.copy(lastMessage = null)
+                        } ?: return@forEach
+                    }
+                    Resource.Success(updatedMap)
                 }
-                .collect { updates ->
-                    processMessageUpdates(updates)
-                }
+                else -> currentState
+            }
         }
     }
 
@@ -64,10 +99,11 @@ class ChatDisplayViewModel @Inject constructor(
                         }
                     }
                 }
-
                 _chatListItemsState.value = Resource.Success(chatDisplayMap)
 
-                loadLastMessages(chats.mapNotNull { it.chatId })
+                loadData(chats, userId)
+
+                connectWebSocket(chats.mapNotNull { it.chatId })
             } catch (e: Exception) {
                 _chatListItemsState.value = Resource.Error(e.message ?: "Error fetching chats")
             }
@@ -104,47 +140,61 @@ class ChatDisplayViewModel @Inject constructor(
         )
     }
 
-    private suspend fun loadLastMessages(chatIds: List<String>) {
+    private suspend fun loadData(chats: List<Chat>, userId: String) {
+        val chatIds = chats.mapNotNull { it.chatId }
+
         try {
             val lastMessages = messageRepository.getLastMessages(chatIds)
+
             val messagesMap = lastMessages.associateBy { it.chatId }
+            val userIds = lastMessages.map { it.senderId }.distinct()
+            val users = userRepository.getByIds(userIds)
+            val usersMap = users.associateBy { it.userId }
+
+            Log.d("ChatDisplayViewModel", "Fetching unread counts for chats: $chatIds")
+            val unreadCounts = chatIds.associateWith { chatId ->
+                val count = messageRepository.getUnreadMessagesCount(chatId, userId)
+                Log.d("ChatDisplayViewModel", "Unread count for chat $chatId: $count")
+                count
+            }
 
             _chatListItemsState.update { currentResource ->
                 when (currentResource) {
                     is Resource.Success -> {
                         val updatedMap = currentResource.data?.mapValues { (chatId, displayData) ->
-                            displayData.copy(lastMessage = messagesMap[chatId])
-                        }
+                            val lastMessage = messagesMap[chatId]
+                            val sender = lastMessage?.senderId?.let { usersMap[it] }
+
+                            if (lastMessage == null) {
+                                displayData
+                            } else {
+                                displayData.copy(
+                                    lastMessage = lastMessage,
+                                    senderName = sender?.nickname ?: "Placeholder",
+                                    unreadCount = unreadCounts[chatId] ?: 0
+                                )
+                            }
+                        } ?: currentResource.data
+
                         Resource.Success(updatedMap)
                     }
-                    else -> currentResource
+                    else -> {
+                        currentResource
+                    }
                 }
             }
+
         } catch (e: Exception) {
-            Log.e("ChatListItem", "Error loading last messages", e)
+            Log.e("ChatDisplayViewModel", "Error in loadData", e)
         }
     }
 
-    private fun processMessageUpdates(updates: Map<String, MessageEvent>) {
-        updates.forEach { (chatId, event) ->
-            when (event) {
-                is MessageEvent.MessageDeleted -> {
-                    currentItems = currentItems.toMutableMap().apply {
-                        this[chatId] = this[chatId]?.copy(lastMessage = null) ?: return@apply
-                    }
-                }
-                is MessageEvent.MessageCreated, is MessageEvent.MessageUpdated -> {
-                    val message = when (event) {
-                        is MessageEvent.MessageCreated -> event.message
-                        is MessageEvent.MessageUpdated -> event.message
-                        else -> return
-                    }
-                    currentItems = currentItems.toMutableMap().apply {
-                        this[chatId] = this[chatId]?.copy(lastMessage = message) ?: return@apply
-                    }
-                }
-            }
-            _chatListItemsState.value = Resource.Success(currentItems)
-        }
+    private fun connectWebSocket(chatIds: List<String>) {
+        Log.d("ChatDisplayViewModel", "ConnectWebSocket called with chatIds: $chatIds")
+
+        messageWebSocketClient.disconnect()
+
+        Log.d("ChatDisplayViewModel", "Connecting WebSocket with chatIds: $chatIds and mode: ${MessageStreamMode.LATEST_ONLY}")
+        messageWebSocketClient.connect(chatIds, MessageStreamMode.LATEST_ONLY)
     }
 }

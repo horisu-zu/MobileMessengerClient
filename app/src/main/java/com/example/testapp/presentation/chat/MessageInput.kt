@@ -1,14 +1,14 @@
 package com.example.testapp.presentation.chat
 
-import android.util.Log
+import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -16,76 +16,139 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.testapp.R
-import com.example.testapp.domain.dto.message.MessageRequest
-import com.example.testapp.domain.dto.message.MessageUpdateRequest
-import com.example.testapp.domain.models.message.Message
+import com.example.testapp.domain.dto.message.MessageInputState
+import com.example.testapp.domain.dto.user.UserResponse
+import com.example.testapp.domain.models.message.Attachment
+import com.example.testapp.presentation.templates.media.MediaBottomSheet
+import com.example.testapp.presentation.templates.media.MediaType
+import com.example.testapp.presentation.viewmodel.gallery.MediaViewModel
 
 @Composable
 fun MessageInput(
-    messageText: String,
-    editingMessage: Message?,
-    messageRequest: MessageRequest?,
-    onMessageChange: (String) -> Unit,
-    onSendMessage: (MessageRequest) -> Unit,
-    onMediaClick: () -> Unit,
-    onUpdateMessage: (String, MessageUpdateRequest) -> Unit
+    userData: Map<String, UserResponse>,
+    mediaViewModel: MediaViewModel,
+    messageInputState: MessageInputState,
+    onSendClick: () -> Unit,
+    onMessageInputStateChange: (MessageInputState) -> Unit,
+    context: Context
 ) {
-    Row(
+    var messageAttachments by remember { mutableStateOf<List<Attachment>>(emptyList()) }
+    var showMediaBottomSheet by remember { mutableStateOf(false) }
+    val mediaState = mediaViewModel.mediaState.collectAsState()
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(horizontal = 12.dp),
-        verticalAlignment = Alignment.CenterVertically
     ) {
-        TextField(
-            value = messageText,
-            onValueChange = { newValue ->
-                Log.d("MessageInput", "TextField value changed: '$newValue'")
-                onMessageChange(newValue)
-            },
-            modifier = Modifier
-                .weight(1f)
-                .background(color = MaterialTheme.colorScheme.surfaceVariant),
-            placeholder = { Text("Type a message") },
-            maxLines = 4,
-            //visualTransformation = MessageVisualTransformation(availableStyles),
-            colors = messageInputColors()
-        )
-        IconButton(onClick = onMediaClick ) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_clip),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp)
+        messageInputState.editingMessage?.let { message ->
+            EditMessage(
+                editingMessage = message,
+                attachments = messageAttachments,
+                onCancelEdit = {
+                    onMessageInputStateChange(messageInputState.copy(
+                        isEditing = false,
+                        editingMessage = null,
+                        editedMessageId = null,
+                        message = null
+                    ))
+                }
             )
         }
-        IconButton(
-            onClick = {
-                if (editingMessage != null) {
-                    editingMessage.messageId?.let { messageId ->
-                        onUpdateMessage(
-                            messageId,
-                            MessageUpdateRequest(message = messageText)
-                        )
+
+        messageInputState.replyToMessage?.let { message ->
+            userData[message.senderId]?.let { replyUserData ->
+                ReplyToMessage(
+                    replyMessage = message,
+                    userData = replyUserData,
+                    attachments = messageAttachments,
+                    onCancelReply = {
+                        onMessageInputStateChange(messageInputState.copy(
+                            isReplying = false,
+                            replyToMessage = null
+                        ))
                     }
-                } else {
-                    messageRequest?.copy(message = messageText)?.let { messageText ->
-                        onSendMessage(messageText)
-                    }
+                )
+            }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            TextField(
+                value = messageInputState.message ?: "",
+                onValueChange = { newValue ->
+                    onMessageInputStateChange(messageInputState.copy(message = newValue))
+                },
+                modifier = Modifier
+                    .weight(1f)
+                    .background(color = MaterialTheme.colorScheme.surfaceVariant),
+                placeholder = {
+                    Text(
+                        when {
+                            messageInputState.isEditing -> "Edit message"
+                            messageInputState.isReplying -> "Reply to message"
+                            else -> "Type a message"
+                        }
+                    )
+                },
+                maxLines = 4,
+                colors = messageInputColors()
+            )
+
+            IconButton(
+                onClick = { showMediaBottomSheet = true }
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_clip),
+                    contentDescription = "Attach media",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+
+            IconButton(
+                onClick = { onSendClick() },
+                enabled = !messageInputState.message.isNullOrBlank()
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Filled.Send,
+                    contentDescription = if (messageInputState.isEditing) "Update" else "Send"
+                )
+            }
+        }
+    }
+
+    if (showMediaBottomSheet) {
+        MediaBottomSheet(
+            mediaState = mediaState.value,
+            onMediaSelected = { uri, type ->
+                when (type) {
+                    MediaType.IMAGES -> { /*TODO*/ }
+                    MediaType.DOCUMENTS -> { /*TODO*/ }
+                    MediaType.AUDIO -> { /*TODO*/ }
+                    MediaType.VIDEO -> { /*TODO*/ }
                 }
             },
-            enabled = messageText.isNotBlank()
-        ) {
-            Icon(
-                Icons.AutoMirrored.Filled.Send,
-                contentDescription = "Send"
-            )
-        }
+            onDismiss = { showMediaBottomSheet = false },
+            onRequestPermission = { mediaType ->
+                mediaViewModel.loadMedia(context, mediaType)
+            },
+            context = context
+        )
     }
 }
 

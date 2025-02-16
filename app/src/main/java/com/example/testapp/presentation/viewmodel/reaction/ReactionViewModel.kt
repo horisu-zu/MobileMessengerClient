@@ -106,12 +106,14 @@ class ReactionViewModel @Inject constructor(
         }
     }
 
-    suspend fun toggleReaction(messageId: String, userId: String, emojiUrl: String) {
-        reactionRepository.toggleReaction(ReactionRequest(
-            messageId = messageId,
-            userId = userId,
-            emoji = emojiUrl
-        ))
+    fun toggleReaction(messageId: String, userId: String, emojiUrl: String) {
+        viewModelScope.launch {
+            reactionRepository.toggleReaction(ReactionRequest(
+                messageId = messageId,
+                userId = userId,
+                emoji = emojiUrl
+            ))
+        }
     }
 
     override fun onCleared() {

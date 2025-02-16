@@ -9,9 +9,7 @@ import com.example.testapp.domain.dto.message.MessageEvent
 import com.example.testapp.domain.dto.message.MessageRequest
 import com.example.testapp.domain.dto.message.MessageStreamMode
 import com.example.testapp.domain.dto.message.MessageUpdateRequest
-import com.example.testapp.domain.models.message.Message
-import com.example.testapp.utils.DataStoreUtil
-import com.example.testapp.utils.Resource
+import com.example.testapp.domain.dto.message.MessagesState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,20 +20,13 @@ import javax.inject.Inject
 @HiltViewModel
 class MessageViewModel @Inject constructor(
     private val messageRepository: MessageApiService,
-    private val dataStoreUtil: DataStoreUtil,
     private val messageWebSocketClient: MessageWebSocketClient
-): ViewModel() {
-    private val _lastMessagesState = MutableStateFlow<Resource<Map<String, Message>>>(Resource.Loading())
-    val lastMessagesState: StateFlow<Resource<Map<String, Message>>> = _lastMessagesState
-
-    private val _chatMessagesState = MutableStateFlow<Resource<List<Message>>>(Resource.Loading())
-    val chatMessagesState: StateFlow<Resource<List<Message>>> = _chatMessagesState
+) : ViewModel() {
+    private val _chatMessagesState = MutableStateFlow<MessagesState>(MessagesState())
+    val chatMessagesState: StateFlow<MessagesState> = _chatMessagesState
 
     private var currentChatId: String? = null
     private var currentMode: MessageStreamMode? = null
-
-    private var currentLastMessages: Map<String, Message> = emptyMap()
-    private var currentChatMessages: List<Message> = emptyList()
 
     init {
         viewModelScope.launch {
@@ -56,71 +47,60 @@ class MessageViewModel @Inject constructor(
     private fun processWebSocketUpdates(updates: Map<String, MessageEvent>) {
         Log.d("MessageViewModel", "Event: $updates")
         updates.forEach { (chatId, event) ->
-            when (currentMode) {
-                MessageStreamMode.FULL_CHAT -> {
-                    currentChatId?.let {
-                        currentChatMessages = currentChatMessages.toMutableList().apply {
-                            when (event) {
-                                is MessageEvent.MessageCreated -> add(event.message)
-                                is MessageEvent.MessageUpdated -> add(event.message)
-                                is MessageEvent.MessageDeleted -> {
-                                    removeAll { it.messageId == event.message.messageId }
-                                }
-                            }
-                        }
-                        _chatMessagesState.value = Resource.Success(currentChatMessages)
-                    }
-                }
-                MessageStreamMode.LATEST_ONLY -> {
+            currentChatId?.let {
+                val updatedMessages = _chatMessagesState.value.messages.toMutableList().apply {
                     when (event) {
-                        is MessageEvent.MessageDeleted -> currentLastMessages = currentLastMessages.toMutableMap().apply {
-                            remove(chatId)
-                        }
-                        is MessageEvent.MessageCreated -> currentLastMessages = currentLastMessages.toMutableMap().apply {
-                            this[chatId] = event.message
-                        }
-                        is MessageEvent.MessageUpdated -> currentLastMessages = currentLastMessages.toMutableMap().apply {
-                            this[chatId] = event.message
+                        is MessageEvent.MessageCreated -> add(event.message)
+                        is MessageEvent.MessageUpdated -> add(event.message)
+                        is MessageEvent.MessageDeleted -> {
+                            removeAll { it.messageId == event.message.messageId }
                         }
                     }
-                    _lastMessagesState.value = Resource.Success(currentLastMessages)
                 }
-                null -> {}
-            }
-        }
-    }
-
-    fun getLastMessages(chatIds: List<String>) {
-        viewModelScope.launch {
-            _lastMessagesState.value = Resource.Loading()
-            try {
-                val response = messageRepository.getLastMessages(chatIds)
-                Log.d("MessageViewModel", "Last messages response: $response")
-
-                val mappedResponse = response.associateBy { chat -> chat.chatId }
-                currentLastMessages = mappedResponse
-                _lastMessagesState.value = Resource.Success(mappedResponse)
-
-                Log.d("MessageViewModel", "Calling connectWebSocket for LATEST_ONLY")
-                connectWebSocket(chatIds, MessageStreamMode.LATEST_ONLY)
-            } catch (e: Exception) {
-                Log.e("MessageViewModel", "Error in getLastMessages", e)
-                _lastMessagesState.value = Resource.Error(e.message ?: "Error loading last messages")
+                _chatMessagesState.value = _chatMessagesState.value.copy(
+                    messages = updatedMessages
+                )
             }
         }
     }
 
     fun getMessagesForChat(chatId: String) {
         viewModelScope.launch {
-            _chatMessagesState.value = Resource.Loading()
-            try {
-                val response = messageRepository.getMessagesForChat(chatId)
-                currentChatMessages = response
-                _chatMessagesState.value = Resource.Success(response)
+            if (_chatMessagesState.value.isLoading || !_chatMessagesState.value.hasMorePages) return@launch
 
-                connectWebSocket(listOf(chatId), MessageStreamMode.FULL_CHAT)
+            if (currentChatId != chatId) {
+                currentChatId = chatId
+                _chatMessagesState.value = MessagesState(isLoading = true)
+            }
+
+            try {
+                val response = messageRepository.getMessagesForChat(
+                    chatId = chatId,
+                    page = _chatMessagesState.value.currentPage,
+                    size = 30
+                )
+
+                val updatedMessages = if (_chatMessagesState.value.currentPage == 0) {
+                    response
+                } else {
+                    _chatMessagesState.value.messages + response
+                }.distinctBy { it.messageId }
+
+                _chatMessagesState.value = _chatMessagesState.value.copy(
+                    messages = updatedMessages,
+                    currentPage = _chatMessagesState.value.currentPage + 1,
+                    hasMorePages = response.isNotEmpty(),
+                    isLoading = false
+                )
+
+                if (_chatMessagesState.value.currentPage == 1) {
+                    connectWebSocket(listOf(chatId), MessageStreamMode.FULL_CHAT)
+                }
             } catch (e: Exception) {
-                _chatMessagesState.value = Resource.Error(e.message ?: "Error loading messages for chat")
+                _chatMessagesState.value = _chatMessagesState.value.copy(
+                    error = e.message ?: "Error loading messages for chat",
+                    isLoading = false
+                )
             }
         }
     }
@@ -133,8 +113,10 @@ class MessageViewModel @Inject constructor(
         messageRepository.updateMessage(messageId, messageUpdateRequest)
     }
 
-    suspend fun deleteMessage(messageId: String) {
-        messageRepository.deleteMessage(messageId)
+    fun deleteMessage(messageId: String) {
+        viewModelScope.launch {
+            messageRepository.deleteMessage(messageId)
+        }
     }
 
     private fun connectWebSocket(chatIds: List<String>, mode: MessageStreamMode) {

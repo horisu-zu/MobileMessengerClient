@@ -28,7 +28,7 @@ interface UserApiService {
     @GET("api/users/{id}")
     suspend fun getUserById(@Path("id") id: String): UserResponse
 
-    @GET("api/users")
+    @GET("api/users/search")
     suspend fun getUsersByNickname(@Query("nickname") nickname: String? = null): List<UserResponse>
 
     @PATCH("api/users/{id}/status")

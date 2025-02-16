@@ -217,8 +217,10 @@ class ChatViewModel @Inject constructor(
         return chatRepository.getParticipantsCount(chatId)
     }
 
-    suspend fun leaveGroupChat(chatId: String, userId: String) {
-        return chatRepository.leaveGroupChat(chatId, userId)
+    fun leaveGroupChat(chatId: String, userId: String) {
+        viewModelScope.launch {
+            chatRepository.leaveGroupChat(chatId, userId)
+        }
     }
 
     private fun connectWebSocket(chatIds: List<String>) {

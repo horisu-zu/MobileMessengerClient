@@ -22,7 +22,6 @@ import com.example.testapp.presentation.auth.AuthScreen
 import com.example.testapp.presentation.main.navigator.MainAppNavigator
 import com.example.testapp.presentation.profile.ProfileNavigator
 import com.example.testapp.presentation.splash.SplashScreen
-import com.example.testapp.presentation.viewmodel.gallery.MediaViewModel
 import com.example.testapp.presentation.viewmodel.main.MainViewModel
 import com.example.testapp.presentation.viewmodel.user.AuthManager
 import com.example.testapp.presentation.viewmodel.user.TokenManager
@@ -64,8 +63,6 @@ class MainActivity : ComponentActivity() {
                 else -> false
             }
 
-        val mediaViewModel = MediaViewModel()
-
         setContent {
             val theme = dataStoreUtil.getTheme(systemTheme).collectAsState(initial = systemTheme)
             val navController = rememberNavController()
@@ -91,8 +88,6 @@ class MainActivity : ComponentActivity() {
                     composable("main") {
                         MainAppNavigator(
                             authManager = authManager,
-                            mediaViewModel = mediaViewModel,
-                            dataStoreUtil = dataStoreUtil,
                             parentNavController = navController
                         )
                     }

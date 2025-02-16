@@ -3,10 +3,13 @@ package com.example.testapp.presentation.viewmodel.user
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.testapp.domain.dto.user.UserRequest
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class AuthViewModel(private val authManager: AuthManager) : ViewModel() {
+@HiltViewModel
+class AuthViewModel @Inject constructor(private val authManager: AuthManager) : ViewModel() {
 
     val authState: StateFlow<AuthState> = authManager.authState
 

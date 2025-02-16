@@ -2,7 +2,6 @@ package com.example.testapp.di.websocket
 
 import android.util.Log
 import com.example.testapp.di.InstantAdapter
-import com.example.testapp.di.MessageEventJsonAdapter
 import com.example.testapp.domain.dto.message.MessageEvent
 import com.example.testapp.domain.dto.message.MessageEventWrapper
 import com.example.testapp.domain.dto.message.MessageStreamMode

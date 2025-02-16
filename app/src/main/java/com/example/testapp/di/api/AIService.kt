@@ -4,5 +4,5 @@ import com.example.testapp.domain.models.message.Message
 import java.util.Locale
 
 interface AIService {
-    suspend fun summarizeMessages(messages: List<Message>, locale: Locale): String
+    suspend fun summarizeMessages(messages: List<Pair<String, Message>>, locale: Locale): String
 }

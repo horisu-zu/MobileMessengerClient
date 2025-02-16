@@ -14,29 +14,22 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.testapp.domain.dto.message.MessageRequest
 import com.example.testapp.domain.dto.user.UserResponse
-import com.example.testapp.domain.models.message.Attachment
-import com.example.testapp.domain.models.message.Message
 import com.example.testapp.presentation.chat.bottomsheet.chat.ChatBottomSheet
 import com.example.testapp.presentation.chat.message.MessageList
-import com.example.testapp.presentation.templates.media.MediaBottomSheet
-import com.example.testapp.presentation.templates.media.MediaType
 import com.example.testapp.presentation.viewmodel.gallery.MediaViewModel
 import com.example.testapp.presentation.user.bottomsheet.UserBottomSheet
 import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
+import com.example.testapp.presentation.viewmodel.message.MessageInputViewModel
 import com.example.testapp.presentation.viewmodel.message.MessageViewModel
 import com.example.testapp.presentation.viewmodel.reaction.ReactionViewModel
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
 import com.example.testapp.utils.Resource
-import kotlinx.coroutines.launch
 
 @Composable
 fun ChatScreen(
@@ -46,6 +39,7 @@ fun ChatScreen(
     chatViewModel: ChatViewModel = hiltViewModel(),
     messageViewModel: MessageViewModel = hiltViewModel(),
     reactionViewModel: ReactionViewModel = hiltViewModel(),
+    messageInputViewModel: MessageInputViewModel = hiltViewModel(),
     mediaViewModel: MediaViewModel = hiltViewModel(),
     reactionUrls: List<String>,
     mainNavController: NavController
@@ -58,44 +52,11 @@ fun ChatScreen(
     val chatState by chatViewModel.chatState.collectAsState()
     val participantsState by chatViewModel.chatParticipantsState.collectAsState()
     val reactionsState by reactionViewModel.chatReactionsState.collectAsState()
+    val messageInputState = messageInputViewModel.messageInputState.collectAsState()
 
-    //MediaViewModel states
-    val images by mediaViewModel.images.collectAsState()
-    val documents by mediaViewModel.documents.collectAsState()
-    val audio by mediaViewModel.audio.collectAsState()
-    val videos by mediaViewModel.videos.collectAsState()
-    val showMediaBottomSheet = remember { mutableStateOf(false) }
-
-    val coroutineScope = rememberCoroutineScope()
     val showBottomSheet = remember { mutableStateOf(false) }
     val showPersonalBottomSheet = remember { mutableStateOf(false) }
     val selectedUser = remember { mutableStateOf<UserResponse?>(null) }
-    var messageRequest by remember {
-        mutableStateOf(
-            chatId?.let { chatId ->
-                MessageRequest(
-                    chatId = chatId,
-                    senderId = currentUser?.userId ?: "Shouldn't happen",
-                    message = null,
-                    replyTo = null
-                )
-            }
-        )
-    }
-    var replyToMessage by remember { mutableStateOf<Message?>(null) }
-    var editingMessage by remember { mutableStateOf<Message?>(null) }
-
-    var messageAttachments by remember { mutableStateOf<List<Attachment>>(emptyList()) }
-
-    fun clearInputState() {
-        messageRequest = messageRequest?.copy(
-            message = null,
-            replyTo = null
-        )
-        editingMessage = null
-        replyToMessage = null
-        messageAttachments = emptyList()
-    }
 
     LaunchedEffect(chatId) {
         chatId?.let {
@@ -103,6 +64,7 @@ fun ChatScreen(
             chatViewModel.getChatById(chatId)
             chatViewModel.getChatMetadata(chatId)
             messageViewModel.getMessagesForChat(chatId)
+            messageInputViewModel.initialize(chatId, currentUser?.userId ?: "")
         }
     }
 
@@ -116,8 +78,8 @@ fun ChatScreen(
     }
 
     val messageIds = remember(messagesState) {
-        if (messagesState is Resource.Success) {
-            messagesState.data?.mapNotNull { it.messageId } ?: emptyList()
+        if (messagesState.messages.isNotEmpty()) {
+            messagesState.messages.mapNotNull { it.messageId }
         } else emptyList()
     }
 
@@ -142,9 +104,6 @@ fun ChatScreen(
             userStatusState[otherUserData?.userId]
         }
     }
-    /*Log.d("CurrentUserId", currentUser?.userId ?: "Some ID")
-    Log.d("OtherUserData", otherUserData?.nickname ?: "Some Nickname")
-    Log.d("OtherUserStatus", userStatusState.toString())*/
 
     Scaffold(
         topBar = {
@@ -166,9 +125,7 @@ fun ChatScreen(
                 onLeaveClick = {
                     chatId?.let { chatId ->
                         currentUser?.userId?.let { userId ->
-                            coroutineScope.launch {
-                                chatViewModel.leaveGroupChat(chatId, userId)
-                            }
+                            chatViewModel.leaveGroupChat(chatId, userId)
                         }
                     }
                 },
@@ -186,39 +143,35 @@ fun ChatScreen(
                     .fillMaxSize()
             ) {
                 Box(modifier = Modifier.weight(1f)) {
-                    when(userState) {
+                    when(reactionsState) {
                         is Resource.Success -> {
                             userState.data?.let {
                                 MessageList(
                                     currentUserId = currentUser?.userId ?: "bruh",
-                                    messages = messagesState.data?.associateBy { it.messageId!! } ?: emptyMap(),
+                                    messages = messagesState.messages.associateBy { it.messageId ?: "" },
                                     usersData = it.associateBy { user -> user.userId },
                                     reactionsMap = reactionsState.data ?: emptyMap(),
                                     reactionUrls = reactionUrls,
+                                    hasMorePages = messagesState.hasMorePages,
                                     onAvatarClick = { userResponse ->
                                         selectedUser.value = userResponse
                                         showPersonalBottomSheet.value = true
                                     },
                                     onReplyClick = { message ->
-                                        replyToMessage = message
-                                        messageRequest = messageRequest?.copy(replyTo = message.messageId)
+                                        messageInputViewModel.startReplying(message)
                                     },
                                     onEditClick = { message ->
-                                        editingMessage = message
-                                        messageRequest = messageRequest?.copy(message = message.message)
+                                        messageInputViewModel.startEditing(message)
                                     },
                                     onDeleteClick = { messageId ->
-                                        coroutineScope.launch {
-                                            messageViewModel.deleteMessage(messageId)
-                                        }
+                                        messageViewModel.deleteMessage(messageId)
                                     },
                                     onReactionClick = { messageId, userId, emoji ->
-                                        coroutineScope.launch {
-                                            reactionViewModel.toggleReaction(messageId, userId, emoji)
-                                        }
+                                        reactionViewModel.toggleReaction(messageId, userId, emoji)
                                     },
-                                    onReactionLongClick = {
-
+                                    onReactionLongClick = { /*TODO*/ },
+                                    onLoadMore = {
+                                        messageViewModel.getMessagesForChat(chatId.toString())
                                     }
                                 )
                             }
@@ -231,54 +184,18 @@ fun ChatScreen(
                         }
                     }
                 }
-                editingMessage?.let { message ->
-                    EditMessage(
-                        editingMessage = message,
-                        attachments = messageAttachments,
-                        onCancelEdit = {
-                            editingMessage = null
-                            messageRequest = messageRequest?.copy(message = null)
-                        }
+                messageInputState.value?.let {
+                    MessageInput(
+                        userData = userState.data?.associateBy { it.userId } ?: emptyMap(),
+                        mediaViewModel = mediaViewModel,
+                        messageInputState = it,
+                        onSendClick = { messageInputViewModel.sendMessage() },
+                        onMessageInputStateChange = { newState ->
+                            messageInputViewModel.setMessage(newState.message)
+                        },
+                        context = context
                     )
                 }
-                replyToMessage?.let { message ->
-                    userState.data?.find { it.userId == message.senderId }?.let { userData ->
-                        ReplyToMessage(
-                            replyMessage = message,
-                            userData = userData,
-                            attachments = messageAttachments,
-                            onCancelReply = {
-                                replyToMessage = null
-                                messageRequest = messageRequest?.copy(replyTo = null)
-                            }
-                        )
-                    }
-                }
-                MessageInput(
-                    messageText = editingMessage?.message ?: messageRequest?.message ?: "",
-                    editingMessage = editingMessage,
-                    messageRequest = messageRequest,
-                    onMessageChange = { newMessage ->
-                        if (editingMessage != null) {
-                            editingMessage = editingMessage?.copy(message = newMessage)
-                        } else {
-                            messageRequest = messageRequest?.copy(message = newMessage)
-                        }
-                    },
-                    onSendMessage = { request ->
-                        coroutineScope.launch {
-                            messageViewModel.sendMessage(request)
-                            clearInputState()
-                        }
-                    },
-                    onMediaClick = { showMediaBottomSheet.value = true },
-                    onUpdateMessage = { messageId, updateRequest ->
-                        coroutineScope.launch {
-                            messageViewModel.updateMessage(messageId, updateRequest)
-                            clearInputState()
-                        }
-                    }
-                )
             }
 
             if (showBottomSheet.value) {
@@ -316,27 +233,6 @@ fun ChatScreen(
                         }
                     }
                 }
-            }
-            if(showMediaBottomSheet.value) {
-                MediaBottomSheet(
-                    images = images,
-                    documents = documents,
-                    audio = audio,
-                    videos = videos,
-                    onMediaSelected = { uri, type ->
-                        when (type) {
-                            MediaType.IMAGES -> { /**/ }
-                            MediaType.DOCUMENTS -> { /**/ }
-                            MediaType.AUDIO -> { /**/ }
-                            MediaType.VIDEO -> { /**/ }
-                        }
-                    },
-                    onDismiss = { showMediaBottomSheet.value = false },
-                    onRequestPermission = { mediaType ->
-                        mediaViewModel.loadMedia(context, mediaType)
-                    },
-                    context = context
-                )
             }
         }
     }

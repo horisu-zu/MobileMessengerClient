@@ -15,25 +15,21 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class MediaViewModel @Inject constructor(): ViewModel() {
-    private val _images = MutableStateFlow<List<Uri>>(emptyList())
-    private val _documents = MutableStateFlow<List<Uri>>(emptyList())
-    private val _audio = MutableStateFlow<List<Uri>>(emptyList())
-    private val _videos = MutableStateFlow<List<Uri>>(emptyList())
-
-    val images: StateFlow<List<Uri>> = _images.asStateFlow()
-    val documents: StateFlow<List<Uri>> = _documents.asStateFlow()
-    val audio: StateFlow<List<Uri>> = _audio.asStateFlow()
-    val videos: StateFlow<List<Uri>> = _videos.asStateFlow()
+class MediaViewModel @Inject constructor() : ViewModel() {
+    private val _mediaState = MutableStateFlow<Map<MediaType, List<Uri>>>(emptyMap())
+    val mediaState: StateFlow<Map<MediaType, List<Uri>>> = _mediaState.asStateFlow()
 
     fun loadMedia(context: Context, mediaType: MediaType) {
         viewModelScope.launch(Dispatchers.IO) {
-            when (mediaType) {
-                MediaType.IMAGES -> _images.emit(MediaLoader.loadImagesFromGallery(context))
-                MediaType.DOCUMENTS -> _documents.emit(MediaLoader.loadDocuments(context))
-                MediaType.AUDIO -> _audio.emit(MediaLoader.loadAudioFiles(context))
-                MediaType.VIDEO -> _videos.emit(MediaLoader.loadVideos(context))
+            val updatedMedia = _mediaState.value.toMutableMap()
+            val newMedia = when (mediaType) {
+                MediaType.IMAGES -> MediaLoader.loadImagesFromGallery(context)
+                MediaType.DOCUMENTS -> MediaLoader.loadDocuments(context)
+                MediaType.AUDIO -> MediaLoader.loadAudioFiles(context)
+                MediaType.VIDEO -> MediaLoader.loadVideos(context)
             }
+            updatedMedia[mediaType] = newMedia
+            _mediaState.emit(updatedMedia)
         }
     }
 }
