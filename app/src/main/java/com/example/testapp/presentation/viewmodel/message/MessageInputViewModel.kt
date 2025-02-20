@@ -57,7 +57,27 @@ class MessageInputViewModel @Inject constructor(
         }
     }
 
-    fun clearState() {
+    fun clearEditing() {
+        _messageInputState.update { currentState ->
+            currentState?.copy(
+                isEditing = false,
+                editingMessage = null,
+                editedMessageId = null,
+                message = null
+            )
+        }
+    }
+
+    fun clearReplying() {
+        _messageInputState.update { currentState ->
+            currentState?.copy(
+                isReplying = false,
+                replyToMessage = null
+            )
+        }
+    }
+
+    private fun clearState() {
         _messageInputState.update { currentState ->
             currentState?.copy(
                 message = null,

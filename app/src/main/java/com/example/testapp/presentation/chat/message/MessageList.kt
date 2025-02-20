@@ -8,8 +8,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -24,6 +24,7 @@ import com.example.testapp.utils.Converter.groupReactions
 fun MessageList(
     currentUserId: String,
     messages: Map<String, Message>,
+    replyMessages: Map<String, Message>,
     usersData: Map<String, UserResponse>,
     reactionsMap: Map<String, List<Reaction>>,
     reactionUrls: List<String>,
@@ -38,7 +39,7 @@ fun MessageList(
 ) {
     val listState = rememberLazyListState()
 
-    val messageGroups by remember(messages) { mutableStateOf(groupMessagesInSequence(messages)) }
+    val messageGroups by remember(messages) { derivedStateOf { groupMessagesInSequence(messages) } }
 
     LazyColumn(
         reverseLayout = true,
@@ -76,7 +77,7 @@ fun MessageList(
                 currentIndex += group.size
             }
 
-            if (index >= totalMessages - 15 && hasMorePages) {
+            if (index >= totalMessages - 10 && hasMorePages) {
                 onLoadMore()
             }
 
@@ -85,10 +86,7 @@ fun MessageList(
                     val isFirstInGroup = group.last() == message
                     val isLastInGroup = group.first() == message
 
-                    val replyMessage = message.replyTo?.let { replyId ->
-                        messages[replyId]
-                    }
-
+                    val replyMessage = replyMessages[message.replyTo]
                     val replyUserData = replyMessage?.senderId?.let { senderId ->
                         usersData[senderId]
                     }

@@ -1,12 +1,9 @@
 package com.example.testapp.presentation.main.navigator
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.togetherWith
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -19,7 +16,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.testapp.presentation.chat.ChatScreen
@@ -37,10 +33,7 @@ fun MainAppNavigator(
     parentNavController: NavController
 ) {
     val mainNavController = rememberNavController()
-
-    val currentBackStackEntry by mainNavController.currentBackStackEntryAsState()
     val currentUserState by userViewModel.currentUserState.collectAsStateWithLifecycle()
-    val isInChat = currentBackStackEntry?.destination?.route?.startsWith("chatScreen") == true
 
     var reactionUrls by remember { mutableStateOf<List<String>>(emptyList()) }
 
@@ -48,50 +41,50 @@ fun MainAppNavigator(
         reactionUrls = fetchEmojiUrls(FirebaseStorage.getInstance())
     }
 
-    AnimatedContent(
-        targetState = isInChat,
-        transitionSpec = {
-            if (targetState) {
-                (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
-                    slideOutHorizontally { width -> -width } + fadeOut())
-            } else {
-                (slideInHorizontally { width -> -width } + fadeIn()).togetherWith(
-                    slideOutHorizontally { width -> width } + fadeOut())
-            }.using(SizeTransform(clip = false))
-        },
-        label = "MainAppNavigator"
-    ) { inChat ->
-        NavHost(navController = mainNavController, startDestination = "mainScreen") {
-            composable(route = "mainScreen") {
-                if (!inChat) {
-                    MainScreen(
-                        authManager = authManager,
-                        currentUser = currentUserState.data,
-                        parentNavController = parentNavController,
-                        mainNavController = mainNavController
-                    )
-                }
+    NavHost(navController = mainNavController, startDestination = "mainScreen") {
+        composable(
+            route = "mainScreen",
+            enterTransition = { slideInHorizontally { -it } + fadeIn() },
+            exitTransition = { slideOutHorizontally { -it } + fadeOut() }
+        ) {
+            MainScreen(
+                authManager = authManager,
+                currentUser = currentUserState.data,
+                parentNavController = parentNavController,
+                mainNavController = mainNavController
+            )
+        }
+
+        composable(
+            route = "chatScreen/{chatId}",
+            arguments = listOf(navArgument("chatId") {
+                type = NavType.StringType
+                nullable = true
+            }),
+            enterTransition = { slideInHorizontally { it } + fadeIn() },
+            exitTransition = { slideOutHorizontally { it } + fadeOut() }
+        ) { backStackEntry ->
+            ChatScreen(
+                chatId = backStackEntry.arguments?.getString("chatId"),
+                currentUser = currentUserState.data,
+                reactionUrls = reactionUrls,
+                mainNavController = mainNavController
+            )
+        }
+
+        composable(
+            route = "groupAddScreen",
+            enterTransition = {
+                slideInHorizontally { it } + fadeIn()
+            },
+            exitTransition = {
+                slideOutHorizontally { it } + fadeOut()
             }
-            composable(
-                route = "chatScreen/{chatId}",
-                arguments = listOf(navArgument("chatId") {
-                    type = NavType.StringType
-                    nullable = true
-                })
-            ) { backStackEntry ->
-                ChatScreen(
-                    chatId = backStackEntry.arguments?.getString("chatId"),
-                    currentUser = currentUserState.data,
-                    reactionUrls = reactionUrls,
-                    mainNavController = mainNavController
-                )
-            }
-            composable("groupAddScreen") {
-                GroupAddNavigator(
-                    currentUser = currentUserState.data,
-                    mainNavController = mainNavController
-                )
-            }
+        ) {
+            GroupAddNavigator(
+                currentUser = currentUserState.data,
+                mainNavController = mainNavController
+            )
         }
     }
 }

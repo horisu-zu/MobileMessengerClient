@@ -6,10 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.testapp.di.api.MessageApiService
 import com.example.testapp.di.websocket.MessageWebSocketClient
 import com.example.testapp.domain.dto.message.MessageEvent
-import com.example.testapp.domain.dto.message.MessageRequest
 import com.example.testapp.domain.dto.message.MessageStreamMode
-import com.example.testapp.domain.dto.message.MessageUpdateRequest
 import com.example.testapp.domain.dto.message.MessagesState
+import com.example.testapp.domain.models.message.Message
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -50,7 +49,10 @@ class MessageViewModel @Inject constructor(
             currentChatId?.let {
                 val updatedMessages = _chatMessagesState.value.messages.toMutableList().apply {
                     when (event) {
-                        is MessageEvent.MessageCreated -> add(event.message)
+                        is MessageEvent.MessageCreated -> {
+                            add(event.message)
+                            loadReplyMessage(event.message)
+                        }
                         is MessageEvent.MessageUpdated -> add(event.message)
                         is MessageEvent.MessageDeleted -> {
                             removeAll { it.messageId == event.message.messageId }
@@ -77,7 +79,7 @@ class MessageViewModel @Inject constructor(
                 val response = messageRepository.getMessagesForChat(
                     chatId = chatId,
                     page = _chatMessagesState.value.currentPage,
-                    size = 30
+                    size = 50
                 )
 
                 val updatedMessages = if (_chatMessagesState.value.currentPage == 0) {
@@ -86,8 +88,20 @@ class MessageViewModel @Inject constructor(
                     _chatMessagesState.value.messages + response
                 }.distinctBy { it.messageId }
 
+                val replyMessageIds = updatedMessages
+                    .mapNotNull { it.replyTo }
+                    .filter { it !in _chatMessagesState.value.replyMessages.keys }
+
+                val replyMessages = if (replyMessageIds.isNotEmpty()) {
+                    messageRepository.getMessagesByIds(replyMessageIds)
+                        .associateBy { it.messageId ?: "" }
+                } else {
+                    emptyMap()
+                }
+
                 _chatMessagesState.value = _chatMessagesState.value.copy(
                     messages = updatedMessages,
+                    replyMessages = _chatMessagesState.value.replyMessages + replyMessages,
                     currentPage = _chatMessagesState.value.currentPage + 1,
                     hasMorePages = response.isNotEmpty(),
                     isLoading = false
@@ -103,14 +117,6 @@ class MessageViewModel @Inject constructor(
                 )
             }
         }
-    }
-
-    suspend fun sendMessage(messageRequest: MessageRequest) {
-        messageRepository.createMessage(messageRequest)
-    }
-
-    suspend fun updateMessage(messageId: String, messageUpdateRequest: MessageUpdateRequest) {
-        messageRepository.updateMessage(messageId, messageUpdateRequest)
     }
 
     fun deleteMessage(messageId: String) {
@@ -134,6 +140,28 @@ class MessageViewModel @Inject constructor(
 
         Log.d("MessageViewModel", "Connecting WebSocket with chatIds: $chatIds and mode: $mode")
         messageWebSocketClient.connect(chatIds, mode)
+    }
+
+    private fun loadReplyMessage(message: Message) {
+        message.replyTo?.let { replyId ->
+            if (replyId !in _chatMessagesState.value.replyMessages) {
+                viewModelScope.launch {
+                    try {
+                        val replyMessage = messageRepository.getMessagesByIds(listOf(replyId))
+                            .firstOrNull()
+                            ?.let { replyId to it }
+
+                        replyMessage?.let {
+                            _chatMessagesState.value = _chatMessagesState.value.copy(
+                                replyMessages = _chatMessagesState.value.replyMessages + it
+                            )
+                        }
+                    } catch (e: Exception) {
+                        Log.e("MessageViewModel", "Error loading reply message", e)
+                    }
+                }
+            }
+        }
     }
 
     override fun onCleared() {

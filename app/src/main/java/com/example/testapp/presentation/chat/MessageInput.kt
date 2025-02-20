@@ -40,7 +40,9 @@ fun MessageInput(
     mediaViewModel: MediaViewModel,
     messageInputState: MessageInputState,
     onSendClick: () -> Unit,
-    onMessageInputStateChange: (MessageInputState) -> Unit,
+    onMessageInputChange: (String) -> Unit,
+    onClearEditing: () -> Unit,
+    onClearReplying: () -> Unit,
     context: Context
 ) {
     var messageAttachments by remember { mutableStateOf<List<Attachment>>(emptyList()) }
@@ -56,14 +58,7 @@ fun MessageInput(
             EditMessage(
                 editingMessage = message,
                 attachments = messageAttachments,
-                onCancelEdit = {
-                    onMessageInputStateChange(messageInputState.copy(
-                        isEditing = false,
-                        editingMessage = null,
-                        editedMessageId = null,
-                        message = null
-                    ))
-                }
+                onCancelEdit = onClearEditing
             )
         }
 
@@ -73,12 +68,7 @@ fun MessageInput(
                     replyMessage = message,
                     userData = replyUserData,
                     attachments = messageAttachments,
-                    onCancelReply = {
-                        onMessageInputStateChange(messageInputState.copy(
-                            isReplying = false,
-                            replyToMessage = null
-                        ))
-                    }
+                    onCancelReply = onClearReplying
                 )
             }
         }
@@ -92,7 +82,7 @@ fun MessageInput(
             TextField(
                 value = messageInputState.message ?: "",
                 onValueChange = { newValue ->
-                    onMessageInputStateChange(messageInputState.copy(message = newValue))
+                    onMessageInputChange(newValue)
                 },
                 modifier = Modifier
                     .weight(1f)

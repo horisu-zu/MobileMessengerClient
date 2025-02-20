@@ -11,6 +11,7 @@ import com.example.testapp.domain.dto.message.MessageEvent
 import com.example.testapp.domain.dto.message.MessageStreamMode
 import com.example.testapp.domain.models.chat.Chat
 import com.example.testapp.domain.models.chat.ChatDisplayData
+import com.example.testapp.utils.DataStoreUtil
 import com.example.testapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,27 +23,31 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ChatDisplayViewModel @Inject constructor(
+    private val dataStoreUtil: DataStoreUtil,
     private val chatRepository: ChatApiService,
     private val messageRepository: MessageApiService,
     private val userRepository: UserApiService,
     private val messageWebSocketClient: MessageWebSocketClient
-): ViewModel() {
+) : ViewModel() {
 
-    private val _chatListItemsState = MutableStateFlow<Resource<Map<String, ChatDisplayData>>>(Resource.Loading())
+    private val _chatListItemsState =
+        MutableStateFlow<Resource<Map<String, ChatDisplayData>>>(Resource.Loading())
     val chatListItemsState: StateFlow<Resource<Map<String, ChatDisplayData>>> = _chatListItemsState
 
     init {
-        //if(_chatListItemsState.value is Resource.Success) {
-            viewModelScope.launch {
-                messageWebSocketClient.getMessageUpdates()
-                    .catch { e ->
-                        Log.e("WebSocket", "Error in updates", e)
-                    }
-                    .collect { updates ->
-                        processLastMessagesUpdates(updates)
-                    }
+        viewModelScope.launch {
+            dataStoreUtil.getUserId().collect { userId ->
+                userId?.let { startObservingChats(it) }
             }
-        //}
+
+            messageWebSocketClient.getMessageUpdates()
+                .catch { e ->
+                    Log.e("WebSocket", "Error in updates", e)
+                }
+                .collect { updates ->
+                    processLastMessagesUpdates(updates)
+                }
+        }
     }
 
     private suspend fun processLastMessagesUpdates(updates: Map<String, MessageEvent>) {
@@ -54,11 +59,14 @@ class ChatDisplayViewModel @Inject constructor(
                         updatedMap[chatId] = when (event) {
                             is MessageEvent.MessageCreated -> {
                                 val sender = userRepository.getUserById(event.message.senderId)
-                                val currentData = updatedMap[chatId] ?: throw IllegalStateException("Chat ${event.message.chatId} not initialized")
+                                val currentData = updatedMap[chatId] ?: throw IllegalStateException(
+                                    "Chat ${event.message.chatId} not initialized"
+                                )
 
-                                val isNewMessage = currentData.lastMessage?.createdAt?.let { lastTimestamp ->
-                                    event.message.createdAt > lastTimestamp
-                                } ?: true
+                                val isNewMessage =
+                                    currentData.lastMessage?.createdAt?.let { lastTimestamp ->
+                                        event.message.createdAt > lastTimestamp
+                                    } ?: true
 
                                 currentData.copy(
                                     lastMessage = event.message,
@@ -66,14 +74,17 @@ class ChatDisplayViewModel @Inject constructor(
                                     unreadCount = if (isNewMessage) currentData.unreadCount + 1 else currentData.unreadCount
                                 )
                             }
+
                             is MessageEvent.MessageUpdated ->
                                 updatedMap[chatId]?.copy(lastMessage = event.message)
+
                             is MessageEvent.MessageDeleted ->
                                 updatedMap[chatId]?.copy(lastMessage = null)
                         } ?: return@forEach
                     }
                     Resource.Success(updatedMap)
                 }
+
                 else -> currentState
             }
         }
@@ -114,7 +125,10 @@ class ChatDisplayViewModel @Inject constructor(
         return chatRepository.getUserChats(userId)
     }
 
-    private suspend fun loadPrivateChatData(chatId: String, currentUserId: String): ChatDisplayData {
+    private suspend fun loadPrivateChatData(
+        chatId: String,
+        currentUserId: String
+    ): ChatDisplayData {
         val participants = chatRepository.getChatParticipants(chatId)
         val otherUser = participants
             .first { it.userId != currentUserId }
@@ -178,6 +192,7 @@ class ChatDisplayViewModel @Inject constructor(
 
                         Resource.Success(updatedMap)
                     }
+
                     else -> {
                         currentResource
                     }
@@ -194,7 +209,10 @@ class ChatDisplayViewModel @Inject constructor(
 
         messageWebSocketClient.disconnect()
 
-        Log.d("ChatDisplayViewModel", "Connecting WebSocket with chatIds: $chatIds and mode: ${MessageStreamMode.LATEST_ONLY}")
+        Log.d(
+            "ChatDisplayViewModel",
+            "Connecting WebSocket with chatIds: $chatIds and mode: ${MessageStreamMode.LATEST_ONLY}"
+        )
         messageWebSocketClient.connect(chatIds, MessageStreamMode.LATEST_ONLY)
     }
 }

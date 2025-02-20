@@ -22,6 +22,11 @@ interface MessageApiService {
         @Query("direction") direction: String = "DESC"
     ): List<Message>
 
+    @GET("api/messages")
+    suspend fun getMessagesByIds(
+        @Query("messageIds") messageIds: List<String>
+    ): List<Message>
+
     @GET("api/messages/lastMessages")
     suspend fun getLastMessages(@Query("chatIds") chatIds: List<String>): List<Message>
 

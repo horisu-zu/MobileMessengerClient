@@ -112,7 +112,7 @@ fun ChatScreen(
                 userData = otherUserData,
                 userStatus = otherUserStatus,
                 onAvatarClick = {
-                    if(metadataState.data != null) {
+                    if (metadataState.data != null) {
                         showBottomSheet.value = true
                     } else {
                         selectedUser.value = otherUserData
@@ -149,6 +149,7 @@ fun ChatScreen(
                                 MessageList(
                                     currentUserId = currentUser?.userId ?: "bruh",
                                     messages = messagesState.messages.associateBy { it.messageId ?: "" },
+                                    replyMessages = messagesState.replyMessages,
                                     usersData = it.associateBy { user -> user.userId },
                                     reactionsMap = reactionsState.data ?: emptyMap(),
                                     reactionUrls = reactionUrls,
@@ -190,9 +191,11 @@ fun ChatScreen(
                         mediaViewModel = mediaViewModel,
                         messageInputState = it,
                         onSendClick = { messageInputViewModel.sendMessage() },
-                        onMessageInputStateChange = { newState ->
-                            messageInputViewModel.setMessage(newState.message)
+                        onMessageInputChange = { newValue ->
+                            messageInputViewModel.setMessage(newValue)
                         },
+                        onClearEditing = { messageInputViewModel.clearEditing() },
+                        onClearReplying = { messageInputViewModel.clearReplying() },
                         context = context
                     )
                 }

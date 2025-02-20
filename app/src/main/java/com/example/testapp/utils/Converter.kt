@@ -39,7 +39,7 @@ object Converter {
     }
 
     fun groupReactions(reactions: List<Reaction>): Map<String, List<Reaction>> {
-        Log.d("ReactionsList", "Reactions: $reactions")
+        //Log.d("ReactionsList", "Reactions: $reactions")
         return reactions
             .sortedBy { it.createdAt }
             .groupBy { it.emojiReaction }
