@@ -65,6 +65,7 @@ fun ChatScreen(
             chatViewModel.getChatMetadata(chatId)
             messageViewModel.getMessagesForChat(chatId)
             messageInputViewModel.initialize(chatId, currentUser?.userId ?: "")
+            reactionViewModel.loadReactionsForChat(chatId)
         }
     }
 
@@ -77,7 +78,7 @@ fun ChatScreen(
         }
     }
 
-    val messageIds = remember(messagesState) {
+    /*val messageIds = remember(messagesState) {
         if (messagesState.messages.isNotEmpty()) {
             messagesState.messages.mapNotNull { it.messageId }
         } else emptyList()
@@ -87,7 +88,7 @@ fun ChatScreen(
         if (messageIds.isNotEmpty()) {
             reactionViewModel.loadReactionsForMessages(messageIds)
         }
-    }
+    }*/
 
     val sortedUsers by remember(userState.data, userStatusState) {
         derivedStateOf {
@@ -143,46 +144,37 @@ fun ChatScreen(
                     .fillMaxSize()
             ) {
                 Box(modifier = Modifier.weight(1f)) {
-                    when(reactionsState) {
-                        is Resource.Success -> {
-                            userState.data?.let {
-                                MessageList(
-                                    currentUserId = currentUser?.userId ?: "bruh",
-                                    messages = messagesState.messages.associateBy { it.messageId ?: "" },
-                                    replyMessages = messagesState.replyMessages,
-                                    usersData = it.associateBy { user -> user.userId },
-                                    reactionsMap = reactionsState.data ?: emptyMap(),
-                                    reactionUrls = reactionUrls,
-                                    hasMorePages = messagesState.hasMorePages,
-                                    onAvatarClick = { userResponse ->
-                                        selectedUser.value = userResponse
-                                        showPersonalBottomSheet.value = true
-                                    },
-                                    onReplyClick = { message ->
-                                        messageInputViewModel.startReplying(message)
-                                    },
-                                    onEditClick = { message ->
-                                        messageInputViewModel.startEditing(message)
-                                    },
-                                    onDeleteClick = { messageId ->
-                                        messageViewModel.deleteMessage(messageId)
-                                    },
-                                    onReactionClick = { messageId, userId, emoji ->
-                                        reactionViewModel.toggleReaction(messageId, userId, emoji)
-                                    },
-                                    onReactionLongClick = { /*TODO*/ },
-                                    onLoadMore = {
-                                        messageViewModel.getMessagesForChat(chatId.toString())
-                                    }
-                                )
+                    userState.data?.let {
+                        MessageList(
+                            currentUserId = currentUser?.userId ?: "bruh",
+                            messages = messagesState.messages.associateBy { it.messageId ?: "" },
+                            replyMessages = messagesState.replyMessages,
+                            usersData = it.associateBy { user -> user.userId },
+                            reactionsMap = reactionsState.reactions,
+                            reactionUrls = reactionUrls,
+                            hasMorePages = messagesState.hasMorePages,
+                            onAvatarClick = { userResponse ->
+                                selectedUser.value = userResponse
+                                showPersonalBottomSheet.value = true
+                            },
+                            onReplyClick = { message ->
+                                messageInputViewModel.startReplying(message)
+                            },
+                            onEditClick = { message ->
+                                messageInputViewModel.startEditing(message)
+                            },
+                            onDeleteClick = { messageId ->
+                                messageViewModel.deleteMessage(messageId)
+                            },
+                            onReactionClick = { messageId, userId, emoji ->
+                                reactionViewModel.toggleReaction(messageId, userId, emoji)
+                            },
+                            onReactionLongClick = { /*TODO*/ },
+                            onLoadMore = {
+                                messageViewModel.getMessagesForChat(chatId.toString())
+                                reactionViewModel.loadReactionsForChat(chatId.toString())
                             }
-                        }
-                        is Resource.Error -> { /**/ }
-                        is Resource.Loading -> {
-                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator()
-                            }
-                        }
+                        )
                     }
                 }
                 messageInputState.value?.let {

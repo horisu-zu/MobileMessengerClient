@@ -76,10 +76,11 @@ class MessageViewModel @Inject constructor(
             }
 
             try {
+                Log.d("MessageViewModel", "Loading messages for page: ${_chatMessagesState.value.currentPage}")
                 val response = messageRepository.getMessagesForChat(
                     chatId = chatId,
                     page = _chatMessagesState.value.currentPage,
-                    size = 50
+                    size = 30
                 )
 
                 val updatedMessages = if (_chatMessagesState.value.currentPage == 0) {

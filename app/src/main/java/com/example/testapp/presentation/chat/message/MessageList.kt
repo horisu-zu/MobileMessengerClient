@@ -5,12 +5,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -19,6 +22,9 @@ import com.example.testapp.domain.models.message.Message
 import com.example.testapp.domain.models.reaction.Reaction
 import com.example.testapp.utils.Converter.groupMessagesInSequence
 import com.example.testapp.utils.Converter.groupReactions
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun MessageList(
@@ -38,8 +44,43 @@ fun MessageList(
     onLoadMore: () -> Unit
 ) {
     val listState = rememberLazyListState()
-
     val messageGroups by remember(messages) { derivedStateOf { groupMessagesInSequence(messages) } }
+
+    LaunchedEffect(messages) {
+        if(listState.firstVisibleItemIndex <= 1 && messages.isNotEmpty()) {
+            listState.animateScrollToItem(0)
+        }
+    }
+
+    val loadMoreHandler = remember {
+        object : LazyListOnItemsScrolledListener {
+            var isLoading = false
+
+            override fun onItemsScrolled(visibleItems: List<LazyListItemInfo>) {
+                if (hasMorePages && !isLoading && visibleItems.isNotEmpty()) {
+                    val lastVisibleItemIndex = visibleItems.last().index
+                    val total = messageGroups.sumOf { it.size }
+
+                    if (lastVisibleItemIndex >= total - 10) {
+                        isLoading = true
+                        onLoadMore()
+                        MainScope().launch {
+                            delay(500)
+                            isLoading = false
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    LaunchedEffect(listState) {
+        snapshotFlow {
+            listState.layoutInfo.visibleItemsInfo
+        }.collect { visibleItems ->
+            loadMoreHandler.onItemsScrolled(visibleItems)
+        }
+    }
 
     LazyColumn(
         reverseLayout = true,
@@ -75,10 +116,6 @@ fun MessageList(
                     break
                 }
                 currentIndex += group.size
-            }
-
-            if (index >= totalMessages - 10 && hasMorePages) {
-                onLoadMore()
             }
 
             targetMessage?.let { message ->
@@ -133,4 +170,8 @@ fun MessageList(
             }
         }
     }
+}
+
+interface LazyListOnItemsScrolledListener {
+    fun onItemsScrolled(visibleItems: List<LazyListItemInfo>)
 }

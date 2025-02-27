@@ -11,6 +11,7 @@ import com.example.testapp.domain.dto.message.MessageEvent
 import com.example.testapp.domain.dto.message.MessageStreamMode
 import com.example.testapp.domain.models.chat.Chat
 import com.example.testapp.domain.models.chat.ChatDisplayData
+import com.example.testapp.domain.models.chat.ChatType
 import com.example.testapp.utils.DataStoreUtil
 import com.example.testapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -90,7 +91,7 @@ class ChatDisplayViewModel @Inject constructor(
         }
     }
 
-    fun startObservingChats(userId: String) {
+    private fun startObservingChats(userId: String) {
         viewModelScope.launch {
             try {
                 val chats = getUserChats(userId)
@@ -99,10 +100,10 @@ class ChatDisplayViewModel @Inject constructor(
                 chats.forEach { chat ->
                     chat.chatId?.let { chatId ->
                         try {
-                            val displayData = when (chat.chatTypeId) {
-                                1 -> loadPrivateChatData(chatId, userId)
-                                2 -> loadGroupChatData(chatId)
-                                else -> throw IllegalStateException("Unknown chat type: ${chat.chatTypeId}")
+                            val displayData = when (chat.chatType) {
+                                ChatType.PERSONAL -> loadPrivateChatData(chatId, userId)
+                                ChatType.GROUP -> loadGroupChatData(chatId)
+                                else -> throw IllegalStateException("Unknown chat type: ${chat.chatType}")
                             }
                             chatDisplayMap[chatId] = displayData
                         } catch (e: Exception) {
