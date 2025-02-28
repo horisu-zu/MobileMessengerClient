@@ -1,5 +1,6 @@
 package com.example.testapp.presentation.chat.message
 
+import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,6 +25,8 @@ import com.example.testapp.utils.Converter.groupMessagesInSequence
 import com.example.testapp.utils.Converter.groupReactions
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @Composable
@@ -43,6 +46,7 @@ fun MessageList(
     onReactionLongClick: (String) -> Unit,
     onLoadMore: () -> Unit
 ) {
+    Log.d("MessageList", "HasMorePages value — $hasMorePages")
     val listState = rememberLazyListState()
     val messageGroups by remember(messages) { derivedStateOf { groupMessagesInSequence(messages) } }
 
@@ -52,34 +56,18 @@ fun MessageList(
         }
     }
 
-    val loadMoreHandler = remember {
-        object : LazyListOnItemsScrolledListener {
-            var isLoading = false
-
-            override fun onItemsScrolled(visibleItems: List<LazyListItemInfo>) {
-                if (hasMorePages && !isLoading && visibleItems.isNotEmpty()) {
-                    val lastVisibleItemIndex = visibleItems.last().index
-                    val total = messageGroups.sumOf { it.size }
-
-                    if (lastVisibleItemIndex >= total - 10) {
-                        isLoading = true
-                        onLoadMore()
-                        MainScope().launch {
-                            delay(500)
-                            isLoading = false
-                        }
-                    }
+    LaunchedEffect(listState, hasMorePages) {
+        snapshotFlow { listState.layoutInfo }
+            .map { layoutInfo ->
+                layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            }
+            .distinctUntilChanged()
+            .collect { lastVisibleIndex ->
+                val totalItems = listState.layoutInfo.totalItemsCount
+                if (hasMorePages && lastVisibleIndex >= totalItems - 10) {
+                    onLoadMore()
                 }
             }
-        }
-    }
-
-    LaunchedEffect(listState) {
-        snapshotFlow {
-            listState.layoutInfo.visibleItemsInfo
-        }.collect { visibleItems ->
-            loadMoreHandler.onItemsScrolled(visibleItems)
-        }
     }
 
     LazyColumn(
@@ -170,8 +158,4 @@ fun MessageList(
             }
         }
     }
-}
-
-interface LazyListOnItemsScrolledListener {
-    fun onItemsScrolled(visibleItems: List<LazyListItemInfo>)
 }

@@ -42,10 +42,6 @@ class UserViewModel @Inject constructor(
     private val _userStatusState = MutableStateFlow<Map<String, UserStatus>>(emptyMap())
     val userStatusState: StateFlow<Map<String, UserStatus>> = _userStatusState
 
-    private val _lastMessageUserStates = MutableStateFlow<Map<String, Resource<UserResponse>>>(emptyMap())
-    val lastMessageUserState: StateFlow<Map<String, Resource<UserResponse>>> get() = _lastMessageUserStates
-
-
     private val currentUserIdFlow = dataStoreUtil.getUserId()
     private var searchJob: Job? = null
 
@@ -93,41 +89,6 @@ class UserViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.d("Current Error", "Error loading user: ${e.message}")
                 _currentUserState.value = Resource.Error("Error loading user: ${e.message}")
-            }
-        }
-    }
-
-    suspend fun getUserInPersonalChat(userId: String) {
-        _usersState.value = Resource.Loading()
-        try {
-            val user = userRepository.getUserById(userId)
-            _usersState.value = Resource.Success(listOf(user))
-            connectWebSocket(listOf(user).map { it.userId })
-        } catch (e: Exception) {
-            _usersState.value = Resource.Error("Failed to search users: ${e.message}")
-        }
-    }
-
-    suspend fun getUserById(userId: String): UserResponse {
-        return userRepository.getUserById(userId)
-    }
-
-    fun loadUser(userId: String) {
-        viewModelScope.launch {
-            if (_lastMessageUserStates.value[userId] !is Resource.Success) {
-                _lastMessageUserStates.update { current ->
-                    current + (userId to Resource.Loading())
-                }
-                try {
-                    val user = userRepository.getUserById(userId)
-                    _lastMessageUserStates.update { current ->
-                        current + (userId to Resource.Success(user))
-                    }
-                } catch (e: Exception) {
-                    _lastMessageUserStates.update { current ->
-                        current + (userId to Resource.Error(e.message ?: "Error"))
-                    }
-                }
             }
         }
     }

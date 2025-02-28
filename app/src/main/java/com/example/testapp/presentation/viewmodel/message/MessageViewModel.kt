@@ -73,6 +73,8 @@ class MessageViewModel @Inject constructor(
             if (currentChatId != chatId) {
                 currentChatId = chatId
                 _chatMessagesState.value = MessagesState(isLoading = true)
+            } else {
+                _chatMessagesState.value = _chatMessagesState.value.copy(isLoading = true)
             }
 
             try {
@@ -107,6 +109,7 @@ class MessageViewModel @Inject constructor(
                     hasMorePages = response.isNotEmpty(),
                     isLoading = false
                 )
+                Log.d("MessageViewModel", "Loaded ${response.size} messages for page: ${_chatMessagesState.value.currentPage}")
 
                 if (_chatMessagesState.value.currentPage == 1) {
                     connectWebSocket(listOf(chatId), MessageStreamMode.FULL_CHAT)

@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -14,7 +13,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -69,6 +67,14 @@ fun ChatScreen(
         }
     }
 
+    LaunchedEffect(messagesState) {
+        if (chatId != null && messagesState.messages.isNotEmpty()) {
+            reactionViewModel.setMessageIdsInChat(
+                messagesState.messages.mapNotNull { it.messageId }
+            )
+        }
+    }
+
     LaunchedEffect(participantsState) {
         if (participantsState is Resource.Success) {
             val userIds = participantsState.data?.map { it.userId }
@@ -77,18 +83,6 @@ fun ChatScreen(
             }
         }
     }
-
-    /*val messageIds = remember(messagesState) {
-        if (messagesState.messages.isNotEmpty()) {
-            messagesState.messages.mapNotNull { it.messageId }
-        } else emptyList()
-    }
-
-    LaunchedEffect(messageIds) {
-        if (messageIds.isNotEmpty()) {
-            reactionViewModel.loadReactionsForMessages(messageIds)
-        }
-    }*/
 
     val sortedUsers by remember(userState.data, userStatusState) {
         derivedStateOf {
@@ -150,7 +144,7 @@ fun ChatScreen(
                             messages = messagesState.messages.associateBy { it.messageId ?: "" },
                             replyMessages = messagesState.replyMessages,
                             usersData = it.associateBy { user -> user.userId },
-                            reactionsMap = reactionsState.reactions,
+                            reactionsMap = reactionsState.data ?: emptyMap(),
                             reactionUrls = reactionUrls,
                             hasMorePages = messagesState.hasMorePages,
                             onAvatarClick = { userResponse ->
@@ -173,6 +167,9 @@ fun ChatScreen(
                             onLoadMore = {
                                 messageViewModel.getMessagesForChat(chatId.toString())
                                 reactionViewModel.loadReactionsForChat(chatId.toString())
+                                reactionViewModel.setMessageIdsInChat(
+                                    messagesState.messages.mapNotNull { it.messageId }
+                                )
                             }
                         )
                     }

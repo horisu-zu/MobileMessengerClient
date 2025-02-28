@@ -11,11 +11,9 @@ import com.example.testapp.domain.dto.reaction.ReactionState
 import com.example.testapp.domain.models.reaction.Reaction
 import com.example.testapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,23 +22,16 @@ class ReactionViewModel @Inject constructor(
     private val reactionRepository: ReactionApiService,
     private val reactionWebSocketClient: ReactionWebSocketClient
 ): ViewModel() {
-    private val _chatReactionsState = MutableStateFlow(ReactionState())
-    val chatReactionsState: StateFlow<ReactionState> = _chatReactionsState
+    private val _chatReactionsState = MutableStateFlow<Resource<Map<String, List<Reaction>>>>(Resource.Loading())
+    val chatReactionsState: StateFlow<Resource<Map<String, List<Reaction>>>> = _chatReactionsState
+
+    private val _messageIdsInChat = MutableStateFlow<List<String>>(emptyList())
 
     private var currentChatId: String? = null
-    private var currentConnectedMessageIds = emptyList<String>()
-    //private val _messageIdsFlow = MutableSharedFlow<List<String>>(replay = 1)
+    private var currentPage: Int = 0
+    private var isWebSocketConnected = false
 
     init {
-        /*viewModelScope.launch {
-            _messageIdsFlow
-                .collect { messageIds ->
-                    if (messageIds.isNotEmpty()) {
-                        loadReactions(messageIds)
-                    }
-                }
-        }*/
-
         viewModelScope.launch {
             try {
                 reactionWebSocketClient.getReactionUpdates()
@@ -58,8 +49,7 @@ class ReactionViewModel @Inject constructor(
 
     private fun processWebSocketUpdates(updates: Map<String, ReactionEvent>) {
         val currentState = _chatReactionsState.value
-
-        val updatedReactions = currentState.reactions.toMutableMap()
+        val updatedReactions = currentState.data?.toMutableMap() ?: mutableMapOf()
 
         updates.forEach { (messageId, event) ->
             when (event) {
@@ -82,94 +72,81 @@ class ReactionViewModel @Inject constructor(
             }
         }
 
-        _chatReactionsState.value = currentState.copy(reactions = updatedReactions)
+        _chatReactionsState.value = Resource.Success(updatedReactions)
+    }
+
+    fun setMessageIdsInChat(messageIds: List<String>) {
+        viewModelScope.launch {
+            val currentIds = _messageIdsInChat.value
+            if (currentIds != messageIds) {
+                Log.d("ReactionViewModel", "Updating message IDs: from ${currentIds.size} to ${messageIds.size}")
+                _messageIdsInChat.value = messageIds
+
+                if (currentChatId != null && messageIds.isNotEmpty()) {
+                    updateWebSocket()
+                }
+            }
+        }
+    }
+
+    private fun updateWebSocket() {
+        val messageIds = _messageIdsInChat.value
+
+        viewModelScope.launch {
+            if (isWebSocketConnected) {
+                reactionWebSocketClient.disconnect()
+                isWebSocketConnected = false
+            }
+
+            try {
+                reactionWebSocketClient.connect(messageIds)
+                isWebSocketConnected = true
+                Log.d("ReactionViewModel", "Updated websocket connection for ${messageIds.size} messages")
+            } catch (e: Exception) {
+                Log.e("ReactionViewModel", "Failed to update websocket connection", e)
+                isWebSocketConnected = false
+            }
+        }
     }
 
     fun loadReactionsForChat(chatId: String) {
         viewModelScope.launch {
-            if (_chatReactionsState.value.isLoading || !_chatReactionsState.value.hasMorePages) return@launch
-
             if (currentChatId != chatId) {
                 currentChatId = chatId
-                _chatReactionsState.value = ReactionState(isLoading = true)
-                if (currentConnectedMessageIds.isNotEmpty()) {
-                    reactionWebSocketClient.disconnect()
-                    currentConnectedMessageIds = emptyList()
-                }
-            } else {
-                _chatReactionsState.value = _chatReactionsState.value.copy(isLoading = true)
+                _messageIdsInChat.value = emptyList()
+                _chatReactionsState.value = Resource.Loading()
             }
 
             try {
                 val reactions = reactionRepository.getReactionsForChat(
                     chatId = chatId,
-                    page = _chatReactionsState.value.currentPage,
+                    page = currentPage,
                     size = 30
                 )
 
                 val mappedNewReactions = reactions.groupBy { it.messageId }
 
-                val combinedReactions = if (_chatReactionsState.value.currentPage == 0) {
+                val combinedReactions = if (currentPage == 0) {
                     mappedNewReactions
                 } else {
-                    val merged = _chatReactionsState.value.reactions.toMutableMap()
-
+                    val merged = _chatReactionsState.value.data?.toMutableMap() ?: mutableMapOf()
                     mappedNewReactions.forEach { (messageId, newReactions) ->
                         val existingReactions = merged[messageId] ?: emptyList()
                         merged[messageId] = (existingReactions + newReactions).distinctBy { it.reactionId }
                     }
-
                     merged
                 }
 
-                val newMessageIds = mappedNewReactions.keys.toList()
-                if (newMessageIds.isNotEmpty()) {
-                    val allMessageIds = (currentConnectedMessageIds + newMessageIds).distinct()
-                    reactionWebSocketClient.connect(allMessageIds)
-                    currentConnectedMessageIds = allMessageIds
-                }
-
-                Log.d("ReactionViewModel", "Loaded reactions: $reactions")
-                _chatReactionsState.value = _chatReactionsState.value.copy(
-                    reactions = combinedReactions,
-                    currentPage = _chatReactionsState.value.currentPage + 1,
-                    hasMorePages = reactions.isNotEmpty(),
-                    isLoading = false,
-                    error = null
-                )
+                Log.d("ReactionViewModel", "Loaded reactions for page — $currentPage")
+                _chatReactionsState.value = Resource.Success(combinedReactions)
+                currentPage++
 
             } catch (e: Exception) {
                 Log.e("ReactionViewModel", "Error loading reactions: ${e.message}")
-                _chatReactionsState.value = _chatReactionsState.value.copy(
-                    isLoading = false,
-                    error = e.message ?: "Error loading reactions for chat: $chatId"
-                )
+                _chatReactionsState.value = Resource.Error(e.message ?: "Error loading reactions")
             }
         }
     }
-
-    /*private suspend fun loadReactions(messageIds: List<String>) {
-        try {
-            val reactions = messageIds.associateWith { messageId ->
-                reactionRepository.getReactionsForMessage(messageId)
-            }
-            _chatReactionsState.value = Resource.Success(reactions)
-            reactionWebSocketClient.connect(messageIds)
-            currentConnectedMessageIds = messageIds
-        } catch (e: Exception) {
-            Log.e("ReactionViewModel", "Error loading reactions: ${e.message}")
-            _chatReactionsState.value = Resource.Error(
-                e.message ?: "Error loading reactions for messages: ${messageIds.joinToString()}"
-            )
-        }
-    }
-
-    fun loadReactionsForMessages(messageIds: List<String>) {
-        if (messageIds == currentConnectedMessageIds) return
-        viewModelScope.launch {
-            _messageIdsFlow.emit(messageIds)
-        }
-    }*/
 
     fun toggleReaction(messageId: String, userId: String, emojiUrl: String) {
         viewModelScope.launch {
