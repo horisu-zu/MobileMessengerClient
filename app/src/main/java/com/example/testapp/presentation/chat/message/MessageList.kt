@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListItemInfo
@@ -13,14 +14,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
 import com.example.testapp.domain.dto.user.UserResponse
+import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.domain.models.message.Message
 import com.example.testapp.domain.models.reaction.Reaction
+import com.example.testapp.presentation.chat.dropdown.MessageDropdown
 import com.example.testapp.utils.Converter.groupMessagesInSequence
 import com.example.testapp.utils.Converter.groupReactions
 import kotlinx.coroutines.MainScope
@@ -31,6 +36,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun MessageList(
+    currentUserRole: GroupRole,
     currentUserId: String,
     messages: Map<String, Message>,
     replyMessages: Map<String, Message>,
@@ -42,6 +48,7 @@ fun MessageList(
     onReplyClick: (Message) -> Unit,
     onEditClick: (Message) -> Unit,
     onDeleteClick: (String) -> Unit,
+    onAddRestriction: (String) -> Unit,
     onReactionClick: (String, String, String) -> Unit,
     onReactionLongClick: (String) -> Unit,
     onLoadMore: () -> Unit
@@ -49,6 +56,10 @@ fun MessageList(
     Log.d("MessageList", "HasMorePages value — $hasMorePages")
     val listState = rememberLazyListState()
     val messageGroups by remember(messages) { derivedStateOf { groupMessagesInSequence(messages) } }
+
+    val showDropdown = remember { mutableStateOf(false) }
+    val dropdownPosition = remember { mutableStateOf(Offset.Zero) }
+    val selectedMessageId = remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(messages) {
         if(listState.firstVisibleItemIndex <= 1 && messages.isNotEmpty()) {
@@ -126,17 +137,19 @@ fun MessageList(
                             isCurrentUser = currentUserId == message.senderId,
                             isFirstInGroup = isFirstInGroup,
                             isLastInGroup = isLastInGroup,
+                            onMessageClick = { offset ->
+                                selectedMessageId.value = message.messageId
+                                showDropdown.value = true
+                                dropdownPosition.value = offset
+                            },
                             onAvatarClick = onAvatarClick,
                             onReplyClick = onReplyClick,
-                            onEditClick = onEditClick,
-                            onDeleteClick = onDeleteClick,
                             onReactionClick = onReactionClick,
                             onReactionLongClick = onReactionLongClick,
                             message = message,
                             replyMessage = replyMessage,
                             replyUserData = replyUserData,
                             reactionsMap = messageReactions,
-                            reactionUrls = reactionUrls,
                             userData = user,
                             usersData = usersData
                         )
@@ -157,5 +170,25 @@ fun MessageList(
                 }
             }
         }
+    }
+
+    selectedMessageId.value?.let {
+        MessageDropdown(
+            currentUserRole = currentUserRole,
+            reactionUrls = reactionUrls,
+            currentUserId = currentUserId,
+            expanded = showDropdown.value,
+            offset = dropdownPosition.value,
+            onDismissRequest = {
+                showDropdown.value = false
+                selectedMessageId.value = null
+            },
+            messageData = messages[selectedMessageId.value]!!,
+            onReplyMessage = onReplyClick,
+            onEditMessage = onEditClick,
+            onDeleteMessage = onDeleteClick,
+            onAddRestriction = onAddRestriction,
+            onToggleReaction = onReactionClick
+        )
     }
 }

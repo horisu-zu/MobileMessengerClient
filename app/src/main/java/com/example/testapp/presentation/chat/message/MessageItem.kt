@@ -46,20 +46,16 @@ fun MessageItem(
     replyMessage: Message?,
     replyUserData: UserResponse?,
     reactionsMap: Map<String, List<Reaction>>,
-    reactionUrls: List<String>,
     attachments: List<Attachment> = emptyList(),
     isCurrentUser: Boolean,
     isLastInGroup: Boolean,
     isFirstInGroup: Boolean,
+    onMessageClick: (Offset) -> Unit,
     onAvatarClick: (UserResponse) -> Unit,
     onReplyClick: (Message) -> Unit,
-    onEditClick: (Message) -> Unit,
-    onDeleteClick: (String) -> Unit,
     onReactionClick: (String, String, String) -> Unit,
     onReactionLongClick: (String) -> Unit
 ) {
-    val showDropdown = remember { mutableStateOf(false) }
-    val dropdownPosition = remember { mutableStateOf(Offset.Zero) }
     val backgroundColor = if (isCurrentUser) MaterialTheme.colorScheme.primaryContainer
         else MaterialTheme.colorScheme.secondaryContainer
 
@@ -162,8 +158,7 @@ fun MessageItem(
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onTap = { offset ->
-                                        dropdownPosition.value = offset
-                                        showDropdown.value = true
+                                        onMessageClick(offset)
                                     }
                                 )
                             }
@@ -221,19 +216,6 @@ fun MessageItem(
                         }
                     )
                 }
-
-                MessageDropdown(
-                    reactionUrls = reactionUrls,
-                    currentUserId = currentUserId,
-                    expanded = showDropdown.value,
-                    horizontalOffset = dropdownPosition.value.x.dp,
-                    onDismissRequest = { showDropdown.value = false },
-                    messageData = message,
-                    onReplyMessage = onReplyClick,
-                    onEditMessage = onEditClick,
-                    onDeleteMessage = onDeleteClick,
-                    onToggleReaction = onReactionClick
-                )
             }
         }
     }

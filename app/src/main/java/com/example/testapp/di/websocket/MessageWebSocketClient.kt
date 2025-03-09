@@ -76,7 +76,7 @@ class MessageWebSocketClient @Inject constructor(
     }
 
     fun disconnect() {
-        Log.d("MessageWebSocket", "Disconnected")
+        Log.d("MessageWebSocket", "Disconnected WebSocket")
         webSocket?.close(1000, "Closing connection")
         webSocket = null
     }

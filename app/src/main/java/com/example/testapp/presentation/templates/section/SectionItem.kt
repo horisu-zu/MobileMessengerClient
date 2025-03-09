@@ -1,5 +1,6 @@
 package com.example.testapp.presentation.templates.section
 
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 
 sealed class SectionItem {
@@ -13,7 +14,8 @@ sealed class SectionItem {
         val title: String,
         val icon: Painter,
         val onClick: () -> Unit,
-        val trailingText: String? = null
+        val trailingText: String? = null,
+        val tintColor: Color? = null
     ): SectionItem()
 
     data class Radio(

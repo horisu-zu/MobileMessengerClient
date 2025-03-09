@@ -142,16 +142,15 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    fun createGroupChat(groupChatRequest: GroupChatRequest): Flow<Resource<ChatCreateResponse>> =
-        flow {
-            emit(Resource.Loading())
-            try {
-                val response = chatRepository.createGroupChat(groupChatRequest)
-                emit(Resource.Success(response))
-            } catch (e: Exception) {
-                emit(Resource.Error(e.message ?: "Error creating group chat"))
-            }
+    fun createGroupChat(groupChatRequest: GroupChatRequest): Flow<Resource<Unit>> = flow {
+        emit(Resource.Loading())
+        try {
+            chatRepository.createGroupChat(groupChatRequest)
+            emit(Resource.Success(Unit))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "Error creating group chat"))
         }
+    }
 
     suspend fun createPersonalChat(personalChatRequest: PersonalChatRequest) {
         chatRepository.createPersonalChat(personalChatRequest)

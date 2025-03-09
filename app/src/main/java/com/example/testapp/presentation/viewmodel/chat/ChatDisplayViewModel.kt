@@ -18,6 +18,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -37,17 +38,22 @@ class ChatDisplayViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            dataStoreUtil.getUserId().collect { userId ->
-                userId?.let { startObservingChats(it) }
-            }
+            try {
+                val userId = dataStoreUtil.getUserId().first() ?: return@launch
+                startObservingChats(userId)
 
-            messageWebSocketClient.getMessageUpdates()
-                .catch { e ->
-                    Log.e("WebSocket", "Error in updates", e)
+                launch {
+                    messageWebSocketClient.getMessageUpdates()
+                        .catch { e ->
+                            Log.e("WebSocket", "Error in updates", e)
+                        }
+                        .collect { updates ->
+                            processLastMessagesUpdates(updates)
+                        }
                 }
-                .collect { updates ->
-                    processLastMessagesUpdates(updates)
-                }
+            } catch (e: Exception) {
+                Log.e("ChatDisplayViewModel", "Initialization error", e)
+            }
         }
     }
 

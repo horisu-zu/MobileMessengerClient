@@ -41,6 +41,7 @@
     <string name="profile_settings">Settings</string>
     <string name="profile_language">Language</string>
     <string name="profile_chat_settings">Chat Settings</string>
+    <string name="profile_delete_account">Delete Account</string>
 
     <!-- Profile Menu -->
     <string name="profile_menu_edit_info">Edit Info</string>

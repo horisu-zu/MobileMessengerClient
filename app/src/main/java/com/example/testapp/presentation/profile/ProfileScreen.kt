@@ -98,7 +98,7 @@ fun ProfileScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            val (profile, account, settings, avatar) = createRefs()
+            val (profile, user, settings, account, avatar) = createRefs()
 
             currentUser?.let {
                 ProfileSection(
@@ -112,7 +112,7 @@ fun ProfileScreen(
 
                 Section(
                     title = stringResource(R.string.profile_account),
-                    modifier = Modifier.constrainAs(account) {
+                    modifier = Modifier.constrainAs(user) {
                         top.linkTo(profile.bottom)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
@@ -147,7 +147,7 @@ fun ProfileScreen(
                         .padding(12.dp)
                         .constrainAs(avatar) {
                             top.linkTo(profile.bottom)
-                            bottom.linkTo(account.top)
+                            bottom.linkTo(user.top)
                             end.linkTo(parent.end, margin = 16.dp)
                         },
                     contentAlignment = Alignment.Center
@@ -163,7 +163,7 @@ fun ProfileScreen(
                 Section(
                     title = stringResource(R.string.profile_settings),
                     modifier = Modifier.constrainAs(settings) {
-                        top.linkTo(account.bottom, margin = 12.dp)
+                        top.linkTo(user.bottom, margin = 12.dp)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
                     },
@@ -186,6 +186,32 @@ fun ProfileScreen(
                     )
                 )
             }
+
+            Section(
+                modifier = Modifier.constrainAs(account) {
+                    top.linkTo(settings.bottom, margin = 12.dp)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                },
+                items = listOf(
+                    SectionItem.Icon(
+                        title = stringResource(R.string.nav_logout),
+                        icon = painterResource(id = R.drawable.ic_logout),
+                        tintColor = MaterialTheme.colorScheme.error,
+                        onClick = {
+                            //profileNavController.navigate("chatConfigScreen")
+                        }
+                    ),
+                    SectionItem.Icon(
+                        title = stringResource(R.string.profile_delete_account),
+                        icon = painterResource(id = R.drawable.ic_chat_bubble),
+                        tintColor = MaterialTheme.colorScheme.error,
+                        onClick = {
+                            //profileNavController.navigate("languageScreen")
+                        }
+                    )
+                )
+            )
         }
     }
 }

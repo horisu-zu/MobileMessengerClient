@@ -168,8 +168,8 @@ class MessageViewModel @Inject constructor(
         }
     }
 
-    override fun onCleared() {
+    /*override fun onCleared() {
         super.onCleared()
         messageWebSocketClient.disconnect()
-    }
+    }*/
 }

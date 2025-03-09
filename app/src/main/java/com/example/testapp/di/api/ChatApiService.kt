@@ -19,10 +19,10 @@ import retrofit2.http.Query
 
 interface ChatApiService {
     @POST("api/chats/personal")
-    suspend fun createPersonalChat(@Body request: PersonalChatRequest): ChatCreateResponse
+    suspend fun createPersonalChat(@Body request: PersonalChatRequest): Unit
 
     @POST("api/chats/group")
-    suspend fun createGroupChat(@Body request: GroupChatRequest): ChatCreateResponse
+    suspend fun createGroupChat(@Body request: GroupChatRequest): Unit
 
     @GET("api/chats/{userId}/conversations")
     suspend fun getUserConversations(@Path("userId") userId: String): List<ConversationPartner>

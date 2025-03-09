@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -65,7 +66,8 @@ fun Section(
                         icon = item.icon,
                         onClick = item.onClick,
                         trailingText = item.trailingText,
-                        showDivider = index < items.size - 1
+                        showDivider = index < items.size - 1,
+                        tintColor = item.tintColor ?: MaterialTheme.colorScheme.onSurface
                     )
                     is SectionItem.Radio -> RadioItem(
                         title = item.title,
@@ -167,6 +169,7 @@ fun IconItem(
     icon: Painter,
     onClick: () -> Unit,
     trailingText: String? = null,
+    tintColor: Color,
     showDivider: Boolean = true
 ) {
     ConstraintLayout(
@@ -185,8 +188,8 @@ fun IconItem(
                     top.linkTo(parent.top, margin = 12.dp)
                     bottom.linkTo(parent.bottom, margin = 12.dp)
                     start.linkTo(parent.start)
-                }
-                .size(24.dp)
+                }.size(24.dp),
+            tint = tintColor
         )
 
         Text(
@@ -197,7 +200,9 @@ fun IconItem(
                 start.linkTo(iconRef.end, margin = 16.dp)
                 width = Dimension.fillToConstraints
             },
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                color = tintColor
+            ),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )

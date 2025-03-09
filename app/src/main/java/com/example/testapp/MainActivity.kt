@@ -43,11 +43,13 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         checkAccessToken()
+        Log.d("MainActivity", "onResume")
         updateUserStatus(true)
     }
 
     override fun onPause() {
         super.onPause()
+        Log.d("MainActivity", "onPause")
         updateUserStatus(false)
     }
 

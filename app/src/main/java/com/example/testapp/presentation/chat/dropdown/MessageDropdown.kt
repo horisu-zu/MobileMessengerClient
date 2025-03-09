@@ -10,33 +10,38 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.example.testapp.R
+import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.domain.models.message.Message
 import com.example.testapp.presentation.templates.MenuItem
 
 @Composable
 fun MessageDropdown(
+    currentUserRole: GroupRole,
     reactionUrls: List<String>,
     currentUserId: String,
     expanded: Boolean,
-    horizontalOffset: Dp,
+    offset: Offset,
     onDismissRequest: () -> Unit,
     messageData: Message,
     onReplyMessage: (Message) -> Unit,
     onEditMessage: (Message) -> Unit,
     onDeleteMessage: (String) -> Unit,
+    onAddRestriction: (String) -> Unit,
     onToggleReaction: (String, String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isMember = currentUserRole != GroupRole.MEMBER
     val isCurrentUser = messageData.senderId == currentUserId
     var reactionsExpanded by remember { mutableStateOf(false) }
 
     DropdownMenu(
         expanded = expanded,
-        offset = DpOffset(horizontalOffset, 0.dp),
+        offset = DpOffset(offset.x.dp, offset.y.dp),
         onDismissRequest = onDismissRequest,
         modifier = modifier.padding(vertical = 2.dp)
     ) {
@@ -61,7 +66,13 @@ fun MessageDropdown(
             onReplyMessage(messageData)
             onDismissRequest()
         })
-        if (isCurrentUser) {
+        if(!isMember) {
+            MenuItem("Add Restriction", R.drawable.ic_restriction, {
+                onAddRestriction(messageData.senderId)
+                onDismissRequest()
+            })
+        }
+        if (isCurrentUser || !isMember) {
             MenuItem("Delete", R.drawable.ic_delete, {
                 messageData.messageId?.let { onDeleteMessage(it) }
                 onDismissRequest()

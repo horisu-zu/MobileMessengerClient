@@ -40,6 +40,7 @@
     <string name="profile_settings">Налаштування</string>
     <string name="profile_language">Мова</string>
     <string name="profile_chat_settings">Налаштування чату</string>
+    <string name="profile_delete_account">Видалити акаунт</string>
 
     <!-- Profile Menu -->
     <string name="profile_menu_edit_info">Редагувати</string>

@@ -127,8 +127,7 @@ fun ChatMemberItem(
     ) {
         Box {
             Avatar(
-                avatarUrl = user.avatarUrl,
-                isGroupChat = true
+                avatarUrl = user.avatarUrl
             )
             OnlineFragment(
                 isOnline = userStatus.onlineStatus,

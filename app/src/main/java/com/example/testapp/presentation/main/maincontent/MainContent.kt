@@ -1,16 +1,19 @@
 package com.example.testapp.presentation.main.maincontent
 
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.testapp.presentation.viewmodel.chat.ChatDisplayViewModel
@@ -24,9 +27,22 @@ fun MainContent(
     currentUserId: String,
     mainNavController: NavController
 ) {
-    val chatDisplayDataState = chatDisplayViewModel.chatListItemsState.collectAsState()
+    val chatDisplayDataState by chatDisplayViewModel.chatListItemsState.collectAsState()
     val summarizeState = messageSummarizeViewModel.summarizationState.collectAsState()
     var showSummaryDialog by remember { mutableStateOf(false) }
+
+    val sortedChatsList by remember(chatDisplayDataState) {
+        derivedStateOf {
+            when (chatDisplayDataState) {
+                is Resource.Success -> {
+                    chatDisplayDataState.data?.entries
+                        ?.sortedByDescending { it.value.lastMessage?.createdAt }
+                        ?: emptyList()
+                }
+                else -> emptyList()
+            }
+        }
+    }
 
     if (showSummaryDialog) {
         SummarizeDialog(
@@ -35,21 +51,14 @@ fun MainContent(
         )
     }
 
-    when(chatDisplayDataState.value) {
+    when (chatDisplayDataState) {
         is Resource.Error -> { /*TODO*/ }
         is Resource.Loading -> { /*TODO*/ }
         is Resource.Success -> {
-            val chatDisplayData = chatDisplayDataState.value.data
-
             LazyColumn(
-                //reverseLayout = true,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                val sortedChatsList = chatDisplayData?.entries?.sortedByDescending {
-                    it.value.lastMessage?.createdAt
-                } ?: emptyList()
-
-                items(sortedChatsList) { (_, chatItem) ->
+                itemsIndexed(sortedChatsList) { index, (_, chatItem) ->
                     ChatItem(
                         currentUserId = currentUserId,
                         chat = chatItem,
@@ -61,6 +70,10 @@ fun MainContent(
                             showSummaryDialog = true
                         }
                     )
+
+                    /*if (index < sortedChatsList.size - 1) {
+                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                    }*/
                 }
             }
         }

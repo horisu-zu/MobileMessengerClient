@@ -45,7 +45,7 @@ fun ChatItem(
                 onClick = { onChatClick(chat.chatId) },
                 onLongClick = { onLongClick(chat.chatId) }
             )
-            .padding(horizontal = 24.dp, vertical = 6.dp),
+            .padding(horizontal = 16.dp, vertical = 6.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
