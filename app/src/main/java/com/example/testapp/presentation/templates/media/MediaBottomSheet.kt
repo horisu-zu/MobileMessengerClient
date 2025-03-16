@@ -32,7 +32,7 @@ fun MediaBottomSheet(
     context: Context
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
-    val tabs = listOf("Images", "Documents", "Audio", "Video")
+    val tabs = listOf("Images", "Audio", "Video")
 
     val permissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -42,14 +42,11 @@ fun MediaBottomSheet(
                 permissions[Manifest.permission.READ_EXTERNAL_STORAGE] == true) {
                 onRequestPermission(MediaType.IMAGES)
             }
-            1 -> if (permissions[Manifest.permission.READ_EXTERNAL_STORAGE] == true) {
-                onRequestPermission(MediaType.DOCUMENTS)
-            }
-            2 -> if (permissions[Manifest.permission.READ_MEDIA_AUDIO] == true ||
+            1 -> if (permissions[Manifest.permission.READ_MEDIA_AUDIO] == true ||
                 permissions[Manifest.permission.READ_EXTERNAL_STORAGE] == true) {
                 onRequestPermission(MediaType.AUDIO)
             }
-            3 -> if (permissions[Manifest.permission.READ_MEDIA_VIDEO] == true ||
+            2 -> if (permissions[Manifest.permission.READ_MEDIA_VIDEO] == true ||
                 permissions[Manifest.permission.READ_EXTERNAL_STORAGE] == true) {
                 onRequestPermission(MediaType.VIDEO)
             }
@@ -60,9 +57,8 @@ fun MediaBottomSheet(
         val permissionsNeeded = when {
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU -> when (selectedTab) {
                 0 -> arrayOf(Manifest.permission.READ_MEDIA_IMAGES)
-                1 -> arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
-                2 -> arrayOf(Manifest.permission.READ_MEDIA_AUDIO)
-                3 -> arrayOf(Manifest.permission.READ_MEDIA_VIDEO)
+                1 -> arrayOf(Manifest.permission.READ_MEDIA_AUDIO)
+                2 -> arrayOf(Manifest.permission.READ_MEDIA_VIDEO)
                 else -> emptyArray()
             }
             else -> arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE)
@@ -100,15 +96,11 @@ fun MediaBottomSheet(
                     items = mediaState[MediaType.IMAGES] ?: emptyList(),
                     onItemSelected = { onMediaSelected(it, MediaType.IMAGES) }
                 )
-                1 -> DocumentList(
-                    documents = mediaState[MediaType.DOCUMENTS] ?: emptyList(),
-                    onDocumentSelected = { onMediaSelected(it, MediaType.DOCUMENTS) }
-                )
-                2 -> AudioList(
+                1 -> AudioList(
                     audioFiles = mediaState[MediaType.AUDIO] ?: emptyList(),
                     onAudioSelected = { onMediaSelected(it, MediaType.AUDIO) }
                 )
-                3 -> VideoGrid(
+                2 -> VideoGrid(
                     items = mediaState[MediaType.VIDEO] ?: emptyList(),
                     onItemSelected = { onMediaSelected(it, MediaType.VIDEO) }
                 )

@@ -6,7 +6,7 @@ import com.example.testapp.domain.dto.user.UserLogin
 import com.example.testapp.domain.dto.user.UserRequest
 import com.example.testapp.domain.dto.user.UserStatusRequest
 import com.example.testapp.domain.models.user.UserStatus
-import com.example.testapp.utils.AvatarService
+import com.example.testapp.utils.storage.AvatarService
 import com.example.testapp.utils.DataStoreUtil
 import com.example.testapp.utils.UserColorGenerator
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +17,9 @@ import retrofit2.HttpException
 import java.io.IOException
 import java.util.UUID
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class AuthManager @Inject constructor(
     private val userApiService: UserApiService,
     private val dataStoreUtil: DataStoreUtil,
@@ -80,18 +82,25 @@ class AuthManager @Inject constructor(
         }
     }
 
-    suspend fun checkAuthStatus() {
+    suspend fun checkAuthStatus(): AuthState {
         _authState.value = AuthState.Loading
-        val accessToken = tokenManager.getValidAccessToken()
-        _authState.value = if (accessToken != null) {
-            AuthState.Authenticated
-        } else {
-            AuthState.Unauthenticated
+        return try {
+            val accessToken = tokenManager.getValidAccessToken()
+            val newState = if (accessToken != null) {
+                AuthState.Authenticated
+            } else {
+                AuthState.Unauthenticated
+            }
+            _authState.value = newState
+            newState
+        } catch (e: Exception) {
+            _authState.value = AuthState.Error("Check auth error: ${e.message}")
+            AuthState.Error("Check auth error")
         }
     }
 
     suspend fun updateUserStatus(userStatusRequest: UserStatusRequest): UserStatus? {
-        when (val state = authState.value) {
+        when (val state = _authState.value) {
             is AuthState.Authenticated -> {
                 val userId = currentUserIdFlow.firstOrNull()
                 return if (userId != null) {

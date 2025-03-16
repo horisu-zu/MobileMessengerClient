@@ -11,7 +11,9 @@ import retrofit2.HttpException
 import java.nio.charset.Charset
 import java.util.Date
 import javax.inject.Inject
+import javax.inject.Singleton
 
+@Singleton
 class TokenManager @Inject constructor(
     private val dataStoreUtil: DataStoreUtil,
     private val apiService: UserApiService

@@ -1,5 +1,6 @@
 package com.example.testapp.di.api
 
+import com.example.testapp.domain.dto.message.AttachmentRequest
 import com.example.testapp.domain.dto.message.MessageRequest
 import com.example.testapp.domain.dto.message.MessageUpdateRequest
 import com.example.testapp.domain.models.message.Attachment
@@ -34,7 +35,7 @@ interface MessageApiService {
     suspend fun createMessage(
         @Body request: MessageRequest,
         @Query("attachmentUrls") attachmentUrls: List<String> = emptyList()
-    )
+    ): Message
 
     @PUT("api/messages/{messageId}")
     suspend fun updateMessage(
@@ -57,7 +58,7 @@ interface MessageApiService {
     @POST("api/messages/{messageId}/attachments")
     suspend fun createAttachment(
         @Path("messageId") messageId: String,
-        @Body attachmentUrl: String
+        @Body attachmentRequest: AttachmentRequest
     )
 
     @POST("api/messages/{chatId}/{messageId}/mark-read")

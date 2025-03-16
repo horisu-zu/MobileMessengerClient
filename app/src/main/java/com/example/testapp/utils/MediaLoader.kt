@@ -5,7 +5,6 @@ import android.content.Context
 import android.net.Uri
 import android.provider.MediaStore
 import android.provider.OpenableColumns
-import android.util.Log
 
 object MediaLoader {
 
@@ -63,35 +62,6 @@ object MediaLoader {
             }
         }
         return audioFiles
-    }
-
-    fun loadDocuments(context: Context): List<Uri> {
-        val documentList = mutableListOf<Uri>()
-        val projection = arrayOf(MediaStore.Files.FileColumns._ID, MediaStore.Files.FileColumns.MIME_TYPE)
-        val selection = "${MediaStore.Files.FileColumns.MIME_TYPE} IN " +
-                "('application/pdf', 'application/msword', " +
-                "'application/vnd.openxmlformats-officedocument.wordprocessingml.document')"
-
-        val cursor = context.contentResolver.query(
-            MediaStore.Files.getContentUri("external"),
-            projection,
-            null,
-            null,
-            null
-        )
-
-        cursor?.use {
-            Log.d("MediaLoader", "Cursor count: ${it.count}")
-            while (it.moveToNext()) {
-                val id = it.getLong(it.getColumnIndexOrThrow(MediaStore.Files.FileColumns._ID))
-                val mimeType = it.getString(it.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MIME_TYPE))
-                val uri = ContentUris.withAppendedId(MediaStore.Files.getContentUri("external"), id)
-                Log.d("MediaLoader", "Found file: $uri with MIME type: $mimeType")
-                documentList.add(uri)
-            }
-        }
-
-        return documentList
     }
 
     fun loadVideos(context: Context): List<Uri> {

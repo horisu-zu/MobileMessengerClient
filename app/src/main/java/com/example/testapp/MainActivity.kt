@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -24,10 +25,12 @@ import com.example.testapp.presentation.profile.ProfileNavigator
 import com.example.testapp.presentation.splash.SplashScreen
 import com.example.testapp.presentation.viewmodel.main.MainViewModel
 import com.example.testapp.presentation.viewmodel.user.AuthManager
+import com.example.testapp.presentation.viewmodel.user.AuthState
 import com.example.testapp.presentation.viewmodel.user.TokenManager
 import com.example.testapp.ui.theme.AppTheme
-import com.example.testapp.utils.AvatarService
+import com.example.testapp.utils.storage.AvatarService
 import com.example.testapp.utils.DataStoreUtil
+import com.example.testapp.utils.storage.ChatMediaService
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
@@ -35,8 +38,9 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    private lateinit var mainViewModel: MainViewModel
+    private val mainViewModel: MainViewModel by viewModels()
     private lateinit var dataStoreUtil: DataStoreUtil
+    @Inject lateinit var mediaService: ChatMediaService
     @Inject lateinit var authManager: AuthManager
     @Inject lateinit var tokenManager: TokenManager
 
@@ -44,20 +48,29 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         checkAccessToken()
         Log.d("MainActivity", "onResume")
-        updateUserStatus(true)
+        lifecycleScope.launch {
+            when (authManager.checkAuthStatus()) {
+                is AuthState.Authenticated -> updateUserStatus(true)
+                else -> { /**/ }
+            }
+        }
     }
 
     override fun onPause() {
         super.onPause()
         Log.d("MainActivity", "onPause")
-        updateUserStatus(false)
+        lifecycleScope.launch {
+            when (authManager.checkAuthStatus()) {
+                is AuthState.Authenticated -> updateUserStatus(false)
+                else -> { /**/ }
+            }
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         dataStoreUtil = DataStoreUtil(applicationContext)
-        mainViewModel = MainViewModel(authManager)
         val systemTheme =
             when (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) {
                 Configuration.UI_MODE_NIGHT_YES -> true
@@ -89,6 +102,7 @@ class MainActivity : ComponentActivity() {
                     }
                     composable("main") {
                         MainAppNavigator(
+                            mediaService = mediaService,
                             authManager = authManager,
                             parentNavController = navController
                         )
@@ -105,14 +119,8 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private fun updateUserStatus(isOnline: Boolean) {
-        lifecycleScope.launch {
-            dataStoreUtil.getUserId().collect { userId ->
-                userId?.let {
-                    authManager.updateUserStatus(UserStatusRequest(isOnline))
-                }
-            }
-        }
+    private suspend fun updateUserStatus(isOnline: Boolean) {
+        authManager.updateUserStatus(UserStatusRequest(isOnline))
     }
 
     private fun checkAccessToken() {

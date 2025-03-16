@@ -24,11 +24,13 @@ import com.example.testapp.presentation.main.group.GroupAddNavigator
 import com.example.testapp.presentation.viewmodel.user.AuthManager
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
 import com.example.testapp.utils.Defaults.fetchEmojiUrls
+import com.example.testapp.utils.storage.ChatMediaService
 import com.google.firebase.storage.FirebaseStorage
 
 @Composable
 fun MainAppNavigator(
     authManager: AuthManager,
+    mediaService: ChatMediaService,
     userViewModel: UserViewModel = hiltViewModel(),
     parentNavController: NavController
 ) {
@@ -67,6 +69,7 @@ fun MainAppNavigator(
             ChatScreen(
                 chatId = backStackEntry.arguments?.getString("chatId"),
                 currentUser = currentUserState.data,
+                mediaService = mediaService,
                 reactionUrls = reactionUrls,
                 mainNavController = mainNavController
             )

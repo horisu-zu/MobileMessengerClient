@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.Icon
@@ -27,11 +29,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.example.testapp.R
+import com.example.testapp.domain.dto.message.LocalAttachment
 import com.example.testapp.domain.dto.message.MessageInputState
 import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.presentation.templates.media.MediaBottomSheet
-import com.example.testapp.presentation.templates.media.MediaType
 import com.example.testapp.presentation.viewmodel.gallery.MediaViewModel
 
 @Composable
@@ -42,6 +44,8 @@ fun MessageInput(
     onSendClick: () -> Unit,
     onMessageInputChange: (String) -> Unit,
     onClearEditing: () -> Unit,
+    onAddAttachment: (LocalAttachment) -> Unit,
+    onClearAttachment: (LocalAttachment) -> Unit,
     onClearReplying: () -> Unit,
     context: Context
 ) {
@@ -54,6 +58,22 @@ fun MessageInput(
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant)
     ) {
+        if (messageInputState.localAttachments.isNotEmpty()) {
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            ) {
+                items(messageInputState.localAttachments) { attachment ->
+                    AttachmentPreview(
+                        attachment = attachment,
+                        onRemove = { onClearAttachment(attachment) },
+                        context = context
+                    )
+                }
+            }
+        }
+
         messageInputState.editingMessage?.let { message ->
             EditMessage(
                 editingMessage = message,
@@ -113,6 +133,7 @@ fun MessageInput(
             IconButton(
                 onClick = { onSendClick() },
                 enabled = !messageInputState.message.isNullOrBlank()
+                        || messageInputState.localAttachments.isNotEmpty()
             ) {
                 Icon(
                     Icons.AutoMirrored.Filled.Send,
@@ -126,12 +147,13 @@ fun MessageInput(
         MediaBottomSheet(
             mediaState = mediaState.value,
             onMediaSelected = { uri, type ->
-                when (type) {
-                    MediaType.IMAGES -> { /*TODO*/ }
-                    MediaType.DOCUMENTS -> { /*TODO*/ }
-                    MediaType.AUDIO -> { /*TODO*/ }
-                    MediaType.VIDEO -> { /*TODO*/ }
-                }
+                val newAttachment = LocalAttachment(
+                    uri = uri,
+                    mediaType = type
+                )
+
+                onAddAttachment(newAttachment)
+                showMediaBottomSheet = false
             },
             onDismiss = { showMediaBottomSheet = false },
             onRequestPermission = { mediaType ->

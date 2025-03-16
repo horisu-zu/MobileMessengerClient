@@ -1,5 +1,6 @@
 package com.example.testapp.domain.repository
 
+import android.util.Log
 import com.example.testapp.di.api.AIService
 import com.example.testapp.domain.models.message.Message
 import com.google.ai.client.generativeai.GenerativeModel
@@ -16,6 +17,8 @@ class GeminiService @Inject constructor(
                 .joinToString("\n") {
                     "Message from ${it.first}: ${it.second.message}"
                 }
+
+            Log.d("GeminiService", "Message Text: $messageText")
 
             val prompt = """
                 You are an assistant that creates message summaries.

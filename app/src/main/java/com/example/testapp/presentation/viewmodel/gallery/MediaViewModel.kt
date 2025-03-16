@@ -24,7 +24,6 @@ class MediaViewModel @Inject constructor() : ViewModel() {
             val updatedMedia = _mediaState.value.toMutableMap()
             val newMedia = when (mediaType) {
                 MediaType.IMAGES -> MediaLoader.loadImagesFromGallery(context)
-                MediaType.DOCUMENTS -> MediaLoader.loadDocuments(context)
                 MediaType.AUDIO -> MediaLoader.loadAudioFiles(context)
                 MediaType.VIDEO -> MediaLoader.loadVideos(context)
             }

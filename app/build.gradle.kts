@@ -117,4 +117,8 @@ dependencies {
 
     //Gemini
     implementation(libs.generativeai)
+    //OpenAI API
+    //implementation(libs.openai.client)
+    //implementation(libs.ktor.client.okhttp)
+    //implementation(libs.ktor.client.core)
 }

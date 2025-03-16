@@ -34,7 +34,7 @@ import com.example.testapp.presentation.templates.section.Section
 import com.example.testapp.presentation.templates.section.SectionItem
 import com.example.testapp.presentation.viewmodel.gallery.GalleryViewModel
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
-import com.example.testapp.utils.AvatarService
+import com.example.testapp.utils.storage.AvatarService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -204,7 +204,7 @@ fun ProfileScreen(
                     ),
                     SectionItem.Icon(
                         title = stringResource(R.string.profile_delete_account),
-                        icon = painterResource(id = R.drawable.ic_chat_bubble),
+                        icon = painterResource(id = R.drawable.ic_delete_account),
                         tintColor = MaterialTheme.colorScheme.error,
                         onClick = {
                             //profileNavController.navigate("languageScreen")

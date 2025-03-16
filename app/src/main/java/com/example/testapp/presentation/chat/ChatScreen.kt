@@ -29,6 +29,7 @@ import com.example.testapp.presentation.viewmodel.message.MessageViewModel
 import com.example.testapp.presentation.viewmodel.reaction.ReactionViewModel
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
 import com.example.testapp.utils.Resource
+import com.example.testapp.utils.storage.ChatMediaService
 
 @Composable
 fun ChatScreen(
@@ -40,6 +41,7 @@ fun ChatScreen(
     reactionViewModel: ReactionViewModel = hiltViewModel(),
     messageInputViewModel: MessageInputViewModel = hiltViewModel(),
     mediaViewModel: MediaViewModel = hiltViewModel(),
+    mediaService: ChatMediaService,
     reactionUrls: List<String>,
     mainNavController: NavController
 ) {
@@ -188,6 +190,12 @@ fun ChatScreen(
                         },
                         onClearEditing = { messageInputViewModel.clearEditing() },
                         onClearReplying = { messageInputViewModel.clearReplying() },
+                        onAddAttachment = { newAttachment ->
+                            messageInputViewModel.addAttachment(newAttachment)
+                        },
+                        onClearAttachment = { attachment ->
+                            messageInputViewModel.clearAttachment(attachment)
+                        },
                         context = context
                     )
                 }

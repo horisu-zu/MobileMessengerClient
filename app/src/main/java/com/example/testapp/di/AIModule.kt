@@ -17,7 +17,7 @@ object AIModule {
     @Singleton
     fun provideGenerativeModel(): GenerativeModel {
         return GenerativeModel(
-            modelName = "gemini-pro",
+            modelName = "gemini-2.0-flash",
             apiKey = BuildConfig.API_KEY
         )
     }

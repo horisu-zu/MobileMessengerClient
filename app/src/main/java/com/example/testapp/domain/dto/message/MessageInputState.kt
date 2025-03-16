@@ -6,6 +6,7 @@ data class MessageInputState(
     val chatId: String,
     val senderId: String,
     val message: String? = null,
+    val localAttachments: List<LocalAttachment> = emptyList(),
     val isEditing: Boolean = false,
     val editedMessageId: String? = null,
     val editingMessage: Message? = null,

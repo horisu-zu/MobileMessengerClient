@@ -85,8 +85,24 @@ class ChatDisplayViewModel @Inject constructor(
                             is MessageEvent.MessageUpdated ->
                                 updatedMap[chatId]?.copy(lastMessage = event.message)
 
-                            is MessageEvent.MessageDeleted ->
-                                updatedMap[chatId]?.copy(lastMessage = null)
+                            is MessageEvent.MessageDeleted -> {
+                                val lastMessage = messageRepository.getLastMessages(listOf(chatId)).first()
+                                val currentData = updatedMap[chatId] ?: throw IllegalStateException(
+                                    "Chat ${event.message.chatId} not initialized"
+                                )
+
+                                val senderNickname = if(currentData.lastMessage?.senderId != lastMessage.senderId) {
+                                    userRepository.getUserById(lastMessage.senderId).nickname
+                                } else {
+                                    currentData.senderName
+                                }
+
+                                updatedMap[chatId]?.copy(
+                                    lastMessage = lastMessage,
+                                    senderName = senderNickname,
+                                    unreadCount = if(currentData.unreadCount > 0) currentData.unreadCount - 1 else 0
+                                )
+                            }
                         } ?: return@forEach
                     }
                     Resource.Success(updatedMap)

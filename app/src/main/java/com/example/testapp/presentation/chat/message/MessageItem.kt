@@ -16,7 +16,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -32,7 +31,6 @@ import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.domain.models.message.Message
 import com.example.testapp.domain.models.reaction.Reaction
-import com.example.testapp.presentation.chat.dropdown.MessageDropdown
 import com.example.testapp.presentation.templates.Avatar
 import com.example.testapp.presentation.templates.MessageSwipeBackground
 import kotlin.math.absoluteValue
