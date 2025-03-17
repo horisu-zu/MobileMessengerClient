@@ -15,12 +15,14 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.example.testapp.R
+import com.example.testapp.domain.models.chat.ChatType
 import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.domain.models.message.Message
 import com.example.testapp.presentation.templates.MenuItem
 
 @Composable
 fun MessageDropdown(
+    chatType: ChatType,
     currentUserRole: GroupRole,
     reactionUrls: List<String>,
     currentUserId: String,
@@ -35,7 +37,7 @@ fun MessageDropdown(
     onToggleReaction: (String, String, String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isMember = currentUserRole != GroupRole.MEMBER
+    val isAdmin = currentUserRole != GroupRole.MEMBER && chatType != ChatType.PERSONAL
     val isCurrentUser = messageData.senderId == currentUserId
     var reactionsExpanded by remember { mutableStateOf(false) }
 
@@ -66,13 +68,13 @@ fun MessageDropdown(
             onReplyMessage(messageData)
             onDismissRequest()
         })
-        if(!isMember) {
+        if(isAdmin) {
             MenuItem("Add Restriction", R.drawable.ic_restriction, {
                 onAddRestriction(messageData.senderId)
                 onDismissRequest()
             })
         }
-        if (isCurrentUser || !isMember) {
+        if (isCurrentUser || isAdmin) {
             MenuItem("Delete", R.drawable.ic_delete, {
                 messageData.messageId?.let { onDeleteMessage(it) }
                 onDismissRequest()

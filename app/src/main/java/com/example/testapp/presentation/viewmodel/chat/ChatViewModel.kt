@@ -152,8 +152,14 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    suspend fun createPersonalChat(personalChatRequest: PersonalChatRequest) {
-        chatRepository.createPersonalChat(personalChatRequest)
+    fun createPersonalChat(personalChatRequest: PersonalChatRequest): Flow<Resource<String>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = chatRepository.createPersonalChat(personalChatRequest)
+            emit(Resource.Success(response))
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "Error creating personal chat"))
+        }
     }
 
     fun joinChat(chatId: String, request: ChatJoinRequest): Flow<Resource<ChatDBResponse>> =
@@ -209,6 +215,25 @@ class ChatViewModel @Inject constructor(
         } catch (e: Exception) {
             Log.e("GroupAddNavigator", "Error fetching conversations: ${e.message}")
             emit(Resource.Error(e.message ?: "Error finding selected user conversations"))
+        }
+    }
+
+    fun checkIfPrivateChatExists(
+        firstUserId: String,
+        secondUserId: String
+    ): Flow<Resource<String?>> = flow {
+        emit(Resource.Loading())
+        try {
+            val conversationPartners = chatRepository.getUserConversations(firstUserId)
+            val matchingPartner = conversationPartners.find { it.userId == secondUserId }
+
+            if (matchingPartner != null) {
+                emit(Resource.Success(matchingPartner.chatId))
+            } else {
+                emit(Resource.Success(null))
+            }
+        } catch (e: Exception) {
+            emit(Resource.Error(e.message ?: "Error checking private chat existence"))
         }
     }
 

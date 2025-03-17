@@ -13,20 +13,7 @@ class ChatMediaService @Inject constructor(
 
     companion object {
         private const val CHAT_MEDIA_PATH = "chat_media"
-        private const val DEFAULT_IMAGE_QUALITY = 85
         private const val DEFAULT_KEPT_FILES = 100
-    }
-
-    suspend fun uploadChatImage(
-        chatId: String,
-        messageId: String,
-        imageUri: Uri,
-        context: Context,
-        quality: Int = DEFAULT_IMAGE_QUALITY
-    ): String {
-        val bitmap = getBitmapFromUri(imageUri, context)
-        val fileName = generateFileName()
-        return uploadBitmap("$CHAT_MEDIA_PATH/$chatId/$messageId", fileName, bitmap, quality)
     }
 
     suspend fun uploadChatFile(
@@ -36,27 +23,6 @@ class ChatMediaService @Inject constructor(
     ): String {
         val fileName = generateFileName()
         return uploadFile("$CHAT_MEDIA_PATH/$chatId/$messageId", fileName, fileUri)
-    }
-
-    suspend fun uploadChatVoiceMessage(
-        chatId: String,
-        messageId: String,
-        audioUri: Uri,
-        context: Context
-    ): String {
-        val fileName = generateFileName().replace(".jpg", ".mp3")
-        return uploadFile("$CHAT_MEDIA_PATH/$chatId/$messageId", fileName, audioUri)
-    }
-
-    suspend fun getMessageMedia(chatId: String, messageId: String): List<String> {
-        val mediaRef = storage.reference.child("$CHAT_MEDIA_PATH/$chatId/$messageId")
-        return try {
-            val result = mediaRef.listAll().await()
-            result.items.mapNotNull { it.downloadUrl.await().toString() }
-        } catch (e: Exception) {
-            Log.e("ChatMediaService", "Failed to get media for message $messageId", e)
-            emptyList()
-        }
     }
 
     suspend fun deleteMessageMedia(chatId: String, messageId: String) {

@@ -23,13 +23,13 @@ fun navigationItemList(): List<NavigationItemData> {
             title = stringResource(id = R.string.nav_settings),
             icon = painterResource(id = R.drawable.ic_settings)
         ),
-        NavigationItemData(
+        /*NavigationItemData(
             title = stringResource(id = R.string.nav_rules),
             icon = painterResource(id = R.drawable.ic_info)
         ),
         NavigationItemData(
             title = stringResource(id = R.string.nav_new),
             icon = painterResource(id = R.drawable.ic_update)
-        )
+        )*/
     )
 }

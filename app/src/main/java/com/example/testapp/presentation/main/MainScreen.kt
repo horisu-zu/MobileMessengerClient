@@ -73,7 +73,6 @@ fun MainScreen(
                         when (type) {
                             SearchType.USERS -> userViewModel.searchUsers(query)
                             SearchType.GROUPS -> { chatViewModel.searchChats(query) }
-                            else -> {}
                         }
                     }
                 )

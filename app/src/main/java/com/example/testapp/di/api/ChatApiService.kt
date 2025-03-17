@@ -1,6 +1,5 @@
 package com.example.testapp.di.api
 
-import chat.service.course.dto.ChatCreateResponse
 import chat.service.course.dto.ChatDBResponse
 import chat.service.course.dto.ChatJoinRequest
 import chat.service.course.dto.GroupChatRequest
@@ -19,7 +18,7 @@ import retrofit2.http.Query
 
 interface ChatApiService {
     @POST("api/chats/personal")
-    suspend fun createPersonalChat(@Body request: PersonalChatRequest): Unit
+    suspend fun createPersonalChat(@Body request: PersonalChatRequest): String
 
     @POST("api/chats/group")
     suspend fun createGroupChat(@Body request: GroupChatRequest): Unit

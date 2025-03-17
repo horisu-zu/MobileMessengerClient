@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.testapp.domain.dto.user.UserResponse
+import com.example.testapp.domain.models.chat.ChatType
 import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.presentation.chat.bottomsheet.chat.ChatBottomSheet
 import com.example.testapp.presentation.chat.message.MessageList
@@ -143,12 +144,14 @@ fun ChatScreen(
                 Box(modifier = Modifier.weight(1f)) {
                     userState.data?.let {
                         MessageList(
+                            chatType = chatState.data?.chatType ?: ChatType.PERSONAL,
                             currentUserRole = participantsState.data?.find { it.userId == currentUser?.userId }?.role ?: GroupRole.MEMBER,
                             currentUserId = currentUser?.userId ?: "bruh",
                             messages = messagesState.messages.associateBy { it.messageId ?: "" },
                             replyMessages = messagesState.replyMessages,
                             usersData = it.associateBy { user -> user.userId },
                             reactionsMap = reactionsState.data ?: emptyMap(),
+                            attachments = messagesState.attachments ?: emptyMap(),
                             reactionUrls = reactionUrls,
                             hasMorePages = messagesState.hasMorePages,
                             onAvatarClick = { userResponse ->
@@ -224,13 +227,14 @@ fun ChatScreen(
                     otherUserStatus?.let { userStatus ->
                         if (userData != null) {
                             UserBottomSheet(
-                                currentUserId = currentUser?.userId ?: "meh",
                                 userData = userData,
                                 userStatus = userStatus,
+                                isInChat = true,
                                 chatParticipant = participantsState.data?.find { it.userId == userData.userId },
                                 avatarUrl = metadataState.data?.avatar,
                                 onDismiss = { showPersonalBottomSheet.value = false },
                                 showBottomSheet = showPersonalBottomSheet.value,
+                                onNavigateToChat = { /*TODO*/ },
                                 context = context
                             )
                         }

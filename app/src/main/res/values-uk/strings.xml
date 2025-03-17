@@ -79,7 +79,7 @@
     <!-- UserBottomSheet -->
     <string name="ubs_members">Учасник з...</string>
     <string name="ubs_message">Повідомлення</string>
-    <string name="ubs_report">Скарга</string>
+    <string name="ubs_portrait">Портрет</string>
 
     <!-- ChatDropdown -->
     <string name="cdd_info">Інформація про чат</string>

@@ -113,7 +113,7 @@ fun GroupListItem(
 
         Avatar(
             avatarUrl = groupData.avatar,
-            isGroupChat = true,
+            isGroupChat = false,
             modifier = Modifier.constrainAs(avatar) {
                 start.linkTo(parent.start)
                 top.linkTo(parent.top)
@@ -164,7 +164,7 @@ fun GroupListItem(
                         "Join Group" else "Closed Group",
                     modifier = Modifier.padding(if(groupData.isPublic) 4.dp else 0.dp),
                     tint = if (groupData.isPublic) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface
+                        else MaterialTheme.colorScheme.onSurface
                 )
             }
         }

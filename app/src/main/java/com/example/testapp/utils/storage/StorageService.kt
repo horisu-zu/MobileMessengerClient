@@ -25,7 +25,7 @@ abstract class StorageService (protected val storage: FirebaseStorage) {
     protected fun generateFileName(): String {
         val timestamp = Instant.now()
         val uuid = UUID.randomUUID()
-        return "${formatter.format(timestamp)}_${uuid}.jpg"
+        return "${formatter.format(timestamp)}_${uuid}"
     }
 
     protected suspend fun getBitmapFromUri(uri: Uri, context: Context): Bitmap {

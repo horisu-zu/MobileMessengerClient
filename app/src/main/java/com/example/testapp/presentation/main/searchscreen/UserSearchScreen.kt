@@ -37,7 +37,7 @@ fun UserSearchScreen(
     currentUserId: String?,
     userViewModel: UserViewModel,
     //chatViewModel: ChatViewModel,
-    onNavigateToChat: () -> Unit
+    onNavigateToChat: (String) -> Unit
 ) {
     val context = LocalContext.current
     var showUserBottomSheet by remember { mutableStateOf(false) }
@@ -77,9 +77,7 @@ fun UserSearchScreen(
                             selectedUserId = user.userId
                             showUserBottomSheet = true
                         },
-                        onClick = {
-                            onNavigateToChat()
-                        }
+                        onClick = { /*onNavigateToChat()*/ }
                     )
                 }
             }
@@ -91,11 +89,12 @@ fun UserSearchScreen(
 
     if (selectedUser != null && userStatus != null) {
         UserBottomSheet(
-            currentUserId = currentUserId ?: "Shouldn't happen",
             userData = selectedUser,
             userStatus = userStatus,
+            isInChat = false,
             showBottomSheet = showUserBottomSheet,
             onDismiss = { showUserBottomSheet = false },
+            onNavigateToChat = onNavigateToChat,
             context = context
         )
     }

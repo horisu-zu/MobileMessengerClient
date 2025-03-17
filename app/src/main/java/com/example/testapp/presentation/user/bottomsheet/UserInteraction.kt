@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -28,9 +29,10 @@ import com.example.testapp.domain.dto.user.UserResponse
 
 @Composable
 fun UserInteraction(
+    isInChat: Boolean,
     userData: UserResponse,
     onMessageClick: (String) -> Unit,
-    onReportClick: () -> Unit
+    onPortraitClick: (String) -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -52,12 +54,14 @@ fun UserInteraction(
                 onItemClick = { onMessageClick(userData.userId) },
                 modifier = Modifier.weight(1f)
             )
-            UserInteractionItem(
-                title = stringResource(id = R.string.ubs_report),
-                icon = Icons.Default.Warning,
-                onItemClick = onReportClick,
-                modifier = Modifier.weight(1f)
-            )
+            if(isInChat) {
+                UserInteractionItem(
+                    title = stringResource(id = R.string.ubs_portrait),
+                    icon = Icons.Default.Person,
+                    onItemClick = { onPortraitClick(userData.userId) },
+                    modifier = Modifier.weight(1f)
+                )
+            }
         }
     }
 }

@@ -80,7 +80,7 @@
     <!-- UserBottomSheet -->
     <string name="ubs_members">Member since...</string>
     <string name="ubs_message">Message</string>
-    <string name="ubs_report">Report</string>
+    <string name="ubs_portrait">Portrait</string>
 
     <!-- ChatDropdown -->
     <string name="cdd_info">Chat Info</string>

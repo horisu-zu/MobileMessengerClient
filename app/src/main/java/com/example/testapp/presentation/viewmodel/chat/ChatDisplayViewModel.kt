@@ -58,6 +58,8 @@ class ChatDisplayViewModel @Inject constructor(
     }
 
     private suspend fun processLastMessagesUpdates(updates: Map<String, MessageEvent>) {
+        val userId = dataStoreUtil.getUserId().first()
+
         _chatListItemsState.update { currentState ->
             when (currentState) {
                 is Resource.Success -> {
@@ -74,11 +76,12 @@ class ChatDisplayViewModel @Inject constructor(
                                     currentData.lastMessage?.createdAt?.let { lastTimestamp ->
                                         event.message.createdAt > lastTimestamp
                                     } ?: true
+                                val isCurrentUser = userId == event.message.senderId
 
                                 currentData.copy(
                                     lastMessage = event.message,
                                     senderName = sender.nickname,
-                                    unreadCount = if (isNewMessage) currentData.unreadCount + 1 else currentData.unreadCount
+                                    unreadCount = if (isNewMessage && !isCurrentUser) currentData.unreadCount + 1 else currentData.unreadCount
                                 )
                             }
 

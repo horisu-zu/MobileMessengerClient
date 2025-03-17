@@ -52,6 +52,7 @@ class MessageViewModel @Inject constructor(
                         is MessageEvent.MessageCreated -> {
                             add(event.message)
                             loadReplyMessage(event.message)
+                            loadAttachments(event.message.messageId ?: "")
                         }
                         is MessageEvent.MessageUpdated -> add(event.message)
                         is MessageEvent.MessageDeleted -> {
@@ -85,6 +86,14 @@ class MessageViewModel @Inject constructor(
                     size = 30
                 )
 
+                val attachmentsResponse = messageRepository.getAttachmentsForChat(
+                    chatId = chatId,
+                    page = _chatMessagesState.value.currentPage,
+                    size = 30
+                ).groupBy { it.messageId }
+
+                Log.d("MessageViewModel", "Loaded ${response.size} messages for page: ${_chatMessagesState.value.currentPage}")
+
                 val updatedMessages = if (_chatMessagesState.value.currentPage == 0) {
                     response
                 } else {
@@ -105,6 +114,7 @@ class MessageViewModel @Inject constructor(
                 _chatMessagesState.value = _chatMessagesState.value.copy(
                     messages = updatedMessages,
                     replyMessages = _chatMessagesState.value.replyMessages + replyMessages,
+                    attachments = _chatMessagesState.value.attachments + attachmentsResponse,
                     currentPage = _chatMessagesState.value.currentPage + 1,
                     hasMorePages = response.isNotEmpty(),
                     isLoading = false
@@ -163,6 +173,24 @@ class MessageViewModel @Inject constructor(
                     } catch (e: Exception) {
                         Log.e("MessageViewModel", "Error loading reply message", e)
                     }
+                }
+            }
+        }
+    }
+
+    private fun loadAttachments(messageId: String) {
+        if (messageId !in _chatMessagesState.value.attachments) {
+            viewModelScope.launch {
+                try {
+                    Log.d("MessageViewModel", "Loading attachments for message: $messageId")
+                    val attachments = messageRepository.getAttachmentsForMessage(messageId)
+                        .groupBy { it.messageId }
+
+                    _chatMessagesState.value = _chatMessagesState.value.copy(
+                        attachments = _chatMessagesState.value.attachments + attachments
+                    )
+                } catch (e: Exception) {
+                    Log.e("MessageViewModel", "Error loading attachments", e)
                 }
             }
         }

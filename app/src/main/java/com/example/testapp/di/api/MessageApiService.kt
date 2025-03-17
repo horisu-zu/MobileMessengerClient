@@ -23,6 +23,13 @@ interface MessageApiService {
         @Query("direction") direction: String = "DESC"
     ): List<Message>
 
+    @GET("api/messages/{chatId}/attachments")
+    suspend fun getAttachmentsForChat(
+        @Path("chatId") chatId: String,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20
+    ): List<Attachment>
+
     @GET("api/messages")
     suspend fun getMessagesByIds(
         @Query("messageIds") messageIds: List<String>

@@ -4,10 +4,8 @@ import android.util.Log
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
@@ -22,26 +20,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
 import com.example.testapp.domain.dto.user.UserResponse
+import com.example.testapp.domain.models.chat.ChatType
 import com.example.testapp.domain.models.chat.GroupRole
+import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.domain.models.message.Message
 import com.example.testapp.domain.models.reaction.Reaction
 import com.example.testapp.presentation.chat.dropdown.MessageDropdown
 import com.example.testapp.utils.Converter.groupMessagesInSequence
 import com.example.testapp.utils.Converter.groupReactions
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.launch
 
 @Composable
 fun MessageList(
+    chatType: ChatType,
     currentUserRole: GroupRole,
     currentUserId: String,
     messages: Map<String, Message>,
     replyMessages: Map<String, Message>,
     usersData: Map<String, UserResponse>,
     reactionsMap: Map<String, List<Reaction>>,
+    attachments: Map<String, List<Attachment>>,
     reactionUrls: List<String>,
     hasMorePages: Boolean,
     onAvatarClick: (UserResponse) -> Unit,
@@ -131,6 +130,8 @@ fun MessageList(
                         groupReactions(reactions)
                     } ?: emptyMap()
 
+                    val messageAttachments = attachments[message.messageId] ?: emptyList()
+
                     usersData[message.senderId]?.let { user ->
                         MessageItem(
                             currentUserId = currentUserId,
@@ -150,6 +151,7 @@ fun MessageList(
                             replyMessage = replyMessage,
                             replyUserData = replyUserData,
                             reactionsMap = messageReactions,
+                            attachments = messageAttachments,
                             userData = user,
                             usersData = usersData
                         )
@@ -174,6 +176,7 @@ fun MessageList(
 
     selectedMessageId.value?.let {
         MessageDropdown(
+            chatType = chatType,
             currentUserRole = currentUserRole,
             reactionUrls = reactionUrls,
             currentUserId = currentUserId,

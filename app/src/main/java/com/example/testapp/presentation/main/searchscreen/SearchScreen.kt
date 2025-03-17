@@ -25,6 +25,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
 import chat.service.course.dto.ChatJoinRequest
+import chat.service.course.dto.PersonalChatRequest
 import com.example.testapp.R
 import com.example.testapp.presentation.main.SearchType
 import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
@@ -106,8 +107,24 @@ fun SearchScreen(
                 0 -> UserSearchScreen(
                     currentUserId = currentUserId,
                     userViewModel = userViewModel,
-                    onNavigateToChat = {
-                        //mainNavController.navigate("chatScreen")
+                    onNavigateToChat = { userId ->
+                        scope.launch {
+                            currentUserId?.let {
+                                chatViewModel.checkIfPrivateChatExists(currentUserId, userId).collect { result ->
+                                    if(result.data != null) {
+                                        mainNavController.navigate("chatScreen/${result.data}")
+                                    } else {
+                                        chatViewModel.createPersonalChat(PersonalChatRequest(currentUserId, userId)).collect {
+                                            when(it) {
+                                                is Resource.Success -> mainNavController.navigate("chatScreen/${it.data}")
+                                                is Resource.Error -> {}
+                                                is Resource.Loading -> {}
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 )
                 1 -> {
@@ -128,7 +145,6 @@ fun SearchScreen(
                         },
                         onJoinClick = {}
                     )
-                    // GroupSearchScreen will be here once implemented
                 }
             }
         }

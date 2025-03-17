@@ -2,8 +2,11 @@ package com.example.testapp.presentation.chat
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,10 +21,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.example.testapp.R
 import com.example.testapp.domain.dto.message.LocalAttachment
 import com.example.testapp.presentation.templates.media.MediaType
 import com.example.testapp.presentation.templates.media.VideoThumbnail
@@ -64,12 +69,23 @@ fun AttachmentPreview(
                     )
                 }
                 MediaType.AUDIO -> {
-                    Text(
-                        text = MediaLoader.getFileName(context, attachment.uri),
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Column(
+                        modifier = Modifier.size(96.dp).padding(4.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_audio),
+                            contentDescription = null,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Text(
+                            text = MediaLoader.getFileName(context, attachment.uri),
+                            style = MaterialTheme.typography.bodyMedium,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
         }

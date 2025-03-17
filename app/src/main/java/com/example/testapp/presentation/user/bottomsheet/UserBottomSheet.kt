@@ -20,15 +20,15 @@ import com.example.testapp.domain.models.user.UserStatus
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UserBottomSheet(
-    currentUserId: String,
     userData: UserResponse,
     userStatus: UserStatus,
+    isInChat: Boolean,
     chatParticipant: ChatParticipant? = null,
     avatarUrl: String? = null,
     showBottomSheet: Boolean = false,
     onDismiss: () -> Unit,
-    context: Context
-    //onNavigateToChat: (String) -> Unit
+    context: Context,
+    onNavigateToChat: (String) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val sheetState = rememberModalBottomSheetState()
@@ -58,9 +58,10 @@ fun UserBottomSheet(
                     )
                 }
                 UserInteraction(
+                    isInChat = isInChat,
                     userData = userData,
-                    onMessageClick = { },
-                    onReportClick = { }
+                    onMessageClick = onNavigateToChat,
+                    onPortraitClick = { }
                 )
             }
         }
