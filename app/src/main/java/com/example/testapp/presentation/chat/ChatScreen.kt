@@ -187,7 +187,7 @@ fun ChatScreen(
                         userData = userState.data?.associateBy { it.userId } ?: emptyMap(),
                         mediaViewModel = mediaViewModel,
                         messageInputState = it,
-                        onSendClick = { messageInputViewModel.sendMessage() },
+                        onSendClick = { messageInputViewModel.sendMessage(context = context) },
                         onMessageInputChange = { newValue ->
                             messageInputViewModel.setMessage(newValue)
                         },

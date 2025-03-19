@@ -37,7 +37,6 @@ fun ReplyFragment(
     Row(
         modifier = modifier
             .clip(RoundedCornerShape(6.dp))
-            .heightIn(min = 32.dp)
             .background(
                 userData.userColor
                     .toColor()

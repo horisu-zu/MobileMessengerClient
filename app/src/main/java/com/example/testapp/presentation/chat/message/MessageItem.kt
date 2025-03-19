@@ -5,16 +5,14 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
-import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -24,16 +22,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.constraintlayout.compose.atMost
-import coil.compose.AsyncImage
 import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.domain.models.message.Message
@@ -160,13 +155,7 @@ fun MessageItem(
                 ) {
                     Column(
                         modifier = Modifier
-                            .let {
-                                if(attachments.isNotEmpty()) {
-                                    it
-                                } else {
-                                    it.width(IntrinsicSize.Max)
-                                }
-                            }
+                            .width(IntrinsicSize.Max)
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onTap = { offset ->
@@ -191,14 +180,25 @@ fun MessageItem(
                                 attachments = attachments,
                                 modifier = Modifier
                                     .heightIn(max = 312.dp)
-                                    .padding(top = if(replyMessage != null) 4.dp else 0.dp)
+                                    .let {
+                                        if(attachments.any { attachment ->
+                                            !attachment.fileType.startsWith("image/") }
+                                        ) {
+                                            it.width(0.75 * maxWidth)
+                                        } else {
+                                            it.widthIn(min = 180.dp)
+                                        }
+                                    }
+                                    .padding(top = if(replyMessage != null) 2.dp else 0.dp)
                             )
                         }
 
                         message.message?.let {
                             MessageTextFragment(
                                 message = message.message,
-                                replyMessage = replyMessage != null && attachments.isNotEmpty()
+                                modifier = Modifier.padding(start = 12.dp, end = 12.dp,
+                                    top = if (replyMessage != null || attachments.isNotEmpty()) 4.dp
+                                    else 8.dp, bottom = 8.dp)
                             )
                         }
                     }

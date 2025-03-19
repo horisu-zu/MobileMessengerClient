@@ -87,4 +87,27 @@ object Converter {
             }
         }
     }
+
+    fun formatAudioProgress(currentPositionMs: Int, durationMs: Int): String {
+        val currentSeconds = currentPositionMs / 1000
+        val totalSeconds = durationMs / 1000
+
+        val currentMinutes = currentSeconds / 60
+        val currentSecondsPart = currentSeconds % 60
+
+        val totalMinutes = totalSeconds / 60
+        val totalSecondsPart = totalSeconds % 60
+
+        return "${currentMinutes}:${currentSecondsPart.toString().padStart(2, '0')} " +
+                "/ ${totalMinutes}:${totalSecondsPart.toString().padStart(2, '0')}"
+    }
+
+    fun formatFileSize(size: Double): String {
+        return when {
+            size < 1024 -> "%.0f B".format(size)
+            size < 1024 * 1024 -> "%.2f KB".format(size / 1024)
+            size < 1024 * 1024 * 1024 -> "%.2f MB".format(size / (1024 * 1024))
+            else -> "%.2f GB".format(size / (1024 * 1024 * 1024))
+        }
+    }
 }

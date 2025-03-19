@@ -1,6 +1,7 @@
 package com.example.testapp.presentation.chat.attachment
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.testapp.domain.models.message.Attachment
@@ -18,10 +19,16 @@ fun AttachmentFragment(
 
             when  {
                 type.startsWith("image/") -> {
-                    ImageAttachment(attachment = attachment)
+                    ImageAttachment(
+                        attachment = attachment,
+                        modifier = Modifier
+                    )
                 }
                 type.startsWith("audio/") -> {
-                    AudioAttachment(attachment = attachment)
+                    AudioAttachment(
+                        attachment = attachment,
+                        modifier = Modifier
+                    )
                 }
                 type.startsWith("video/") -> {
                     VideoAttachment( attachment = attachment)

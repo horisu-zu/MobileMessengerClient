@@ -2,6 +2,7 @@ package com.example.testapp.utils.storage
 
 import android.content.Context
 import android.net.Uri
+import android.provider.OpenableColumns
 import android.util.Log
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
@@ -16,12 +17,42 @@ class ChatMediaService @Inject constructor(
         private const val DEFAULT_KEPT_FILES = 100
     }
 
+    override fun generateFileName(fileUri: Uri?, context: Context?): String {
+        if (context != null) {
+            val cursor = fileUri?.let { context.contentResolver.query(it, null, null, null, null) }
+
+            cursor?.use { c ->
+                if (c.moveToFirst()) {
+                    val displayNameIndex = c.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (displayNameIndex != -1) {
+                        val displayName = c.getString(displayNameIndex)
+                        return displayName.replace(Regex("[^a-zA-Z0-9_.-]"), "_")
+                    }
+                }
+            }
+        }
+
+        return fileUri?.lastPathSegment?.let { path ->
+            if (path.contains("/")) {
+                val fileName = path.substring(path.lastIndexOf('/') + 1)
+                fileName.replace(Regex("[^a-zA-Z0-9_.-]"), "_")
+            } else {
+                if (path.matches(Regex("^\\d+$"))) {
+                    "file_${path}"
+                } else {
+                    path.replace(Regex("[^a-zA-Z0-9_.-]"), "_")
+                }
+            }
+        } ?: "unknown_file"
+    }
+
     suspend fun uploadChatFile(
         chatId: String,
         messageId: String,
-        fileUri: Uri
+        fileUri: Uri,
+        context: Context? = null
     ): String {
-        val fileName = generateFileName()
+        val fileName = generateFileName(fileUri, context)
         return uploadFile("$CHAT_MEDIA_PATH/$chatId/$messageId", fileName, fileUri)
     }
 

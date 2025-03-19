@@ -117,8 +117,9 @@ dependencies {
 
     //Gemini
     implementation(libs.generativeai)
-    //OpenAI API
-    //implementation(libs.openai.client)
-    //implementation(libs.ktor.client.okhttp)
-    //implementation(libs.ktor.client.core)
+
+    //Media3 ExoPlayer
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.dash)
+    implementation(libs.androidx.media3.ui)
 }

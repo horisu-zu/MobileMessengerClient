@@ -1,5 +1,6 @@
 package com.example.testapp.presentation.viewmodel.message
 
+import android.content.Context
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -112,7 +113,7 @@ class MessageInputViewModel @Inject constructor(
         }
     }
 
-    fun sendMessage() = viewModelScope.launch {
+    fun sendMessage(context: Context? = null) = viewModelScope.launch {
         _messageInputState.value?.let { state ->
             when {
                 state.isEditing -> {
@@ -140,7 +141,8 @@ class MessageInputViewModel @Inject constructor(
                             val uploadedUrl = chatMediaService.uploadChatFile(
                                 chatId = state.chatId,
                                 messageId = messageId,
-                                fileUri = attachment.uri
+                                fileUri = attachment.uri,
+                                context = context
                             )
                             Log.d("MessageInputViewModel", "Uploaded attachment: $uploadedUrl")
 

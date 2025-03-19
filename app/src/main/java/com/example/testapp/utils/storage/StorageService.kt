@@ -20,9 +20,9 @@ import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 
 abstract class StorageService (protected val storage: FirebaseStorage) {
-    protected val formatter = DateTimeFormatter.ISO_INSTANT
+    private val formatter = DateTimeFormatter.ISO_INSTANT
 
-    protected fun generateFileName(): String {
+    protected open fun generateFileName(fileUri: Uri? = null, context: Context? = null): String {
         val timestamp = Instant.now()
         val uuid = UUID.randomUUID()
         return "${formatter.format(timestamp)}_${uuid}"
