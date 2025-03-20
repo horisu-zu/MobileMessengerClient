@@ -2,6 +2,7 @@ package com.example.testapp.presentation.chat.message
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 fun messageShape(
@@ -21,6 +22,7 @@ fun messageShape(
 
                     )
                 }
+
                 isFirstInGroup -> {
                     RoundedCornerShape(
                         topEnd = 16.dp,
@@ -29,6 +31,7 @@ fun messageShape(
                         bottomEnd = 4.dp
                     )
                 }
+
                 else -> {
                     RoundedCornerShape(
                         topStart = 16.dp,
@@ -39,6 +42,7 @@ fun messageShape(
                 }
             }
         }
+
         else -> {
             when {
                 isLastInGroup -> {
@@ -49,6 +53,7 @@ fun messageShape(
                         bottomEnd = 16.dp
                     )
                 }
+
                 isFirstInGroup -> {
                     RoundedCornerShape(
                         topEnd = 16.dp,
@@ -57,6 +62,7 @@ fun messageShape(
                         bottomEnd = 16.dp
                     )
                 }
+
                 else -> {
                     RoundedCornerShape(
                         topStart = 4.dp,
@@ -68,4 +74,25 @@ fun messageShape(
             }
         }
     }
+}
+
+fun attachmentShape(
+    isCurrentUser: Boolean,
+    isFirstInGroup: Boolean,
+    isLastInGroup: Boolean,
+    hasMessageText: Boolean,
+    hasReply: Boolean
+): Shape = when {
+    !hasMessageText && !hasReply -> messageShape(isCurrentUser, isFirstInGroup, isLastInGroup)
+    !hasMessageText -> RoundedCornerShape(
+        topStart = 4.dp, topEnd = 4.dp,
+        bottomStart = if (isCurrentUser || isLastInGroup) 16.dp else 4.dp,
+        bottomEnd = if (!isCurrentUser || isLastInGroup) 16.dp else 4.dp
+    )
+    hasReply -> RoundedCornerShape(4.dp)
+    else -> RoundedCornerShape(
+        topStart = if (isCurrentUser || isFirstInGroup) 16.dp else 4.dp,
+        topEnd = if (!isCurrentUser || isFirstInGroup) 16.dp else 4.dp,
+        bottomStart = 4.dp, bottomEnd = 4.dp
+    )
 }

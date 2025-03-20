@@ -46,6 +46,8 @@ fun Avatar(
             model = ImageRequest.Builder(LocalContext.current)
                 .data(avatarUrl)
                 .crossfade(true)
+                .memoryCacheKey(avatarUrl)
+                .diskCacheKey(avatarUrl)
                 .build(),
             contentDescription = "User Avatar",
             contentScale = ContentScale.Crop,

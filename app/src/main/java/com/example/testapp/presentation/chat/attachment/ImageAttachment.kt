@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
@@ -24,27 +23,36 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.example.testapp.domain.models.message.Attachment
 
 @Composable
 fun ImageAttachment(
     attachment: Attachment,
+    shape: Shape,
     modifier: Modifier = Modifier
 ) {
     var isFullScreen by remember { mutableStateOf(false) }
 
     AsyncImage(
-        model = attachment.url,
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(attachment.url)
+            .crossfade(true)
+            .memoryCacheKey(attachment.name)
+            .diskCacheKey(attachment.name)
+            .build(),
         contentDescription = attachment.name,
         modifier = modifier.fillMaxWidth()
             .padding(2.dp)
-            .clip(RoundedCornerShape(4.dp))
+            .clip(shape)
             .clickable { isFullScreen = true },
         contentScale = ContentScale.FillWidth
     )

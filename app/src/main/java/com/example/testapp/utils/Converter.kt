@@ -88,7 +88,7 @@ object Converter {
         }
     }
 
-    fun formatAudioProgress(currentPositionMs: Int, durationMs: Int): String {
+    fun formatAudioProgress(currentPositionMs: Long, durationMs: Long): String {
         val currentSeconds = currentPositionMs / 1000
         val totalSeconds = durationMs / 1000
 
