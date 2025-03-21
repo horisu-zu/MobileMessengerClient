@@ -24,7 +24,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -71,7 +70,6 @@ fun MessageItem(
         else -> 0.dp
     }
 
-    val context = LocalContext.current
     val thresholdValue = 240f
     var lastKnownOffset by remember { mutableFloatStateOf(0f) }
 
@@ -185,13 +183,12 @@ fun MessageItem(
                                 isLastInGroup = isLastInGroup,
                                 hasMessageText = message.message != null,
                                 hasReply = replyMessage != null,
-                                context = context,
                                 modifier = Modifier
                                     .heightIn(max = 312.dp)
                                     .let {
                                         if(attachments.any { attachment ->
-                                                !attachment.fileType.startsWith("image/") }
-                                        ) {
+                                            attachment.fileType.startsWith("audio/")
+                                        }) {
                                             it.width(0.75 * maxWidth)
                                         } else {
                                             it.widthIn(min = 180.dp)

@@ -110,4 +110,13 @@ object Converter {
             else -> "%.2f GB".format(size / (1024 * 1024 * 1024))
         }
     }
+
+    fun formatDuration(durationMs: Long): String {
+        val durationSeconds = durationMs / 1000
+
+        val minutes = durationSeconds / 60
+        val seconds = durationSeconds % 60
+
+        return "${minutes}:${seconds.toString().padStart(2, '0')}"
+    }
 }

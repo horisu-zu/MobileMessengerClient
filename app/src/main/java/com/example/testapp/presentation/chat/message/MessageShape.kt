@@ -86,13 +86,13 @@ fun attachmentShape(
     !hasMessageText && !hasReply -> messageShape(isCurrentUser, isFirstInGroup, isLastInGroup)
     !hasMessageText -> RoundedCornerShape(
         topStart = 4.dp, topEnd = 4.dp,
-        bottomStart = if (isCurrentUser || isLastInGroup) 16.dp else 4.dp,
-        bottomEnd = if (!isCurrentUser || isLastInGroup) 16.dp else 4.dp
+        bottomStart = if (isCurrentUser || isLastInGroup) 14.dp else 4.dp,
+        bottomEnd = if (!isCurrentUser || isLastInGroup) 14.dp else 4.dp
     )
     hasReply -> RoundedCornerShape(4.dp)
     else -> RoundedCornerShape(
-        topStart = if (isCurrentUser || isFirstInGroup) 16.dp else 4.dp,
-        topEnd = if (!isCurrentUser || isFirstInGroup) 16.dp else 4.dp,
+        topStart = if (isCurrentUser || isFirstInGroup) 14.dp else 4.dp,
+        topEnd = if (!isCurrentUser || isFirstInGroup) 14.dp else 4.dp,
         bottomStart = 4.dp, bottomEnd = 4.dp
     )
 }

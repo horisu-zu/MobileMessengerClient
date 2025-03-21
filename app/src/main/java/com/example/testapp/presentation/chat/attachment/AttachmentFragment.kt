@@ -1,9 +1,13 @@
 package com.example.testapp.presentation.chat.attachment
 
-import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.dp
 import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.presentation.chat.message.attachmentShape
 
@@ -15,7 +19,6 @@ fun AttachmentFragment(
     isLastInGroup: Boolean,
     hasMessageText: Boolean,
     hasReply: Boolean,
-    context: Context,
     attachments: List<Attachment> = emptyList()
 ) {
     Column(
@@ -44,12 +47,18 @@ fun AttachmentFragment(
                     AudioAttachment(
                         attachment = attachment,
                         modifier = Modifier
+                            .padding(2.dp)
+                            .clip(shape)
+                            .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.25f))
+                            .padding(horizontal = 12.dp, vertical = 8.dp)
                     )
                 }
                 type.startsWith("video/") -> {
                     VideoAttachment(
                         attachment = attachment,
-                        modifier = Modifier
+                        shape = shape,
+                        modifier = Modifier.padding(2.dp)
+                            .clip(shape)
                     )
                 }
             }
