@@ -12,7 +12,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.rememberTransformableState
 import androidx.compose.foundation.gestures.transformable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
@@ -68,7 +66,6 @@ import java.io.File
 fun VideoAttachment(
     attachment: Attachment,
     modifier: Modifier,
-    shape: Shape,
     context: Context = LocalContext.current
 ) {
     var isFullScreen by remember { mutableStateOf(false) }
@@ -78,7 +75,6 @@ fun VideoAttachment(
             attachment = attachment,
             modifier = Modifier.fillMaxWidth(),
             context = context,
-            shape = shape,
             onVideoClick = { isFullScreen = true }
         )
     }
@@ -163,13 +159,11 @@ fun VideoAttachment(
 @Composable
 fun VideoThumbnail(
     attachment: Attachment,
-    shape: Shape,
     context: Context,
     onVideoClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var bitmap by remember { mutableStateOf<Bitmap?>(null) }
-    var aspectRatio by remember { mutableFloatStateOf(16f/9f) }
     var duration by remember { mutableLongStateOf(0) }
 
     LaunchedEffect(attachment.url) {
@@ -177,31 +171,22 @@ fun VideoThumbnail(
             try {
                 bitmap = loadBitmapFromCache(context, attachment.url)
 
-                if (bitmap == null) {
-                    val retriever = MediaMetadataRetriever()
-                    val headers = HashMap<String, String>()
-                    headers["Range"] = "bytes=0-1000000"
+                val retriever = MediaMetadataRetriever()
+                val headers = HashMap<String, String>()
+                headers["Range"] = "bytes=0-1000000"
 
-                    retriever.setDataSource(attachment.url, headers)
-                    bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST)
+                retriever.setDataSource(attachment.url, headers)
+                bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST)
 
-                    try {
-                        val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)?.toFloatOrNull() ?: 16f
-                        val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)?.toFloatOrNull() ?: 9f
-                        duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
-                        aspectRatio = width / height
-                    } catch (e: Exception) {
-                        Log.e("VideoThumbnail", "Error: ${e.message}")
-                    }
-
-                    retriever.release()
-
-                    bitmap?.let { saveBitmapToCache(context, attachment.url, it) }
-                } else {
-                    bitmap?.let {
-                        aspectRatio = it.width.toFloat() / it.height.toFloat()
-                    }
+                try {
+                    duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
+                } catch (e: Exception) {
+                    Log.e("VideoThumbnail", "Error: ${e.message}")
                 }
+
+                retriever.release()
+
+                bitmap?.let { saveBitmapToCache(context, attachment.url, it) }
             } catch (e: Exception) {
                 Log.e("VideoThumbnail", "Error: ${e.message}")
             }
@@ -210,9 +195,6 @@ fun VideoThumbnail(
 
     Box(
         modifier = modifier
-            .aspectRatio(aspectRatio)
-            .padding(2.dp)
-            .clip(shape)
             .clickable { onVideoClick() }
     ) {
         bitmap?.let {
@@ -237,8 +219,7 @@ fun VideoThumbnail(
                 style = MaterialTheme.typography.labelSmall.copy(
                     color = MaterialTheme.colorScheme.onSurface,
                     fontSize = 10.sp
-                ),
-                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                ), modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
             )
         }
 
@@ -252,8 +233,7 @@ fun VideoThumbnail(
                 .background(
                     color = Color.Black.copy(alpha = 0.5f),
                     shape = CircleShape
-                )
-                .padding(8.dp)
+                ).padding(8.dp)
         )
     }
 }

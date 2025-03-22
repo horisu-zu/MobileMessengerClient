@@ -4,15 +4,21 @@ import android.annotation.SuppressLint
 import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.example.testapp.domain.dto.message.MessageDateGroup
 import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.domain.models.message.Message
 import com.example.testapp.domain.models.reaction.Reaction
 import com.example.testapp.presentation.templates.Avatar
+import java.text.ParseException
+import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
 
 object Converter {
     fun getAttachmentDescription(attachments: List<Attachment>): String {
@@ -45,16 +51,43 @@ object Converter {
             .groupBy { it.emojiReaction }
     }
 
-    fun groupMessagesInSequence(messages: Map<String, Message>): List<List<Message>> {
-        val sortedMessages = messages.values.sortedByDescending { it.createdAt }
-        return sortedMessages.fold(mutableListOf<MutableList<Message>>()) { groups, message ->
-            if (groups.isEmpty() || groups.last().first().senderId != message.senderId) {
-                groups.add(mutableListOf(message))
-            } else {
-                groups.last().add(message)
+    fun groupMessagesInSequence(messages: List<Message>): List<MessageDateGroup> {
+        val groupedByDate = messages
+            .groupBy { formatDate(it.createdAt) }
+            .toSortedMap(compareByDescending { parseDate(it) })
+
+        return groupedByDate.map { (date, messages) ->
+            val senderGroups = mutableListOf<List<Message>>()
+            var currentGroup = mutableListOf<Message>()
+            for (message in messages) {
+                if (currentGroup.isEmpty() || currentGroup.last().senderId == message.senderId) {
+                    currentGroup.add(message)
+                } else {
+                    senderGroups.add(currentGroup)
+                    currentGroup = mutableListOf(message)
+                }
             }
-            groups
+            if (currentGroup.isNotEmpty()) {
+                senderGroups.add(currentGroup)
+            }
+            MessageDateGroup(date, senderGroups)
         }
+    }
+
+    private fun parseDate(formattedDate: String): Date {
+        val formatter = SimpleDateFormat("dd MMMM, yyyy", Locale.getDefault())
+        val currentYear = Calendar.getInstance().get(Calendar.YEAR)
+
+        return try {
+            formatter.parse(formattedDate)
+        } catch (e: ParseException) {
+            formatter.parse("$formattedDate $currentYear")
+        } ?: throw IllegalArgumentException("Unable to parse date: $formattedDate")
+    }
+
+    private fun formatDate(instant: Instant): String {
+        val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
+        return dateTime.format(DateTimeFormatter.ofPattern("dd MMMM, yyyy"))
     }
 
     @Composable

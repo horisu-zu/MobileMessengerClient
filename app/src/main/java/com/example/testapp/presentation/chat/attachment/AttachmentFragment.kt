@@ -56,7 +56,6 @@ fun AttachmentFragment(
                 type.startsWith("video/") -> {
                     VideoAttachment(
                         attachment = attachment,
-                        shape = shape,
                         modifier = Modifier.padding(2.dp)
                             .clip(shape)
                     )

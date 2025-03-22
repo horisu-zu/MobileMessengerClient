@@ -147,7 +147,7 @@ fun ChatScreen(
                             chatType = chatState.data?.chatType ?: ChatType.PERSONAL,
                             currentUserRole = participantsState.data?.find { it.userId == currentUser?.userId }?.role ?: GroupRole.MEMBER,
                             currentUserId = currentUser?.userId ?: "bruh",
-                            messages = messagesState.messages.associateBy { it.messageId ?: "" },
+                            messages = messagesState.messages,
                             replyMessages = messagesState.replyMessages,
                             usersData = it.associateBy { user -> user.userId },
                             reactionsMap = reactionsState.data ?: emptyMap(),

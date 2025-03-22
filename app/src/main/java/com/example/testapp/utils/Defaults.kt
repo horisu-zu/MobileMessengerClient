@@ -17,7 +17,7 @@ object Defaults {
     const val CHAT_SERVICE_PORT = 8082
     const val MESSAGE_SERVICE_PORT = 8083
     const val REACTION_SERVICE_PORT = 8084
-    const val baseUrl = "http://192.168.1.106"
+    const val baseUrl = "http://192.168.1.105"
     //const val webSocketBaseUrl = "ws://192.168.1.107"
 
     fun calculateUserStatus(context: Context, userStatus: UserStatus?): String {
