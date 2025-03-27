@@ -79,6 +79,7 @@ secrets-gradle-plugin = { module = "com.google.android.libraries.mapsplatform.se
 squareup-moshi-kotlin = { module = "com.squareup.moshi:moshi-kotlin", version.ref = "moshiKotlinVersion" }
 firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
 firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+firebase-messaging = { module = "com.google.firebase:firebase-messaging" }
 firebase-storage-ktx = { group = "com.google.firebase", name = "firebase-storage-ktx", version.ref = "firebaseStorageKtx" }
 ssp-android = { module = "com.intuit.ssp:ssp-android", version.ref = "sspAndroid" }
 

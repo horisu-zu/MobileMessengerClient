@@ -151,7 +151,7 @@ fun ChatScreen(
                             replyMessages = messagesState.replyMessages,
                             usersData = it.associateBy { user -> user.userId },
                             reactionsMap = reactionsState.data ?: emptyMap(),
-                            attachments = messagesState.attachments ?: emptyMap(),
+                            attachments = messagesState.attachments,
                             reactionUrls = reactionUrls,
                             hasMorePages = messagesState.hasMorePages,
                             onAvatarClick = { userResponse ->

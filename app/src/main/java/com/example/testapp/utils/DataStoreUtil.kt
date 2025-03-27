@@ -27,6 +27,7 @@ class DataStoreUtil @Inject constructor(
         val REFRESH_TOKEN_KEY = stringPreferencesKey("refresh_token")
         val CURRENT_USER_ID = stringPreferencesKey("user_id")
         val CHAT_BACKGROUND_KEY = stringPreferencesKey("chat_background")
+        val FIREBASE_TOKEN_KEY = stringPreferencesKey("firebase_token")
     }
 
     fun getTheme(isSystemDarkTheme: Boolean): Flow<Boolean> = context.dataStore.data
@@ -57,6 +58,11 @@ class DataStoreUtil @Inject constructor(
             preferences[CURRENT_USER_ID]
         }
 
+    fun getToken(): Flow<String?> = context.dataStore.data
+        .map { preferences ->
+            preferences[FIREBASE_TOKEN_KEY]
+        }
+
     fun getChatBackground(): Flow<String?> = context.dataStore.data
         .map { preferences ->
             preferences[CHAT_BACKGROUND_KEY]
@@ -79,6 +85,12 @@ class DataStoreUtil @Inject constructor(
         Log.d("DataStoreUtil", "Saving User Id: $userId")
         context.dataStore.edit { preferences ->
             preferences[CURRENT_USER_ID] = userId
+        }
+    }
+
+    suspend fun saveToken(token: String) {
+        context.dataStore.edit { preferences ->
+            preferences[FIREBASE_TOKEN_KEY] = token
         }
     }
 

@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.Year
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
@@ -51,15 +52,17 @@ object Converter {
             .groupBy { it.emojiReaction }
     }
 
-    fun groupMessagesInSequence(messages: List<Message>): List<MessageDateGroup> {
+    fun groupMessages(messages: List<Message>): List<MessageDateGroup> {
         val groupedByDate = messages
             .groupBy { formatDate(it.createdAt) }
             .toSortedMap(compareByDescending { parseDate(it) })
 
         return groupedByDate.map { (date, messages) ->
+            val sortedMessages = messages.sortedByDescending { it.createdAt }
             val senderGroups = mutableListOf<List<Message>>()
             var currentGroup = mutableListOf<Message>()
-            for (message in messages) {
+
+            for (message in sortedMessages) {
                 if (currentGroup.isEmpty() || currentGroup.last().senderId == message.senderId) {
                     currentGroup.add(message)
                 } else {
@@ -75,7 +78,7 @@ object Converter {
     }
 
     private fun parseDate(formattedDate: String): Date {
-        val formatter = SimpleDateFormat("dd MMMM, yyyy", Locale.getDefault())
+        val formatter = SimpleDateFormat("dd MMMM yyyy", Locale.getDefault())
         val currentYear = Calendar.getInstance().get(Calendar.YEAR)
 
         return try {
@@ -87,7 +90,13 @@ object Converter {
 
     private fun formatDate(instant: Instant): String {
         val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
-        return dateTime.format(DateTimeFormatter.ofPattern("dd MMMM, yyyy"))
+        val currentYear = Year.now().value
+
+        return if (dateTime.year == currentYear) {
+            dateTime.format(DateTimeFormatter.ofPattern("d MMMM"))
+        } else {
+            dateTime.format(DateTimeFormatter.ofPattern("d MMMM yyyy"))
+        }
     }
 
     @Composable

@@ -89,6 +89,7 @@ dependencies {
     implementation(libs.firebase.storage.ktx)
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
+    implementation(libs.firebase.messaging)
 
     //Coil
     implementation (libs.coil.compose)

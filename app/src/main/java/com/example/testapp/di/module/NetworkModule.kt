@@ -94,4 +94,15 @@ object NetworkModule {
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
     }
+
+    @Provides
+    @Singleton
+    @Named("NotificationRetrofit")
+    fun provideNotificationRetrofit(okHttpClient: OkHttpClient, moshi: Moshi): Retrofit {
+        return Retrofit.Builder()
+            .baseUrl("${Defaults.baseUrl}:${Defaults.NOTIFICATION_SERVICE_PORT}/")
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+    }
 }

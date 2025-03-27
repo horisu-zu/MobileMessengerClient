@@ -231,7 +231,7 @@ fun VideoThumbnail(
                 .align(Alignment.Center)
                 .size(48.dp)
                 .background(
-                    color = Color.Black.copy(alpha = 0.5f),
+                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.5f),
                     shape = CircleShape
                 ).padding(8.dp)
         )

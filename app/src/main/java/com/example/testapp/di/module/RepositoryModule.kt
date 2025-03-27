@@ -2,6 +2,7 @@ package com.example.testapp.di.module
 
 import com.example.testapp.di.api.ChatApiService
 import com.example.testapp.di.api.MessageApiService
+import com.example.testapp.di.api.NotificationApiService
 import com.example.testapp.di.api.ReactionApiService
 import com.example.testapp.di.api.UserApiService
 import dagger.Module
@@ -35,4 +36,9 @@ object RepositoryModule {
     @Singleton
     fun provideReactionApiService(@Named("ReactionRetrofit") retrofit: Retrofit): ReactionApiService =
         retrofit.create(ReactionApiService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideNotificationApiService(@Named("NotificationRetrofit") retrofit: Retrofit): NotificationApiService =
+        retrofit.create(NotificationApiService::class.java)
 }

@@ -50,9 +50,11 @@ class MessageViewModel @Inject constructor(
                 val updatedMessages = _chatMessagesState.value.messages.toMutableList().apply {
                     when (event) {
                         is MessageEvent.MessageCreated -> {
-                            add(event.message)
-                            loadReplyMessage(event.message)
-                            loadAttachments(event.message.messageId ?: "")
+                            if (none { it.messageId == event.message.messageId }) {
+                                add(event.message)
+                                loadReplyMessage(event.message)
+                                loadAttachments(event.message.messageId ?: "")
+                            }
                         }
                         is MessageEvent.MessageUpdated -> add(event.message)
                         is MessageEvent.MessageDeleted -> {

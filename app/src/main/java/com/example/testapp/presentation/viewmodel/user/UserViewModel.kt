@@ -50,10 +50,8 @@ class UserViewModel @Inject constructor(
             launch {
                 webSocketClient.getStatusUpdates()
                     .catch { e ->
-                        Log.e("WebSocket", "Error receiving status updates", e)
                     }
                     .collect { newStatuses ->
-                        Log.d("UserViewModel", "Received status update: $newStatuses")
                         _userStatusState.update { currentMap ->
                             currentMap.toMutableMap().apply {
                                 newStatuses.forEach { (userId, status) ->
@@ -68,7 +66,6 @@ class UserViewModel @Inject constructor(
                     .distinctUntilChanged()
                     .collect { userId ->
                         if (userId != null) {
-                            Log.d("UserViewModel", "Loading User with ID: $userId")
                             getCurrentUserById(userId)
                         } else {
                             _currentUserState.value = Resource.Error("User ID is null")
@@ -83,11 +80,8 @@ class UserViewModel @Inject constructor(
             _currentUserState.value = Resource.Loading()
             try {
                 val user = userRepository.getUserById(userId)
-                Log.d("Current User", "Loading User for ID: $userId")
                 _currentUserState.value = Resource.Success(user)
-                Log.d("Current User", "Current User: ${user.nickname}")
             } catch (e: Exception) {
-                Log.d("Current Error", "Error loading user: ${e.message}")
                 _currentUserState.value = Resource.Error("Error loading user: ${e.message}")
             }
         }
@@ -128,33 +122,25 @@ class UserViewModel @Inject constructor(
     }
 
     public override fun onCleared() {
-        Log.d("UserViewMode", "onCleared")
         super.onCleared()
         webSocketClient.disconnect()
     }
 
     suspend fun updateUser(userResponse: UserResponse) {
-        Log.d("UserViewModel", "Updating user with ID: ${userResponse.userId}")
-
         try {
             val updatedUser = userRepository.updateUser(userResponse.userId, userResponse)
             _currentUserState.value = Resource.Success(updatedUser)
-            Log.d("UserViewModel", "User successfully updated: ${updatedUser.nickname}")
         } catch (e: Exception) {
-            Log.e("UserViewModel", "Error updating user: ${e.message}")
             _currentUserState.value = Resource.Error("Failed to update user: ${e.message}")
         }
     }
 
     fun updateNickname(userResponse: UserResponse): Flow<Result<UserResponse>> = flow {
         try {
-            Log.d("UserViewModel", "Updating user with ID: ${userResponse.userId}")
             val updatedUser = userRepository.updateNickname(userResponse.userId, userResponse)
             _currentUserState.value = Resource.Success(updatedUser)
             emit(Result.success(updatedUser))
-            Log.d("UserViewModel", "User successfully updated: ${updatedUser.nickname}")
         } catch (e: Exception) {
-            Log.e("UserViewModel", "Error updating user: ${e.message}")
             emit(Result.failure(e))
         }
     }

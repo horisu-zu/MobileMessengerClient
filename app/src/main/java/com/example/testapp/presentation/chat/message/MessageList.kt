@@ -40,7 +40,7 @@ import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.domain.models.message.Message
 import com.example.testapp.domain.models.reaction.Reaction
 import com.example.testapp.presentation.chat.dropdown.MessageDropdown
-import com.example.testapp.utils.Converter.groupMessagesInSequence
+import com.example.testapp.utils.Converter.groupMessages
 import com.example.testapp.utils.Converter.groupReactions
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -70,7 +70,7 @@ fun MessageList(
     Log.d("MessageList", "HasMorePages value — $hasMorePages")
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    val messageGroups by remember(messages) { derivedStateOf { groupMessagesInSequence(messages) } }
+    val messageGroups by remember(messages) { derivedStateOf { groupMessages(messages) } }
 
     val showDropdown = remember { mutableStateOf(false) }
     val dropdownPosition = remember { mutableStateOf(Offset.Zero) }
@@ -112,7 +112,10 @@ fun MessageList(
         ) {
             messageGroups.forEach { dateGroup ->
                 dateGroup.messages.forEach { senderGroup ->
-                    itemsIndexed(senderGroup) { index, message ->
+                    itemsIndexed(
+                        items = senderGroup,
+                        key = { _, message -> message.messageId!! }
+                    ) { index, message ->
                         val isFirstInGroup = index == senderGroup.lastIndex
                         val isLastInGroup = index == 0
 

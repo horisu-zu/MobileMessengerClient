@@ -19,6 +19,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.testapp.domain.dto.user.UserStatusRequest
+import com.example.testapp.domain.models.manager.FirebaseTokenManager
 import com.example.testapp.presentation.auth.AuthScreen
 import com.example.testapp.presentation.main.navigator.MainAppNavigator
 import com.example.testapp.presentation.profile.ProfileNavigator
@@ -43,6 +44,7 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var mediaService: ChatMediaService
     @Inject lateinit var authManager: AuthManager
     @Inject lateinit var tokenManager: TokenManager
+    @Inject lateinit var firebaseTokenManager: FirebaseTokenManager
 
     override fun onResume() {
         super.onResume()
@@ -77,6 +79,8 @@ class MainActivity : ComponentActivity() {
                 Configuration.UI_MODE_NIGHT_NO -> false
                 else -> false
             }
+
+        firebaseTokenManager.checkAndUpdateToken()
 
         setContent {
             val theme = dataStoreUtil.getTheme(systemTheme).collectAsState(initial = systemTheme)
