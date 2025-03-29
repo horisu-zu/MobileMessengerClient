@@ -1,7 +1,6 @@
 package com.example.testapp.utils
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.example.testapp.domain.dto.message.MessageDateGroup
@@ -46,7 +45,6 @@ object Converter {
     }
 
     fun groupReactions(reactions: List<Reaction>): Map<String, List<Reaction>> {
-        //Log.d("ReactionsList", "Reactions: $reactions")
         return reactions
             .sortedBy { it.createdAt }
             .groupBy { it.emojiReaction }

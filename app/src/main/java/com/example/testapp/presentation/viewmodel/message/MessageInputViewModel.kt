@@ -1,21 +1,12 @@
 package com.example.testapp.presentation.viewmodel.message
 
 import android.content.Context
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.testapp.di.api.ChatApiService
-import com.example.testapp.di.api.MessageApiService
-import com.example.testapp.di.api.NotificationApiService
-import com.example.testapp.di.api.UserApiService
-import com.example.testapp.domain.dto.message.AttachmentRequest
 import com.example.testapp.domain.dto.message.LocalAttachment
 import com.example.testapp.domain.dto.message.MessageInputState
-import com.example.testapp.domain.dto.message.MessageRequest
-import com.example.testapp.domain.dto.message.MessageUpdateRequest
-import com.example.testapp.domain.dto.notification.NotificationRequest
 import com.example.testapp.domain.models.message.Message
-import com.example.testapp.utils.storage.ChatMediaService
+import com.example.testapp.domain.usecase.SendMessageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,11 +16,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MessageInputViewModel @Inject constructor(
-    private val messageRepository: MessageApiService,
-    private val chatMediaService: ChatMediaService,
-    private val notificationService: NotificationApiService,
-    private val chatService: ChatApiService,
-    private val userService: UserApiService
+    private val sendMessageUseCase: SendMessageUseCase
 ) : ViewModel() {
 
     private val _messageInputState = MutableStateFlow<MessageInputState?>(null)
@@ -120,72 +107,13 @@ class MessageInputViewModel @Inject constructor(
         }
     }
 
-    fun sendMessage(context: Context? = null) = viewModelScope.launch {
+    fun sendMessage(context: Context?) = viewModelScope.launch {
         _messageInputState.value?.let { state ->
-            when {
-                state.isEditing -> {
-                    state.editedMessageId?.let { messageId ->
-                        messageRepository.updateMessage(
-                            messageId,
-                            MessageUpdateRequest(message = state.message)
-                        )
-                    }
-                    clearState()
-                }
-                else -> {
-                    val createdMessage = messageRepository.createMessage(
-                        MessageRequest(
-                            chatId = state.chatId,
-                            senderId = state.senderId,
-                            message = state.message,
-                            replyTo = state.replyToMessage?.messageId
-                        )
-                    )
-                    clearState()
-
-                    createdMessage.messageId?.let { messageId ->
-                        state.localAttachments.forEach { attachment ->
-                            val uploadedUrl = chatMediaService.uploadChatFile(
-                                chatId = state.chatId,
-                                messageId = messageId,
-                                fileUri = attachment.uri,
-                                context = context
-                            )
-                            Log.d("MessageInputViewModel", "Uploaded attachment: $uploadedUrl")
-
-                            uploadedUrl.let { url ->
-                                messageRepository.createAttachment(messageId, AttachmentRequest(url))
-                            }
-                        }
-                    }
-
-                    val tokens = notificationService.getTokensByChatId(state.chatId)
-                        .filter { it.userId != state.senderId }
-                        .map { it.token }
-                    Log.d("Tokens", "Tokens found for chat ${state.chatId}: $tokens")
-
-                    val notificationTitle = try {
-                        chatService.getChatMetadata(state.chatId).name
-                    } catch (e: Exception) {
-                        userService.getUserById(state.senderId).nickname
-                    }
-
-                    if (tokens.isNotEmpty()) {
-                        notificationService.sendMulticastNotification(
-                            NotificationRequest(
-                                tokens = tokens,
-                                title = notificationTitle,
-                                body = state.message ?: "Attachment",
-                                data = mapOf(
-                                    "chatId" to state.chatId,
-                                    "messageId" to (createdMessage.messageId!!)
-                                )
-                            )
-                        )
-                    } else {
-                        Log.d("Input", "No notification tokens found for chat ${state.chatId}")
-                    }
-                }
+            val result = sendMessageUseCase.execute(state, context)
+            result.onSuccess {
+                clearState()
+            }.onFailure {
+                //Idk... new state?
             }
         }
     }

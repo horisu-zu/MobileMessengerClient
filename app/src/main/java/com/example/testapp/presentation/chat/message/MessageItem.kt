@@ -18,12 +18,16 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.boundsInParent
+import androidx.compose.ui.layout.boundsInWindow
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -57,6 +61,7 @@ fun MessageItem(
     onReactionClick: (String, String, String) -> Unit,
     onReactionLongClick: (String) -> Unit
 ) {
+    var dropdownOffset by remember { mutableStateOf(Offset.Zero) }
     val backgroundColor = if (isCurrentUser) MaterialTheme.colorScheme.primaryContainer
         else MaterialTheme.colorScheme.secondaryContainer
 
@@ -104,6 +109,20 @@ fun MessageItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 8.dp, end = 8.dp, top = topPadding, bottom = bottomPadding)
+            .onGloballyPositioned { coordinates ->
+                dropdownOffset = coordinates.boundsInWindow().topLeft
+            }
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { localOffset ->
+                        val absoluteOffset = Offset(
+                            dropdownOffset.x + localOffset.x,
+                            dropdownOffset.y + localOffset.y
+                        )
+                        onMessageClick(absoluteOffset)
+                    }
+                )
+            }
     ) {
         val maxWidth = maxWidth
 
@@ -154,15 +173,7 @@ fun MessageItem(
                         }
                 ) {
                     Column(
-                        modifier = Modifier
-                            .width(IntrinsicSize.Max)
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onTap = { offset ->
-                                        onMessageClick(offset)
-                                    }
-                                )
-                            }
+                        modifier = Modifier.width(IntrinsicSize.Max)
                     ) {
                         if (replyMessage != null && replyUserData != null) {
                             ReplyFragment(

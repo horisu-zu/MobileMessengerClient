@@ -3,15 +3,12 @@ package com.example.testapp.presentation.viewmodel.chat
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.testapp.di.api.ChatApiService
-import com.example.testapp.di.api.MessageApiService
-import com.example.testapp.di.api.UserApiService
 import com.example.testapp.di.websocket.MessageWebSocketClient
 import com.example.testapp.domain.dto.message.MessageEvent
 import com.example.testapp.domain.dto.message.MessageStreamMode
-import com.example.testapp.domain.models.chat.Chat
 import com.example.testapp.domain.models.chat.ChatDisplayData
-import com.example.testapp.domain.models.chat.ChatType
+import com.example.testapp.domain.usecase.GetUserChatsUseCase
+import com.example.testapp.domain.usecase.ProcessMessageUpdatesUseCase
 import com.example.testapp.utils.DataStoreUtil
 import com.example.testapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,10 +23,9 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatDisplayViewModel @Inject constructor(
     private val dataStoreUtil: DataStoreUtil,
-    private val chatRepository: ChatApiService,
-    private val messageRepository: MessageApiService,
-    private val userRepository: UserApiService,
-    private val messageWebSocketClient: MessageWebSocketClient
+    private val messageWebSocketClient: MessageWebSocketClient,
+    private val getUserChatsUseCase: GetUserChatsUseCase,
+    private val processMessageUpdatesUseCase: ProcessMessageUpdatesUseCase
 ) : ViewModel() {
 
     private val _chatListItemsState =
@@ -40,7 +36,7 @@ class ChatDisplayViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 val userId = dataStoreUtil.getUserId().first() ?: return@launch
-                startObservingChats(userId)
+                loadChats(userId)
 
                 launch {
                     messageWebSocketClient.getMessageUpdates()
@@ -57,176 +53,29 @@ class ChatDisplayViewModel @Inject constructor(
         }
     }
 
-    private suspend fun processLastMessagesUpdates(updates: Map<String, MessageEvent>) {
-        val userId = dataStoreUtil.getUserId().first()
-
-        _chatListItemsState.update { currentState ->
-            when (currentState) {
-                is Resource.Success -> {
-                    val updatedMap = currentState.data?.toMutableMap() ?: mutableMapOf()
-                    updates.forEach { (chatId, event) ->
-                        updatedMap[chatId] = when (event) {
-                            is MessageEvent.MessageCreated -> {
-                                val sender = userRepository.getUserById(event.message.senderId)
-                                val currentData = updatedMap[chatId] ?: throw IllegalStateException(
-                                    "Chat ${event.message.chatId} not initialized"
-                                )
-
-                                val isNewMessage =
-                                    currentData.lastMessage?.createdAt?.let { lastTimestamp ->
-                                        event.message.createdAt > lastTimestamp
-                                    } ?: true
-                                val isCurrentUser = userId == event.message.senderId
-
-                                currentData.copy(
-                                    lastMessage = event.message,
-                                    senderName = sender.nickname,
-                                    unreadCount = if (isNewMessage && !isCurrentUser) currentData.unreadCount + 1 else currentData.unreadCount
-                                )
-                            }
-
-                            is MessageEvent.MessageUpdated ->
-                                updatedMap[chatId]?.copy(lastMessage = event.message)
-
-                            is MessageEvent.MessageDeleted -> {
-                                val lastMessage = messageRepository.getLastMessages(listOf(chatId)).first()
-                                val currentData = updatedMap[chatId] ?: throw IllegalStateException(
-                                    "Chat ${event.message.chatId} not initialized"
-                                )
-
-                                val senderNickname = if(currentData.lastMessage?.senderId != lastMessage.senderId) {
-                                    userRepository.getUserById(lastMessage.senderId).nickname
-                                } else {
-                                    currentData.senderName
-                                }
-
-                                updatedMap[chatId]?.copy(
-                                    lastMessage = lastMessage,
-                                    senderName = senderNickname,
-                                    unreadCount = if(currentData.unreadCount > 0) currentData.unreadCount - 1 else 0
-                                )
-                            }
-                        } ?: return@forEach
-                    }
-                    Resource.Success(updatedMap)
-                }
-
-                else -> currentState
-            }
-        }
-    }
-
-    private fun startObservingChats(userId: String) {
+    private fun loadChats(userId: String) {
         viewModelScope.launch {
             try {
-                val chats = getUserChats(userId)
-                val chatDisplayMap = mutableMapOf<String, ChatDisplayData>()
+                val chats = getUserChatsUseCase.execute(userId)
+                _chatListItemsState.value = Resource.Success(chats.associateBy { it.chatId })
 
-                chats.forEach { chat ->
-                    chat.chatId?.let { chatId ->
-                        try {
-                            val displayData = when (chat.chatType) {
-                                ChatType.PERSONAL -> loadPrivateChatData(chatId, userId)
-                                ChatType.GROUP -> loadGroupChatData(chatId)
-                                else -> throw IllegalStateException("Unknown chat type: ${chat.chatType}")
-                            }
-                            chatDisplayMap[chatId] = displayData
-                        } catch (e: Exception) {
-                            Log.e("ChatListItem", "Error loading chat $chatId", e)
-                        }
-                    }
-                }
-                _chatListItemsState.value = Resource.Success(chatDisplayMap)
-
-                loadData(chats, userId)
-
-                connectWebSocket(chats.mapNotNull { it.chatId })
+                connectWebSocket(chats.map { it.chatId })
             } catch (e: Exception) {
-                _chatListItemsState.value = Resource.Error(e.message ?: "Error fetching chats")
+                _chatListItemsState.value = Resource.Error(e.message ?: "Error loading chats")
             }
         }
     }
 
-    private suspend fun getUserChats(userId: String): List<Chat> {
-        return chatRepository.getUserChats(userId)
-    }
-
-    private suspend fun loadPrivateChatData(
-        chatId: String,
-        currentUserId: String
-    ): ChatDisplayData {
-        val participants = chatRepository.getChatParticipants(chatId)
-        val otherUser = participants
-            .first { it.userId != currentUserId }
-            .let { userRepository.getUserById(it.userId) }
-
-        return ChatDisplayData(
-            chatId = chatId,
-            name = otherUser.nickname,
-            avatarUrl = otherUser.avatarUrl,
-            chatTypeId = 1,
-            isLoading = false
-        )
-    }
-
-    private suspend fun loadGroupChatData(chatId: String): ChatDisplayData {
-        val metadata = chatRepository.getChatMetadata(chatId)
-        return ChatDisplayData(
-            chatId = chatId,
-            name = metadata.name,
-            avatarUrl = metadata.avatar,
-            chatTypeId = 2,
-            isLoading = false
-        )
-    }
-
-    private suspend fun loadData(chats: List<Chat>, userId: String) {
-        val chatIds = chats.mapNotNull { it.chatId }
-
-        try {
-            val lastMessages = messageRepository.getLastMessages(chatIds)
-
-            val messagesMap = lastMessages.associateBy { it.chatId }
-            val userIds = lastMessages.map { it.senderId }.distinct()
-            val users = userRepository.getByIds(userIds)
-            val usersMap = users.associateBy { it.userId }
-
-            Log.d("ChatDisplayViewModel", "Fetching unread counts for chats: $chatIds")
-            val unreadCounts = chatIds.associateWith { chatId ->
-                val count = messageRepository.getUnreadMessagesCount(chatId, userId)
-                Log.d("ChatDisplayViewModel", "Unread count for chat $chatId: $count")
-                count
+    private fun processLastMessagesUpdates(updates: Map<String, MessageEvent>) {
+        viewModelScope.launch {
+            try {
+                val currentChats = _chatListItemsState.value.data ?: return@launch
+                val userId = dataStoreUtil.getUserId().first() ?: return@launch
+                val updatedChats = processMessageUpdatesUseCase.execute(userId, currentChats, updates)
+                _chatListItemsState.update { Resource.Success(updatedChats) }
+            } catch (e: Exception) {
+                Log.e("ChatDisplayViewModel", "Error processing updates", e)
             }
-
-            _chatListItemsState.update { currentResource ->
-                when (currentResource) {
-                    is Resource.Success -> {
-                        val updatedMap = currentResource.data?.mapValues { (chatId, displayData) ->
-                            val lastMessage = messagesMap[chatId]
-                            val sender = lastMessage?.senderId?.let { usersMap[it] }
-
-                            if (lastMessage == null) {
-                                displayData
-                            } else {
-                                displayData.copy(
-                                    lastMessage = lastMessage,
-                                    senderName = sender?.nickname ?: "Placeholder",
-                                    unreadCount = unreadCounts[chatId] ?: 0
-                                )
-                            }
-                        } ?: currentResource.data
-
-                        Resource.Success(updatedMap)
-                    }
-
-                    else -> {
-                        currentResource
-                    }
-                }
-            }
-
-        } catch (e: Exception) {
-            Log.e("ChatDisplayViewModel", "Error in loadData", e)
         }
     }
 

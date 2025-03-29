@@ -168,27 +168,31 @@ fun VideoThumbnail(
 
     LaunchedEffect(attachment.url) {
         withContext(Dispatchers.IO) {
-            try {
-                bitmap = loadBitmapFromCache(context, attachment.url)
+            bitmap = loadBitmapFromCache(context, attachment.url)
 
-                val retriever = MediaMetadataRetriever()
-                val headers = HashMap<String, String>()
-                headers["Range"] = "bytes=0-1000000"
-
-                retriever.setDataSource(attachment.url, headers)
-                bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST)
-
+            if (bitmap == null) {
                 try {
-                    duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
+                    val retriever = MediaMetadataRetriever()
+                    val headers = HashMap<String, String>()
+                    headers["Range"] = "bytes=0-1000000"
+
+                    retriever.setDataSource(attachment.url, headers)
+                    bitmap = retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST)
+
+                    try {
+                        duration = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_DURATION)?.toLong() ?: 0L
+                    } catch (e: Exception) {
+                        Log.e("VideoThumbnail", "Error: ${e.message}")
+                    }
+
+                    retriever.release()
+
+                    bitmap?.let {
+                        saveBitmapToCache(context, attachment.url, it)
+                    }
                 } catch (e: Exception) {
-                    Log.e("VideoThumbnail", "Error: ${e.message}")
+                    Log.e("VideoThumbnail", "Error generating thumbnail: ${e.message}")
                 }
-
-                retriever.release()
-
-                bitmap?.let { saveBitmapToCache(context, attachment.url, it) }
-            } catch (e: Exception) {
-                Log.e("VideoThumbnail", "Error: ${e.message}")
             }
         }
     }
@@ -258,6 +262,7 @@ private fun loadBitmapFromCache(context: Context, url: String): Bitmap? {
         try {
             BitmapFactory.decodeFile(file.absolutePath)
         } catch (e: Exception) {
+            file.delete()
             null
         }
     } else null

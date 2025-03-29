@@ -31,7 +31,7 @@ import com.example.testapp.utils.Converter.getAttachmentDescription
 fun ReplyToMessage(
     replyMessage: Message,
     userData: UserResponse,
-    attachments: List<Attachment>? = emptyList(),
+    attachments: List<Attachment> = emptyList(),
     onCancelReply: () -> Unit
 ) {
     Row(
