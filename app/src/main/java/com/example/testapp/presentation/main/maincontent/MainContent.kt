@@ -67,10 +67,6 @@ fun MainContent(
                             showSummaryDialog = true
                         }
                     )
-
-                    /*if (index < sortedChatsList.size - 1) {
-                        HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                    }*/
                 }
             }
         }

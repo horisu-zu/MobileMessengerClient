@@ -1,6 +1,8 @@
 package com.example.testapp.presentation.chat.message
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -28,6 +30,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInParent
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -61,6 +64,7 @@ fun MessageItem(
     onReactionClick: (String, String, String) -> Unit,
     onReactionLongClick: (String) -> Unit
 ) {
+    var elementHeight by remember { mutableStateOf(0f) }
     var dropdownOffset by remember { mutableStateOf(Offset.Zero) }
     val backgroundColor = if (isCurrentUser) MaterialTheme.colorScheme.primaryContainer
         else MaterialTheme.colorScheme.secondaryContainer
@@ -110,18 +114,18 @@ fun MessageItem(
             .fillMaxWidth()
             .padding(start = 8.dp, end = 8.dp, top = topPadding, bottom = bottomPadding)
             .onGloballyPositioned { coordinates ->
-                dropdownOffset = coordinates.boundsInWindow().topLeft
+                val rect = coordinates.boundsInWindow()
+                dropdownOffset = rect.topLeft
+                elementHeight = rect.height
             }
-            .pointerInput(Unit) {
-                detectTapGestures(
-                    onTap = { localOffset ->
-                        val absoluteOffset = Offset(
-                            dropdownOffset.x + localOffset.x,
-                            dropdownOffset.y + localOffset.y
-                        )
-                        onMessageClick(absoluteOffset)
-                    }
-                )
+            .clickable(
+                interactionSource = remember { MutableInteractionSource() },
+                indication = null
+            ) {
+                val yPosition = dropdownOffset.y + elementHeight
+                val xPosition = 20f
+
+                onMessageClick(Offset(xPosition, yPosition))
             }
     ) {
         val maxWidth = maxWidth

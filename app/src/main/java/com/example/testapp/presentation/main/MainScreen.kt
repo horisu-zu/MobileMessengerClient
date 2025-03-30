@@ -15,12 +15,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.navigation.navigationItemList
 import com.example.testapp.presentation.main.navigationdrawer.MainNavigationDrawer
+import com.example.testapp.presentation.main.notification.InAppNotificationHost
 import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
 import com.example.testapp.presentation.viewmodel.user.AuthManager
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
@@ -84,6 +87,12 @@ fun MainScreen(
                     .background(MaterialTheme.colorScheme.background)
                     .padding(innerPadding)
             ) {
+                InAppNotificationHost(
+                    onNotificationClick = { chatId ->
+                        mainNavController.navigate("chatScreen/${chatId}")
+                    },
+                    modifier = Modifier.align(Alignment.TopCenter).zIndex(1f)
+                )
                 MainScreenContent(
                     onSearchTypeChange = { currentSearchType = it },
                     isSearchActive = isSearchActive,

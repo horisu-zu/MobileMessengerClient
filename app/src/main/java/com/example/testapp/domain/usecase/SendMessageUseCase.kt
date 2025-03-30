@@ -89,6 +89,7 @@ class SendMessageUseCase @Inject constructor(
         } catch (e: Exception) {
             userService.getUserById(state.senderId).nickname
         }
+        val avatarUrl = userService.getUserById(state.senderId).avatarUrl
 
         if (tokens.isNotEmpty()) {
             notificationService.sendMulticastNotification(
@@ -98,7 +99,8 @@ class SendMessageUseCase @Inject constructor(
                     body = state.message ?: "Attachment",
                     data = mapOf(
                         "chatId" to state.chatId,
-                        "messageId" to (createdMessage.messageId!!)
+                        "messageId" to (createdMessage.messageId!!),
+                        "avatarUrl" to avatarUrl
                     )
                 )
             )

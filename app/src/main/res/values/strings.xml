@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name" translatable="false">Messenger</string>
+    <string name="default_notification_channel_id" translatable="false">default_channel_id</string>
+    <string name="notification_channel_name" translatable="false">Default Channel</string>
+
     <!-- Search -->
     <string name="tab_users">Users</string>
     <string name="tab_groups">Groups</string>
