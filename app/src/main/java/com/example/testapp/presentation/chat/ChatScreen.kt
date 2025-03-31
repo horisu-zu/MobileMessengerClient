@@ -31,6 +31,7 @@ import com.example.testapp.presentation.viewmodel.reaction.ReactionViewModel
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
 import com.example.testapp.utils.Resource
 import com.example.testapp.utils.storage.ChatMediaService
+import java.util.Locale
 
 @Composable
 fun ChatScreen(
@@ -169,6 +170,9 @@ fun ChatScreen(
                             },
                             onReactionClick = { messageId, userId, emoji ->
                                 reactionViewModel.toggleReaction(messageId, userId, emoji)
+                            },
+                            onTranslateClick = { messageId ->
+                                messageViewModel.translateMessage(messageId, Locale.getDefault())
                             },
                             onReactionLongClick = { /*TODO*/ },
                             onAddRestriction = { /*TODO*/ },

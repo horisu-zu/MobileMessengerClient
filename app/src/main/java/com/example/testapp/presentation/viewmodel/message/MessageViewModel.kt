@@ -3,6 +3,7 @@ package com.example.testapp.presentation.viewmodel.message
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.testapp.di.api.AIService
 import com.example.testapp.di.api.MessageApiService
 import com.example.testapp.di.websocket.MessageWebSocketClient
 import com.example.testapp.domain.dto.message.MessageEvent
@@ -14,12 +15,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class MessageViewModel @Inject constructor(
     private val messageRepository: MessageApiService,
-    private val messageWebSocketClient: MessageWebSocketClient
+    private val messageWebSocketClient: MessageWebSocketClient,
+    private val aiService: AIService
 ) : ViewModel() {
     private val _chatMessagesState = MutableStateFlow<MessagesState>(MessagesState())
     val chatMessagesState: StateFlow<MessagesState> = _chatMessagesState
@@ -138,6 +141,28 @@ class MessageViewModel @Inject constructor(
     fun deleteMessage(messageId: String) {
         viewModelScope.launch {
             messageRepository.deleteMessage(messageId)
+        }
+    }
+
+    fun translateMessage(messageId: String, locale: Locale) {
+        viewModelScope.launch {
+            try {
+                val messageIndex = _chatMessagesState.value.messages
+                    .indexOfFirst { it.messageId == messageId }
+                val message = _chatMessagesState.value.messages[messageIndex]
+
+                val translatedMessage = aiService.translateMessage(message.message ?: "", locale)
+                Log.d("MessageViewModel", "Translated Message: $translatedMessage")
+                val updatedMessages = _chatMessagesState.value.messages.toMutableList()
+                updatedMessages[messageIndex] = message.copy(
+                    message = translatedMessage
+                )
+                _chatMessagesState.value = _chatMessagesState.value.copy(
+                    messages = updatedMessages
+                )
+            } catch (e: Exception) {
+                Log.d("MessageViewModel", "Error translating message: ${e.message}")
+            }
         }
     }
 

@@ -11,6 +11,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import java.util.Locale
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,6 +29,7 @@ class DataStoreUtil @Inject constructor(
         val CURRENT_USER_ID = stringPreferencesKey("user_id")
         val CHAT_BACKGROUND_KEY = stringPreferencesKey("chat_background")
         val FIREBASE_TOKEN_KEY = stringPreferencesKey("firebase_token")
+        val LANGUAGE_KEY = stringPreferencesKey("language")
     }
 
     fun getTheme(isSystemDarkTheme: Boolean): Flow<Boolean> = context.dataStore.data
@@ -63,6 +65,11 @@ class DataStoreUtil @Inject constructor(
             preferences[FIREBASE_TOKEN_KEY]
         }
 
+    fun getLanguage(): Flow<String> = context.dataStore.data
+        .map { preferences ->
+            preferences[LANGUAGE_KEY] ?: Locale.getDefault().language
+        }
+
     fun getChatBackground(): Flow<String?> = context.dataStore.data
         .map { preferences ->
             preferences[CHAT_BACKGROUND_KEY]
@@ -91,6 +98,12 @@ class DataStoreUtil @Inject constructor(
     suspend fun saveToken(token: String) {
         context.dataStore.edit { preferences ->
             preferences[FIREBASE_TOKEN_KEY] = token
+        }
+    }
+
+    suspend fun saveLanguage(languageCode: String) {
+        context.dataStore.edit { preferences ->
+            preferences[LANGUAGE_KEY] = languageCode
         }
     }
 

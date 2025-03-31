@@ -1,5 +1,6 @@
 package com.example.testapp
 
+import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
@@ -34,7 +35,10 @@ import com.example.testapp.utils.DataStoreUtil
 import com.example.testapp.utils.storage.ChatMediaService
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -45,6 +49,20 @@ class MainActivity : ComponentActivity() {
     @Inject lateinit var authManager: AuthManager
     @Inject lateinit var tokenManager: TokenManager
     @Inject lateinit var firebaseTokenManager: FirebaseTokenManager
+
+    override fun attachBaseContext(newBase: Context) {
+        val dataStoreUtil = DataStoreUtil(newBase)
+        val languageCode = runBlocking { dataStoreUtil.getLanguage().first() }
+
+        val locale = Locale(languageCode)
+        Locale.setDefault(locale)
+
+        val configuration = Configuration(newBase.resources.configuration)
+        configuration.setLocale(locale)
+
+        val context = newBase.createConfigurationContext(configuration)
+        super.attachBaseContext(context)
+    }
 
     override fun onResume() {
         super.onResume()
@@ -114,6 +132,7 @@ class MainActivity : ComponentActivity() {
                     composable("profile") {
                         ProfileNavigator(
                             //currentUser = currentUserState.data,
+                            dataStoreUtil = dataStoreUtil,
                             avatarService = AvatarService(FirebaseStorage.getInstance()),
                             mainNavController = navController
                         )

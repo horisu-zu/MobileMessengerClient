@@ -32,6 +32,7 @@ fun MessageDropdown(
     onReplyMessage: (Message) -> Unit,
     onEditMessage: (Message) -> Unit,
     onDeleteMessage: (String) -> Unit,
+    onTranslateMessage: (String) -> Unit,
     onAddRestriction: (String) -> Unit,
     onToggleReaction: (String, String, String) -> Unit,
     modifier: Modifier = Modifier
@@ -67,6 +68,16 @@ fun MessageDropdown(
             onReplyMessage(messageData)
             onDismissRequest()
         })
+        if(!isCurrentUser) {
+            MenuItem(
+                text = "Translate Message",
+                iconRes = R.drawable.ic_translate,
+                onClick = {
+                    onTranslateMessage(messageData.messageId!!)
+                    onDismissRequest()
+                }
+            )
+        }
         if(isAdmin) {
             MenuItem("Add Restriction", R.drawable.ic_restriction, {
                 onAddRestriction(messageData.senderId)

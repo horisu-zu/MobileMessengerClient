@@ -62,6 +62,7 @@ fun MessageList(
     onReplyClick: (Message) -> Unit,
     onEditClick: (Message) -> Unit,
     onDeleteClick: (String) -> Unit,
+    onTranslateClick: (String) -> Unit,
     onAddRestriction: (String) -> Unit,
     onReactionClick: (String, String, String) -> Unit,
     onReactionLongClick: (String) -> Unit,
@@ -191,6 +192,7 @@ fun MessageList(
                 onReplyMessage = onReplyClick,
                 onEditMessage = onEditClick,
                 onDeleteMessage = onDeleteClick,
+                onTranslateMessage = onTranslateClick,
                 onAddRestriction = onAddRestriction,
                 onToggleReaction = onReactionClick
             )

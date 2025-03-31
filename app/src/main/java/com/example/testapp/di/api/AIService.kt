@@ -5,4 +5,6 @@ import java.util.Locale
 
 interface AIService {
     suspend fun summarizeMessages(messages: List<Pair<String, Message>>, locale: Locale): String
+
+    suspend fun translateMessage(messageText: String, locale: Locale): String
 }

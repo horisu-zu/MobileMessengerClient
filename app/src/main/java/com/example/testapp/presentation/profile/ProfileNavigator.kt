@@ -15,10 +15,12 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.testapp.presentation.viewmodel.gallery.GalleryViewModel
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
+import com.example.testapp.utils.DataStoreUtil
 import com.example.testapp.utils.storage.AvatarService
 
 @Composable
 fun ProfileNavigator(
+    dataStoreUtil: DataStoreUtil,
     userViewModel: UserViewModel = hiltViewModel(),
     galleryViewModel: GalleryViewModel = hiltViewModel(),
     avatarService: AvatarService,
@@ -54,7 +56,7 @@ fun ProfileNavigator(
             exitTransition = { slideOutHorizontally { it } + fadeOut() }
         ) {
             LanguageScreen(
-                onLanguageSelected = {},
+                dataStoreUtil = dataStoreUtil,
                 profileNavController = profileNavController
             )
         }

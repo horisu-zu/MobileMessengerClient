@@ -35,4 +35,23 @@ class GeminiService @Inject constructor(
             throw Exception("Error: ${e.message}")
         }
     }
+
+    override suspend fun translateMessage(messageText: String, locale: Locale): String {
+        return try {
+            Log.d("GeminiService", "Message Text: $messageText")
+
+            val prompt = """
+                You are assistant that translates messages.
+                Analyze the following message and translate it in ${locale.displayLanguage} language.
+                Response should consist only of the translated text.
+                Message:
+                $messageText
+            """.trimIndent()
+
+            val response = generativeModel.generateContent(prompt)
+            response.text ?: throw Exception("Empty Response from API")
+        } catch (e: Exception) {
+            throw Exception("Error: ${e.message}")
+        }
+    }
 }
