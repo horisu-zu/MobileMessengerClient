@@ -115,10 +115,8 @@ fun SearchScreen(
                                         mainNavController.navigate("chatScreen/${result.data}")
                                     } else {
                                         chatViewModel.createPersonalChat(PersonalChatRequest(currentUserId, userId)).collect {
-                                            when(it) {
-                                                is Resource.Success -> mainNavController.navigate("chatScreen/${it.data}")
-                                                is Resource.Error -> {}
-                                                is Resource.Loading -> {}
+                                            if(it is Resource.Success) {
+                                                mainNavController.navigate("chatScreen/${it.data}")
                                             }
                                         }
                                     }
@@ -133,12 +131,8 @@ fun SearchScreen(
                         onRequestClick = { chatId, inviteCode ->
                             scope.launch {
                                 chatViewModel.joinChat(chatId, ChatJoinRequest(currentUserId!!, inviteCode)).collect { result ->
-                                    when (result) {
-                                        is Resource.Success -> {
-                                            mainNavController.navigate("chatScreen/${chatId}")
-                                        }
-                                        is Resource.Error -> {}
-                                        is Resource.Loading -> {}
+                                    if(result is Resource.Success) {
+                                        mainNavController.navigate("chatScreen/${chatId}")
                                     }
                                 }
                             }

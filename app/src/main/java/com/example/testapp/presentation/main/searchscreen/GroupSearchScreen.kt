@@ -48,7 +48,8 @@ fun GroupSearchScreen(
     var selectedGroupId by remember { mutableStateOf("") }
 
     when (val resource = chatsState) {
-        is Resource.Loading -> {}
+        is Resource.Idle -> { /*TODO*/ }
+        is Resource.Loading -> { /*TODO*/ }
         is Resource.Success -> {
             val groupList = resource.data.orEmpty()
             if (groupList.isNotEmpty()) {

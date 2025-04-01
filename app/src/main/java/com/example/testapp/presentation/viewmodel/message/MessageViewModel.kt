@@ -59,7 +59,10 @@ class MessageViewModel @Inject constructor(
                                 loadAttachments(event.message.messageId ?: "")
                             }
                         }
-                        is MessageEvent.MessageUpdated -> add(event.message)
+                        is MessageEvent.MessageUpdated -> {
+                            val index = indexOfFirst { it.messageId == event.message.messageId }
+                            this[index] = event.message
+                        }
                         is MessageEvent.MessageDeleted -> {
                             removeAll { it.messageId == event.message.messageId }
                         }
@@ -155,7 +158,8 @@ class MessageViewModel @Inject constructor(
                 Log.d("MessageViewModel", "Translated Message: $translatedMessage")
                 val updatedMessages = _chatMessagesState.value.messages.toMutableList()
                 updatedMessages[messageIndex] = message.copy(
-                    message = translatedMessage
+                    message = translatedMessage,
+                    isTranslated = true
                 )
                 _chatMessagesState.value = _chatMessagesState.value.copy(
                     messages = updatedMessages

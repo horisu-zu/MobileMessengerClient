@@ -10,5 +10,6 @@ data class Message(
     val createdAt: Instant,
     val isRead: Boolean = false,
     val replyTo: String? = null,
-    val isPinned: Boolean = false
+    val isPinned: Boolean = false,
+    val isTranslated: Boolean = false
 )

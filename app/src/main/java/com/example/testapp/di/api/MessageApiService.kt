@@ -86,4 +86,10 @@ interface MessageApiService {
         @Path("chatId") chatId: String,
         @Path("userId") userId: String,
     ): List<Message>
+
+    @GET("api/messages/{chatId}/{userId}")
+    suspend fun getUserMessagesInChat(
+        @Path("chatId") chatId: String,
+        @Path("userId") userId: String
+    ): List<Message>
 }

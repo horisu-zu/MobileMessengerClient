@@ -29,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.example.testapp.presentation.templates.StyledText
 import com.example.testapp.utils.Resource
 import kotlinx.coroutines.delay
 
@@ -69,9 +70,6 @@ fun SummarizeDialog(
                     contentAlignment = Alignment.Center
                 ) {
                     when (summarizeState) {
-                        is Resource.Loading -> {
-                            CircularProgressIndicator()
-                        }
                         is Resource.Error -> {
                             Text(
                                 text = summarizeState.message ?: "Unknown error",
@@ -89,10 +87,13 @@ fun SummarizeDialog(
                                 }
                             }
 
-                            Text(
+                            StyledText(
                                 text = visibleText,
                                 style = MaterialTheme.typography.bodyLarge
                             )
+                        }
+                        else -> {
+                            CircularProgressIndicator()
                         }
                     }
                 }

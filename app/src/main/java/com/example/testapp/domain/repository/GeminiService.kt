@@ -2,6 +2,7 @@ package com.example.testapp.domain.repository
 
 import android.util.Log
 import com.example.testapp.di.api.AIService
+import com.example.testapp.domain.dto.user.UserPortrait
 import com.example.testapp.domain.models.message.Message
 import com.google.ai.client.generativeai.GenerativeModel
 import java.util.Locale
@@ -50,6 +51,27 @@ class GeminiService @Inject constructor(
 
             val response = generativeModel.generateContent(prompt)
             response.text ?: throw Exception("Empty Response from API")
+        } catch (e: Exception) {
+            throw Exception("Error: ${e.message}")
+        }
+    }
+
+    override suspend fun createUserPortrait(messages: List<Message>, locale: Locale): UserPortrait {
+        return try {
+            val prompt = """
+                You are assistant that helps to create user portraits.
+                Analyze the following messages sended by one user and create his portrait.
+                Structure of this portrait must be like this:
+                2-5 characteristics and percentage that user have of it, short summary of user's portrait after it.
+                Response about characteristics should be in the following format: {emoji} {characteristic} — {percentage}%.
+                Return the response in ${locale.displayLanguage} language.
+                User Messages: $messages
+            """.trimIndent()
+
+            val response = generativeModel.generateContent(prompt)
+            response.text ?: throw Exception("Empty Response from API")
+
+            UserPortrait.parseUserPortrait(response.text!!)
         } catch (e: Exception) {
             throw Exception("Error: ${e.message}")
         }

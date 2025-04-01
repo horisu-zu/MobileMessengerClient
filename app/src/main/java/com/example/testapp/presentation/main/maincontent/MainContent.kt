@@ -49,6 +49,7 @@ fun MainContent(
     }
 
     when (chatDisplayDataState) {
+        is Resource.Idle -> { /*TODO*/ }
         is Resource.Error -> { /*TODO*/ }
         is Resource.Loading -> { /*TODO*/ }
         is Resource.Success -> {

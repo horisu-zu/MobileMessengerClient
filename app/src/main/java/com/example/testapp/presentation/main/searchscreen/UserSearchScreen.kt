@@ -61,7 +61,8 @@ fun UserSearchScreen(
     }
 
     when(val resource = searchResults) {
-        is Resource.Loading -> {}
+        is Resource.Idle -> { /*TODO*/ }
+        is Resource.Loading -> { /*TODO*/ }
         is Resource.Success -> {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
