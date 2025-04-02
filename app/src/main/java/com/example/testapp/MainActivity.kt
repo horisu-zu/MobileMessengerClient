@@ -7,6 +7,7 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -32,7 +33,6 @@ import com.example.testapp.presentation.viewmodel.user.TokenManager
 import com.example.testapp.ui.theme.AppTheme
 import com.example.testapp.utils.storage.AvatarService
 import com.example.testapp.utils.DataStoreUtil
-import com.example.testapp.utils.storage.ChatMediaService
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
@@ -42,10 +42,9 @@ import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private val mainViewModel: MainViewModel by viewModels()
     private lateinit var dataStoreUtil: DataStoreUtil
-    @Inject lateinit var mediaService: ChatMediaService
     @Inject lateinit var authManager: AuthManager
     @Inject lateinit var tokenManager: TokenManager
     @Inject lateinit var firebaseTokenManager: FirebaseTokenManager
@@ -124,7 +123,6 @@ class MainActivity : ComponentActivity() {
                     }
                     composable("main") {
                         MainAppNavigator(
-                            mediaService = mediaService,
                             authManager = authManager,
                             parentNavController = navController
                         )

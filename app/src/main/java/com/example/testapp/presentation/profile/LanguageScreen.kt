@@ -1,8 +1,11 @@
 package com.example.testapp.presentation.profile
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
 import android.content.Intent
 import android.content.res.Configuration
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
@@ -18,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.core.os.LocaleListCompat
 import androidx.navigation.NavController
 import com.example.testapp.MainActivity
 import com.example.testapp.R
@@ -97,9 +101,12 @@ fun LanguageScreen(
 
 private fun applyLanguage(context: Context, languageCode: String) {
     val locale = Locale(languageCode)
-    Locale.setDefault(locale)
-    val resources = context.resources
-    val configuration = Configuration(resources.configuration)
-    configuration.setLocale(locale)
-    context.createConfigurationContext(configuration)
+    val localeListCompat = LocaleListCompat.create(locale)
+    AppCompatDelegate.setApplicationLocales(localeListCompat)
+
+    val activity = when (context) {
+        is Activity -> context
+        is ContextWrapper -> context.baseContext as? Activity
+        else -> null
+    }
 }

@@ -48,12 +48,16 @@ class ChatMediaService @Inject constructor(
 
     suspend fun uploadChatFile(
         chatId: String,
-        messageId: String,
         fileUri: Uri,
         context: Context? = null
-    ): String {
-        val fileName = generateFileName(fileUri, context)
-        return uploadFile("$CHAT_MEDIA_PATH/$chatId/$messageId", fileName, fileUri)
+    ): Result<String> {
+        return try {
+            val fileName = generateFileName(fileUri, context)
+            val uploadedUrl = uploadFile("$CHAT_MEDIA_PATH/$chatId", fileName, fileUri)
+            Result.success(uploadedUrl)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
     }
 
     suspend fun deleteMessageMedia(chatId: String, messageId: String) {

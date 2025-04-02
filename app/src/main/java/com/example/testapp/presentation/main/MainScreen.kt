@@ -25,6 +25,7 @@ import com.example.testapp.domain.navigation.navigationItemList
 import com.example.testapp.presentation.main.navigationdrawer.MainNavigationDrawer
 import com.example.testapp.presentation.main.notification.InAppNotificationHost
 import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
+import com.example.testapp.presentation.viewmodel.notification.NotificationViewModel
 import com.example.testapp.presentation.viewmodel.user.AuthManager
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
 import kotlinx.coroutines.launch
@@ -35,6 +36,7 @@ fun MainScreen(
     parentNavController: NavController,
     mainNavController: NavController,
     userViewModel: UserViewModel = hiltViewModel(),
+    notificationViewModel: NotificationViewModel,
     currentUser: UserResponse?,
     chatViewModel: ChatViewModel = hiltViewModel()
 ) {
@@ -91,6 +93,7 @@ fun MainScreen(
                     onNotificationClick = { chatId ->
                         mainNavController.navigate("chatScreen/${chatId}")
                     },
+                    notificationViewModel = notificationViewModel,
                     modifier = Modifier.align(Alignment.TopCenter).zIndex(1f)
                 )
                 MainScreenContent(

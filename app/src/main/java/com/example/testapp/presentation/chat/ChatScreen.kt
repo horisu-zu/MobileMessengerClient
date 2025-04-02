@@ -13,8 +13,10 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.testapp.domain.dto.user.UserResponse
@@ -22,15 +24,16 @@ import com.example.testapp.domain.models.chat.ChatType
 import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.presentation.chat.bottomsheet.chat.ChatBottomSheet
 import com.example.testapp.presentation.chat.message.MessageList
+import com.example.testapp.presentation.main.notification.InAppNotificationHost
 import com.example.testapp.presentation.viewmodel.gallery.MediaViewModel
 import com.example.testapp.presentation.user.bottomsheet.UserBottomSheet
 import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
 import com.example.testapp.presentation.viewmodel.message.MessageInputViewModel
 import com.example.testapp.presentation.viewmodel.message.MessageViewModel
+import com.example.testapp.presentation.viewmodel.notification.NotificationViewModel
 import com.example.testapp.presentation.viewmodel.reaction.ReactionViewModel
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
 import com.example.testapp.utils.Resource
-import com.example.testapp.utils.storage.ChatMediaService
 import java.util.Locale
 
 @Composable
@@ -43,7 +46,7 @@ fun ChatScreen(
     reactionViewModel: ReactionViewModel = hiltViewModel(),
     messageInputViewModel: MessageInputViewModel = hiltViewModel(),
     mediaViewModel: MediaViewModel = hiltViewModel(),
-    mediaService: ChatMediaService,
+    notificationViewModel: NotificationViewModel,
     reactionUrls: List<String>,
     mainNavController: NavController
 ) {
@@ -138,6 +141,15 @@ fun ChatScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
+            InAppNotificationHost(
+                onNotificationClick = { chatId ->
+                    if(chatId != chatState.data?.chatId) {
+                        mainNavController.navigate("chatScreen/${chatId}")
+                    }
+                },
+                notificationViewModel = notificationViewModel,
+                modifier = Modifier.align(Alignment.TopCenter).zIndex(1f)
+            )
             Column(
                 modifier = Modifier
                     .fillMaxSize()

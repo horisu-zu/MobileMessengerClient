@@ -217,8 +217,9 @@ class MessageViewModel @Inject constructor(
                     val attachments = messageRepository.getAttachmentsForMessage(messageId)
                         .groupBy { it.messageId }
 
+                    Log.d("MessageViewModel", "Loaded attachments for message: $attachments")
                     _chatMessagesState.value = _chatMessagesState.value.copy(
-                        attachments = _chatMessagesState.value.attachments + attachments
+                        attachments = (_chatMessagesState.value.attachments + attachments).toMap()
                     )
                 } catch (e: Exception) {
                     Log.e("MessageViewModel", "Error loading attachments", e)

@@ -59,7 +59,7 @@ interface MessageApiService {
     @DELETE("api/messages/{messageId}")
     suspend fun deleteMessage(@Path("messageId") messageId: String)
 
-    @GET("api/messages/{messageId}/attachments")
+    @GET("api/messages/{messageId}/message-attachments")
     suspend fun getAttachmentsForMessage(@Path("messageId") messageId: String): List<Attachment>
 
     @POST("api/messages/{messageId}/attachments")

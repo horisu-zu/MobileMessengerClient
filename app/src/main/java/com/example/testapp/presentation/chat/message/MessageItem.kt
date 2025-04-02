@@ -60,7 +60,7 @@ fun MessageItem(
     onReactionClick: (String, String, String) -> Unit,
     onReactionLongClick: (String) -> Unit
 ) {
-    var elementHeight by remember { mutableStateOf(0f) }
+    var elementHeight by remember { mutableFloatStateOf(0f) }
     var dropdownOffset by remember { mutableStateOf(Offset.Zero) }
     val backgroundColor = if (isCurrentUser) MaterialTheme.colorScheme.primaryContainer
         else MaterialTheme.colorScheme.secondaryContainer

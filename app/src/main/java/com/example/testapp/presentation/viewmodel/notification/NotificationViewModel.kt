@@ -5,42 +5,57 @@ import androidx.lifecycle.viewModelScope
 import com.example.testapp.domain.models.notification.InAppNotification
 import com.example.testapp.domain.models.notification.NotificationBus
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class NotificationViewModel @Inject constructor(): ViewModel() {
+class NotificationViewModel @Inject constructor() : ViewModel() {
 
-    private val _activeNotifications = MutableStateFlow<List<InAppNotification>>(emptyList())
+    private val _activeNotifications = MutableStateFlow<Map<Int, InAppNotification>>(emptyMap())
     val activeNotifications = _activeNotifications.asStateFlow()
+
+    private val _timers = MutableStateFlow<Map<Int, Float>>(emptyMap())
+    val timers = _timers.asStateFlow()
 
     private val maxVisibleNotifications = 3
 
     init {
         viewModelScope.launch {
             NotificationBus.events.collect { event ->
-                addNotification(notification = event)
+                addNotification(event)
             }
         }
     }
 
     private fun addNotification(notification: InAppNotification) {
-        val currentNotifications = _activeNotifications.value.toMutableList()
+        val id = notification.notificationId
+        _activeNotifications.value += (id to notification)
 
-        if(currentNotifications.size >= maxVisibleNotifications) {
-            val oldestNotification = currentNotifications.minBy { it.timestamp }
-            oldestNotification.let { currentNotifications.remove(it) }
+        viewModelScope.launch {
+            val duration = 3000L
+            val interval = 25L
+            val steps = duration / interval
+
+            for (i in steps downTo 0) {
+                _timers.value += (id to i / steps.toFloat())
+                delay(interval)
+            }
+
+            delay(300)
+            dismissNotification(id)
         }
 
-        currentNotifications.add(notification)
-        _activeNotifications.value = currentNotifications
+        if (_activeNotifications.value.size > maxVisibleNotifications) {
+            val oldestId = _activeNotifications.value.values.minByOrNull { it.timestamp }?.notificationId
+            oldestId?.let { dismissNotification(it) }
+        }
     }
 
     fun dismissNotification(notificationId: Int) {
-        val currentNotifications = _activeNotifications.value.toMutableList()
-        currentNotifications.removeIf { it.notificationId == notificationId }
-        _activeNotifications.value = currentNotifications
+        _activeNotifications.value -= notificationId
+        _timers.value -= notificationId
     }
 }

@@ -8,27 +8,28 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.testapp.presentation.viewmodel.notification.NotificationViewModel
 
 @Composable
 fun InAppNotificationHost(
     onNotificationClick: (String) -> Unit,
     modifier: Modifier = Modifier,
-    notificationViewModel: NotificationViewModel = hiltViewModel()
+    notificationViewModel: NotificationViewModel
 ) {
     val activeNotifications by notificationViewModel.activeNotifications.collectAsState()
+    val timers by notificationViewModel.timers.collectAsState()
 
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        activeNotifications.forEach { notification ->
-            key(notification.notificationId) {
+        activeNotifications.forEach { (id, notification) ->
+            key(id) {
                 InAppNotificationItem(
                     notification = notification,
+                    progress = timers[id] ?: 1f,
                     onClick = onNotificationClick,
-                    onExpire = { notificationId ->
+                    onDismiss = { notificationId ->
                         notificationViewModel.dismissNotification(notificationId)
                     }
                 )

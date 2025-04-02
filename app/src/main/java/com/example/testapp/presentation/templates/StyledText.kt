@@ -14,6 +14,7 @@ fun StyledText(
     MarkdownText(
         markdown = text,
         modifier = modifier,
-        style = style
+        style = style,
+        isTextSelectable = true
     )
 }

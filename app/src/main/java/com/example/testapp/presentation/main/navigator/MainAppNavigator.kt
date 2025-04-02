@@ -21,17 +21,17 @@ import androidx.navigation.navArgument
 import com.example.testapp.presentation.chat.ChatScreen
 import com.example.testapp.presentation.main.MainScreen
 import com.example.testapp.presentation.main.group.GroupAddNavigator
+import com.example.testapp.presentation.viewmodel.notification.NotificationViewModel
 import com.example.testapp.presentation.viewmodel.user.AuthManager
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
 import com.example.testapp.utils.Defaults.fetchEmojiUrls
-import com.example.testapp.utils.storage.ChatMediaService
 import com.google.firebase.storage.FirebaseStorage
 
 @Composable
 fun MainAppNavigator(
     authManager: AuthManager,
-    mediaService: ChatMediaService,
     userViewModel: UserViewModel = hiltViewModel(),
+    notificationViewModel: NotificationViewModel = hiltViewModel(),
     parentNavController: NavController
 ) {
     val mainNavController = rememberNavController()
@@ -53,6 +53,7 @@ fun MainAppNavigator(
                 authManager = authManager,
                 currentUser = currentUserState.data,
                 parentNavController = parentNavController,
+                notificationViewModel = notificationViewModel,
                 mainNavController = mainNavController
             )
         }
@@ -68,8 +69,8 @@ fun MainAppNavigator(
         ) { backStackEntry ->
             ChatScreen(
                 chatId = backStackEntry.arguments?.getString("chatId"),
+                notificationViewModel = notificationViewModel,
                 currentUser = currentUserState.data,
-                mediaService = mediaService,
                 reactionUrls = reactionUrls,
                 mainNavController = mainNavController
             )
