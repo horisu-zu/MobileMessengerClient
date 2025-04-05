@@ -214,7 +214,7 @@ fun MessageItem(
                                 message = message.message,
                                 modifier = Modifier.padding(start = 12.dp, end = 12.dp,
                                     top = if (replyMessage != null || attachments.isNotEmpty()) 4.dp
-                                    else 8.dp, bottom = 8.dp)
+                                        else 8.dp, bottom = 8.dp)
                             )
                         }
                     }

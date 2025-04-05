@@ -42,7 +42,7 @@ import java.util.Locale
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
     private val mainViewModel: MainViewModel by viewModels()
     private lateinit var dataStoreUtil: DataStoreUtil
     @Inject lateinit var authManager: AuthManager

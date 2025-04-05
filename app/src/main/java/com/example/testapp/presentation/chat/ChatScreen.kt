@@ -66,11 +66,13 @@ fun ChatScreen(
 
     LaunchedEffect(chatId) {
         chatId?.let {
+            currentUser?.userId?.let { userId ->
+                messageViewModel.getMessagesForChat(chatId, userId)
+                messageInputViewModel.initialize(chatId, userId)
+            }
             chatViewModel.getChatParticipants(chatId)
             chatViewModel.getChatById(chatId)
             chatViewModel.getChatMetadata(chatId)
-            messageViewModel.getMessagesForChat(chatId)
-            messageInputViewModel.initialize(chatId, currentUser?.userId ?: "")
             reactionViewModel.loadReactionsForChat(chatId)
         }
     }
@@ -189,12 +191,15 @@ fun ChatScreen(
                             onReactionLongClick = { /*TODO*/ },
                             onAddRestriction = { /*TODO*/ },
                             onLoadMore = {
-                                messageViewModel.getMessagesForChat(chatId.toString())
-                                reactionViewModel.loadReactionsForChat(chatId.toString())
+                                messageViewModel.getMessagesForChat(chatId!!, currentUser?.userId ?: "")
+                                reactionViewModel.loadReactionsForChat(chatId)
                                 reactionViewModel.setMessageIdsInChat(
                                     messagesState.messages.mapNotNull { it.messageId }
                                 )
-                            }
+                            },
+                            onMarkMessage = { messageId ->
+                                messageViewModel.markMessageAsRead(chatId!!, messageId, currentUser?.userId ?: "")
+                            },
                         )
                     }
                 }

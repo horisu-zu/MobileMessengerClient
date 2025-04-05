@@ -5,6 +5,7 @@ import com.example.testapp.domain.dto.message.MessageRequest
 import com.example.testapp.domain.dto.message.MessageUpdateRequest
 import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.domain.models.message.Message
+import com.example.testapp.domain.models.message.MessageRead
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
@@ -69,11 +70,17 @@ interface MessageApiService {
     )
 
     @POST("api/messages/{chatId}/{messageId}/mark-read")
-    fun markMessagesAsRead(
+    suspend fun markMessagesAsRead(
         @Path("chatId") chatId: String,
         @Path("messageId") messageId: String,
-        @Body userId: String
-    ): Int
+        @Query("userId") userId: String
+    )
+
+    @GET("api/messages/{chatId}/{userId}/mark-read")
+    suspend fun getReadMessageInChat(
+        @Path("chatId") chatId: String,
+        @Path("userId") userId: String
+    ): MessageRead
 
     @GET("api/messages/{chatId}/{userId}/count")
     suspend fun getUnreadMessagesCount(

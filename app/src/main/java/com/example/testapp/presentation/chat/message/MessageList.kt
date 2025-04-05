@@ -42,10 +42,14 @@ import com.example.testapp.domain.models.reaction.Reaction
 import com.example.testapp.presentation.chat.dropdown.MessageDropdown
 import com.example.testapp.utils.Converter.groupMessages
 import com.example.testapp.utils.Converter.groupReactions
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
+@OptIn(FlowPreview::class)
 @Composable
 fun MessageList(
     chatType: ChatType,
@@ -66,6 +70,7 @@ fun MessageList(
     onAddRestriction: (String) -> Unit,
     onReactionClick: (String, String, String) -> Unit,
     onReactionLongClick: (String) -> Unit,
+    onMarkMessage: (String) -> Unit,
     onLoadMore: () -> Unit
 ) {
     Log.d("MessageList", "HasMorePages value — $hasMorePages")
@@ -99,6 +104,22 @@ fun MessageList(
                 val totalItems = listState.layoutInfo.totalItemsCount
                 if (hasMorePages && lastVisibleIndex >= totalItems - 10) {
                     onLoadMore()
+                }
+            }
+    }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }
+            .debounce(500L)
+            .filter { !it }
+            .distinctUntilChanged()
+            .collect {
+                val newestVisibleItem = listState.layoutInfo.visibleItemsInfo.minByOrNull { it.index }
+                val newestVisibleMessageId = newestVisibleItem?.key as? String
+
+                if (newestVisibleMessageId != null) {
+                    Log.d("MessageList", "Newest visible message ID: $newestVisibleMessageId")
+                    onMarkMessage(newestVisibleMessageId)
                 }
             }
     }

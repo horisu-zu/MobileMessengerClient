@@ -75,7 +75,7 @@ class MessageViewModel @Inject constructor(
         }
     }
 
-    fun getMessagesForChat(chatId: String) {
+    fun getMessagesForChat(chatId: String, userId: String) {
         viewModelScope.launch {
             if (_chatMessagesState.value.isLoading || !_chatMessagesState.value.hasMorePages) return@launch
 
@@ -94,6 +94,13 @@ class MessageViewModel @Inject constructor(
                     size = 30
                 )
 
+                val messageReadResponse = try {
+                    messageRepository.getReadMessageInChat(chatId, userId)
+                } catch (e: Exception) {
+                    Log.e("MessageViewModel", "Error fetching read message", e)
+                    null
+                }
+
                 val attachmentsResponse = messageRepository.getAttachmentsForChat(
                     chatId = chatId,
                     page = _chatMessagesState.value.currentPage,
@@ -102,13 +109,25 @@ class MessageViewModel @Inject constructor(
 
                 Log.d("MessageViewModel", "Loaded ${response.size} messages for page: ${_chatMessagesState.value.currentPage}")
 
-                val updatedMessages = if (_chatMessagesState.value.currentPage == 0) {
+                val messages = if (_chatMessagesState.value.currentPage == 0) {
                     response
                 } else {
                     _chatMessagesState.value.messages + response
                 }.distinctBy { it.messageId }
 
-                val replyMessageIds = updatedMessages
+                val lastReadMessage = messageReadResponse?.lastReadMessageId.let { id ->
+                    messages.firstOrNull { it.messageId == id }
+                }
+
+                val updatedMessages = messages.map { message ->
+                    val isRead = lastReadMessage?.let {
+                        message.senderId == userId && message.createdAt <= it.createdAt
+                    } ?: false
+
+                    message.copy(isRead = isRead)
+                }
+
+                val replyMessageIds = messages
                     .mapNotNull { it.replyTo }
                     .filter { it !in _chatMessagesState.value.replyMessages.keys }
 
@@ -144,6 +163,12 @@ class MessageViewModel @Inject constructor(
     fun deleteMessage(messageId: String) {
         viewModelScope.launch {
             messageRepository.deleteMessage(messageId)
+        }
+    }
+
+    fun markMessageAsRead(chatId: String, messageId: String, userId: String) {
+        viewModelScope.launch {
+            messageRepository.markMessagesAsRead(chatId, messageId, userId)
         }
     }
 
