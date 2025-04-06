@@ -1,5 +1,6 @@
 package com.example.testapp.presentation.main.maincontent
 
+import android.util.Log
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -37,6 +38,7 @@ fun ChatItem(
     onChatClick: (String) -> Unit,
     onLongClick: (String) -> Unit
 ) {
+    Log.d("ChatItem", "ChatItem: $chat")
     Row(
         modifier = Modifier
             .fillMaxWidth()

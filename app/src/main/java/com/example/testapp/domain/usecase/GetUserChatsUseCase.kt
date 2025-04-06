@@ -1,21 +1,27 @@
 package com.example.testapp.domain.usecase
 
+import android.util.Log
 import com.example.testapp.di.api.ChatApiService
 import com.example.testapp.di.api.MessageApiService
 import com.example.testapp.di.api.UserApiService
 import com.example.testapp.domain.models.chat.ChatDisplayData
 import com.example.testapp.domain.models.chat.ChatType
 import javax.inject.Inject
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 
 class GetUserChatsUseCase @Inject constructor(
     private val chatService: ChatApiService,
     private val messageService: MessageApiService,
     private val userService: UserApiService
 ) {
-    suspend fun execute(userId: String): List<ChatDisplayData> {
+    suspend fun execute(userId: String): List<ChatDisplayData> = coroutineScope {
         val chats = chatService.getUserChats(userId)
+        val chatIds = chats.mapNotNull { it.chatId }
+        val lastMessages = messageService.getLastMessages(chatIds)
 
-        return chats.mapNotNull { chat ->
+        /*return chats.mapNotNull { chat ->
             chat.chatId?.let { chatId ->
                 val lastMessage = messageService.getLastMessages(listOf(chatId)).firstOrNull()
                 val unreadCount = messageService.getUnreadMessagesCount(chatId, userId)
@@ -31,7 +37,35 @@ class GetUserChatsUseCase @Inject constructor(
                     unreadCount = unreadCount
                 )
             }
-        }
+        }*/
+
+        chats.mapNotNull { chat ->
+            chat.chatId?.let { chatId ->
+                async {
+                    val readStatus = messageService.getReadMessageInChat(chatId, userId)
+                    val lastMessage = lastMessages.find { it.chatId == chatId }
+
+                    val unreadCount = messageService.getUnreadMessagesCount(chatId, userId)
+
+                    val displayData = when (chat.chatType) {
+                        ChatType.GROUP -> getGroupChatData(chatId)
+                        ChatType.PERSONAL -> getPersonalChatData(chatId, userId)
+                        else -> null
+                    }
+
+                    val lastMessageReadStatus = lastMessage?.messageId == readStatus.lastReadMessageId
+                    val finalMessage = lastMessage?.copy(
+                        isRead = lastMessageReadStatus
+                    )
+                    Log.d("GetUserChatsUseCase", "Final Message Read Status: ${finalMessage?.isRead}")
+
+                    displayData?.copy(
+                        lastMessage = finalMessage,
+                        unreadCount = unreadCount
+                    )
+                }
+            }
+        }.awaitAll().filterNotNull()
     }
 
     private suspend fun getGroupChatData(

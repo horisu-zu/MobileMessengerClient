@@ -110,9 +110,9 @@ fun MessageList(
 
     LaunchedEffect(listState) {
         snapshotFlow { listState.isScrollInProgress }
+            .distinctUntilChanged()
             .debounce(500L)
             .filter { !it }
-            .distinctUntilChanged()
             .collect {
                 val newestVisibleItem = listState.layoutInfo.visibleItemsInfo.minByOrNull { it.index }
                 val newestVisibleMessageId = newestVisibleItem?.key as? String

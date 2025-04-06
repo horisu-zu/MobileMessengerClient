@@ -123,7 +123,8 @@ private fun CharacteristicItem(
         ) {
             StyledText(
                 text = "${userCharacteristic.emoji} ${userCharacteristic.name}",
-                style = MaterialTheme.typography.bodyMedium
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.weight(1f)
             )
             Text(
                 text = userCharacteristic.percentage.toString(),
