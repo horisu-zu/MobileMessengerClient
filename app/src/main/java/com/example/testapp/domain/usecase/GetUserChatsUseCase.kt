@@ -1,6 +1,5 @@
 package com.example.testapp.domain.usecase
 
-import android.util.Log
 import com.example.testapp.di.api.ChatApiService
 import com.example.testapp.di.api.MessageApiService
 import com.example.testapp.di.api.UserApiService
@@ -57,7 +56,6 @@ class GetUserChatsUseCase @Inject constructor(
                     val finalMessage = lastMessage?.copy(
                         isRead = lastMessageReadStatus
                     )
-                    Log.d("GetUserChatsUseCase", "Final Message Read Status: ${finalMessage?.isRead}")
 
                     displayData?.copy(
                         lastMessage = finalMessage,

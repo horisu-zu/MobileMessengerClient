@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,9 +33,7 @@ import com.example.testapp.utils.Resource
 
 @Composable
 fun UserSearchScreen(
-    currentUserId: String?,
     userViewModel: UserViewModel,
-    //chatViewModel: ChatViewModel,
     onNavigateToChat: (String) -> Unit
 ) {
     val context = LocalContext.current
@@ -47,18 +44,7 @@ fun UserSearchScreen(
     val userStatuses by userViewModel.userStatusState.collectAsState()
 
     val selectedUser = (searchResults as? Resource.Success)?.data?.firstOrNull { it.userId == selectedUserId }
-    Log.d("UserSearchScreen", "Statuses: $userStatuses")
     val userStatus = userStatuses[selectedUserId]
-
-    LaunchedEffect(selectedUserId) {
-        if (selectedUserId.isNotEmpty()) {
-            Log.d("UserSearchScreen", "Selected userId: $selectedUserId")
-        }
-    }
-
-    LaunchedEffect(showUserBottomSheet) {
-        Log.d("UserSearchScreen", "showUserBottomSheet: $showUserBottomSheet")
-    }
 
     when(val resource = searchResults) {
         is Resource.Idle -> { /*TODO*/ }

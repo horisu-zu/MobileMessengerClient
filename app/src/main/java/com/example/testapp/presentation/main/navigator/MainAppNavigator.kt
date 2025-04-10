@@ -18,7 +18,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.example.testapp.presentation.chat.ChatScreen
+import com.example.testapp.presentation.chat.ChatNavigator
 import com.example.testapp.presentation.main.MainScreen
 import com.example.testapp.presentation.main.group.GroupAddNavigator
 import com.example.testapp.presentation.viewmodel.notification.NotificationViewModel
@@ -67,10 +67,10 @@ fun MainAppNavigator(
             enterTransition = { slideInHorizontally { it } + fadeIn() },
             exitTransition = { slideOutHorizontally { it } + fadeOut() }
         ) { backStackEntry ->
-            ChatScreen(
+            ChatNavigator(
                 chatId = backStackEntry.arguments?.getString("chatId"),
                 notificationViewModel = notificationViewModel,
-                currentUser = currentUserState.data,
+                currentUserData = currentUserState.data,
                 reactionUrls = reactionUrls,
                 mainNavController = mainNavController
             )
@@ -78,12 +78,8 @@ fun MainAppNavigator(
 
         composable(
             route = "groupAddScreen",
-            enterTransition = {
-                slideInHorizontally { it } + fadeIn()
-            },
-            exitTransition = {
-                slideOutHorizontally { it } + fadeOut()
-            }
+            enterTransition = { slideInHorizontally { it } + fadeIn() },
+            exitTransition = { slideOutHorizontally { it } + fadeOut() }
         ) {
             GroupAddNavigator(
                 currentUser = currentUserState.data,

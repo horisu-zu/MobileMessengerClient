@@ -94,12 +94,7 @@ class MessageViewModel @Inject constructor(
                     size = 30
                 )
 
-                val messageReadResponse = try {
-                    messageRepository.getReadMessageInChat(chatId, userId)
-                } catch (e: Exception) {
-                    Log.e("MessageViewModel", "Error fetching read message", e)
-                    null
-                }
+                val messageReadResponse = messageRepository.getReadMessageInChat(chatId, userId)
 
                 val attachmentsResponse = messageRepository.getAttachmentsForChat(
                     chatId = chatId,
@@ -115,7 +110,7 @@ class MessageViewModel @Inject constructor(
                     _chatMessagesState.value.messages + response
                 }.distinctBy { it.messageId }
 
-                val lastReadMessage = messageReadResponse?.lastReadMessageId.let { id ->
+                val lastReadMessage = messageReadResponse.lastReadMessageId.let { id ->
                     messages.firstOrNull { it.messageId == id }
                 }
 

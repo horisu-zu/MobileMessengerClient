@@ -2,10 +2,7 @@ package com.example.testapp.presentation.main
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -71,7 +68,7 @@ fun MainAppBar(
 }
 
 @Composable
-private fun SearchTitle(
+fun SearchTitle(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier

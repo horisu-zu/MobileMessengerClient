@@ -16,6 +16,7 @@ fun ChatDropdown(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     onInfoClick: () -> Unit,
+    onSearchClick: () -> Unit,
     onLeaveClick: () -> Unit
 ) {
     DropdownMenu(
@@ -27,6 +28,11 @@ fun ChatDropdown(
             text = stringResource(id = R.string.cdd_info),
             iconRes = R.drawable.ic_info,
             onClick = { onInfoClick() }
+        )
+        MenuItem(
+            text = stringResource(id = R.string.cdd_search),
+            iconRes = R.drawable.ic_search,
+            onClick = { onSearchClick() }
         )
         MenuItem(
             text = stringResource(id = R.string.cdd_leave),

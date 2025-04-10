@@ -24,6 +24,18 @@ interface MessageApiService {
         @Query("direction") direction: String = "DESC"
     ): List<Message>
 
+    @GET("api/messages/{chatId}/search")
+    suspend fun searchMessagesInChat(
+        @Path("chatId") chatId: String,
+        @Query("query") query: String? = null,
+        @Query("fromUser") fromUser: String? = null,
+        @Query("hasAttachments") hasAttachments: Boolean? = null,
+        @Query("page") page: Int = 0,
+        @Query("size") size: Int = 20,
+        @Query("sortBy") sortBy: String = "created_at",
+        @Query("direction") direction: String = "DESC"
+    ): List<Message>
+
     @GET("api/messages/{chatId}/attachments")
     suspend fun getAttachmentsForChat(
         @Path("chatId") chatId: String,

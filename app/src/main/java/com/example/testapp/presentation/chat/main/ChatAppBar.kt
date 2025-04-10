@@ -1,4 +1,4 @@
-package com.example.testapp.presentation.chat
+package com.example.testapp.presentation.chat.main
 
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -48,6 +47,7 @@ fun ChatAppBar(
     onBackClick: () -> Unit,
     onPinClick: () -> Unit,
     onInfoClick: () -> Unit,
+    onSearchClick: () -> Unit,
     onLeaveClick: () -> Unit,
     context: Context
 ) {
@@ -85,6 +85,10 @@ fun ChatAppBar(
                 onInfoClick = {
                     dropdownExpanded = false
                     onInfoClick()
+                },
+                onSearchClick = {
+                    dropdownExpanded = false
+                    onSearchClick()
                 },
                 onLeaveClick = {
                     dropdownExpanded = false

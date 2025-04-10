@@ -17,7 +17,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -105,7 +104,6 @@ fun SearchScreen(
         ) { page ->
             when(page) {
                 0 -> UserSearchScreen(
-                    currentUserId = currentUserId,
                     userViewModel = userViewModel,
                     onNavigateToChat = { userId ->
                         scope.launch {

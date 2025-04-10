@@ -1,4 +1,4 @@
-package com.example.testapp.presentation.chat
+package com.example.testapp.presentation.chat.main
 
 import android.content.Context
 import androidx.compose.foundation.background

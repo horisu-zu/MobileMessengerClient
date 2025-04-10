@@ -1,4 +1,4 @@
-package com.example.testapp.presentation.chat
+package com.example.testapp.presentation.chat.main
 
 import android.util.Log
 import androidx.compose.foundation.layout.Box
@@ -13,6 +13,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -48,7 +49,8 @@ fun ChatScreen(
     mediaViewModel: MediaViewModel = hiltViewModel(),
     notificationViewModel: NotificationViewModel,
     reactionUrls: List<String>,
-    mainNavController: NavController
+    mainNavController: NavController,
+    chatNavController: NavController
 ) {
     val context = LocalContext.current
     val userState by userViewModel.participantsState.collectAsState()
@@ -63,17 +65,21 @@ fun ChatScreen(
     val showBottomSheet = remember { mutableStateOf(false) }
     val showPersonalBottomSheet = remember { mutableStateOf(false) }
     val selectedUser = remember { mutableStateOf<UserResponse?>(null) }
+    val isInitialized = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(chatId) {
-        chatId?.let {
-            currentUser?.userId?.let { userId ->
-                messageViewModel.getMessagesForChat(chatId, userId)
-                messageInputViewModel.initialize(chatId, userId)
+        if(!isInitialized.value) {
+            chatId?.let {
+                currentUser?.userId?.let { userId ->
+                    messageViewModel.getMessagesForChat(chatId, userId)
+                    messageInputViewModel.initialize(chatId, userId)
+                }
+                chatViewModel.getChatParticipants(chatId)
+                chatViewModel.getChatById(chatId)
+                chatViewModel.getChatMetadata(chatId)
+                reactionViewModel.loadReactionsForChat(chatId)
             }
-            chatViewModel.getChatParticipants(chatId)
-            chatViewModel.getChatById(chatId)
-            chatViewModel.getChatMetadata(chatId)
-            reactionViewModel.loadReactionsForChat(chatId)
+            isInitialized.value = true
         }
     }
 
@@ -127,6 +133,9 @@ fun ChatScreen(
                 onBackClick = { mainNavController.popBackStack() },
                 onPinClick = { /**/ },
                 onInfoClick = { showBottomSheet.value = true },
+                onSearchClick = {
+                    chatNavController.navigate("chatScreenSearch")
+                },
                 onLeaveClick = {
                     chatId?.let { chatId ->
                         currentUser?.userId?.let { userId ->
