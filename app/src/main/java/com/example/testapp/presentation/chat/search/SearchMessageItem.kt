@@ -31,6 +31,7 @@ import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.domain.models.message.Message
 import com.example.testapp.presentation.chat.bottomsheet.chat.formatDate
 import com.example.testapp.presentation.templates.Avatar
+import com.example.testapp.utils.MarkdownString
 import com.example.testapp.utils.UserColorGenerator.toColor
 
 @Composable
@@ -94,12 +95,11 @@ fun SearchMessageItem(
                     )
                     if(!replyMessage.message.isNullOrEmpty()) {
                         Text(
-                            text = replyMessage.message,
+                            text = MarkdownString.parseMarkdown(replyMessage.message, MaterialTheme.colorScheme.primary),
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Medium
                             ),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            maxLines = 1
                         )
                     }
                 }
@@ -148,11 +148,11 @@ fun SearchMessageItem(
                     // Attachment
                 } else {
                     Text(
-                        text = message.message,
+                        text = MarkdownString.parseMarkdown(message.message, MaterialTheme.colorScheme.primary),
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.Medium,
                             fontSize = 12.sp
-                        ), maxLines = 5, overflow = TextOverflow.Ellipsis
+                        ), maxLines = 5
                     )
                 }
             }

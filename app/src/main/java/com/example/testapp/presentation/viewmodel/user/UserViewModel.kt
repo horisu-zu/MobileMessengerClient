@@ -1,6 +1,5 @@
 package com.example.testapp.presentation.viewmodel.user
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.testapp.di.api.UserApiService

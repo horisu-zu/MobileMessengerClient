@@ -112,6 +112,7 @@ class DataStoreUtil @Inject constructor(
             preferences.remove(ACCESS_TOKEN_KEY)
             preferences.remove(REFRESH_TOKEN_KEY)
             preferences.remove(CURRENT_USER_ID)
+            preferences.remove(FIREBASE_TOKEN_KEY)
         }
     }
 }

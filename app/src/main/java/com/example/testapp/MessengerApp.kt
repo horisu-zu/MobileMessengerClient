@@ -36,6 +36,6 @@ class MessengerApp: Application() {
 
     companion object {
         var isAppInForeground = false
-        var TAG = MessengerApp::class.java.simpleName
+        val TAG: String = MessengerApp::class.java.simpleName
     }
 }

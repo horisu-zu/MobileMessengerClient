@@ -30,7 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.example.testapp.domain.dto.user.UserCharacteristic
 import com.example.testapp.domain.dto.user.UserPortrait
-import com.example.testapp.presentation.templates.StyledText
+import com.example.testapp.utils.MarkdownString
 import com.example.testapp.utils.Resource
 
 @Composable
@@ -71,8 +71,11 @@ fun PortraitFragment(
                             )
                         }
                     }
-                    StyledText(
-                        text = portraitState.data?.portraitSummary ?: "...",
+                    Text(
+                        text = MarkdownString.parseMarkdown(
+                            text = portraitState.data?.portraitSummary ?: "...",
+                            color = MaterialTheme.colorScheme.primary
+                        ),
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
@@ -121,8 +124,11 @@ private fun CharacteristicItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Bottom
         ) {
-            StyledText(
-                text = "${userCharacteristic.emoji} ${userCharacteristic.name}",
+            Text(
+                text = MarkdownString.parseMarkdown(
+                    text = "${userCharacteristic.emoji} ${userCharacteristic.name}",
+                    color = MaterialTheme.colorScheme.primary
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(1f)
             )

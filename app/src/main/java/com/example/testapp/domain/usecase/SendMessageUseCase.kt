@@ -80,8 +80,12 @@ class SendMessageUseCase @Inject constructor(
         state: MessageInputState,
         createdMessage: Message
     ) {
+        val currentUserTokens = notificationService.getTokensByChatId(state.chatId)
+            .filter { it.userId == state.senderId }
+            .map { it.token }
+
         val tokens = notificationService.getTokensByChatId(state.chatId)
-            .filter { it.userId != state.senderId }
+            .filter { it.userId != state.senderId && it.token !in currentUserTokens }
             .map { it.token }
 
         val notificationTitle = try {

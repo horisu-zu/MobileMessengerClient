@@ -19,14 +19,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -54,14 +50,12 @@ fun MessageItem(
     isCurrentUser: Boolean,
     isLastInGroup: Boolean,
     isFirstInGroup: Boolean,
-    onMessageClick: (Offset) -> Unit,
+    onMessageClick: () -> Unit,
     onAvatarClick: (UserResponse) -> Unit,
     onReplyClick: (Message) -> Unit,
     onReactionClick: (String, String, String) -> Unit,
     onReactionLongClick: (String) -> Unit
 ) {
-    var elementHeight by remember { mutableFloatStateOf(0f) }
-    var dropdownOffset by remember { mutableStateOf(Offset.Zero) }
     val backgroundColor = if (isCurrentUser) MaterialTheme.colorScheme.primaryContainer
         else MaterialTheme.colorScheme.secondaryContainer
 
@@ -109,19 +103,11 @@ fun MessageItem(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 8.dp, end = 8.dp, top = topPadding, bottom = bottomPadding)
-            .onGloballyPositioned { coordinates ->
-                val rect = coordinates.boundsInWindow()
-                dropdownOffset = rect.topLeft
-                elementHeight = rect.height
-            }
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null
             ) {
-                val yPosition = dropdownOffset.y + elementHeight
-                val xPosition = 20f
-
-                onMessageClick(Offset(xPosition, yPosition))
+                onMessageClick()
             }
     ) {
         val maxWidth = maxWidth

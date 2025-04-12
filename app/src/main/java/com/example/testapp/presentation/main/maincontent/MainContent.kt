@@ -2,7 +2,7 @@ package com.example.testapp.presentation.main.maincontent
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
@@ -56,7 +56,7 @@ fun MainContent(
             LazyColumn(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                itemsIndexed(sortedChatsList) { index, (_, chatItem) ->
+                items(sortedChatsList) { (_, chatItem) ->
                     ChatItem(
                         currentUserId = currentUserId,
                         chat = chatItem,
@@ -64,8 +64,10 @@ fun MainContent(
                             mainNavController.navigate("chatScreen/${chatId}")
                         },
                         onLongClick = { chatId ->
-                            messageSummarizeViewModel.summarizeMessages(chatId, currentUserId)
-                            showSummaryDialog = true
+                            if(chatItem.unreadCount > 5) {
+                                messageSummarizeViewModel.summarizeMessages(chatId, currentUserId)
+                                showSummaryDialog = true
+                            }
                         }
                     )
                 }

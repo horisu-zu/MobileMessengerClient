@@ -31,7 +31,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.unit.dp
 import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.models.chat.ChatType
@@ -39,7 +38,7 @@ import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.domain.models.message.Message
 import com.example.testapp.domain.models.reaction.Reaction
-import com.example.testapp.presentation.chat.dropdown.MessageDropdown
+import com.example.testapp.presentation.chat.dropdown.MessageBottomSheet
 import com.example.testapp.utils.Converter.groupMessages
 import com.example.testapp.utils.Converter.groupReactions
 import kotlinx.coroutines.FlowPreview
@@ -78,8 +77,7 @@ fun MessageList(
     val coroutineScope = rememberCoroutineScope()
     val messageGroups by remember(messages) { derivedStateOf { groupMessages(messages) } }
 
-    val showDropdown = remember { mutableStateOf(false) }
-    val dropdownPosition = remember { mutableStateOf(Offset.Zero) }
+    val showBottomSheet = remember { mutableStateOf(false) }
     val selectedMessageId = remember { mutableStateOf<String?>(null) }
 
     val showButton by remember {
@@ -158,10 +156,9 @@ fun MessageList(
                                 isCurrentUser = currentUserId == message.senderId,
                                 isFirstInGroup = isFirstInGroup,
                                 isLastInGroup = isLastInGroup,
-                                onMessageClick = { offset ->
+                                onMessageClick = {
                                     selectedMessageId.value = message.messageId
-                                    showDropdown.value = true
-                                    dropdownPosition.value = offset
+                                    showBottomSheet.value = true
                                 },
                                 onAvatarClick = onAvatarClick,
                                 onReplyClick = onReplyClick,
@@ -198,15 +195,13 @@ fun MessageList(
         }
 
         selectedMessageId.value?.let {
-            MessageDropdown(
+            MessageBottomSheet(
                 chatType = chatType,
                 currentUserRole = currentUserRole,
                 reactionUrls = reactionUrls,
                 currentUserId = currentUserId,
-                expanded = showDropdown.value,
-                offset = dropdownPosition.value,
                 onDismissRequest = {
-                    showDropdown.value = false
+                    showBottomSheet.value = false
                     selectedMessageId.value = null
                 },
                 messageData = messages[messages.indexOfFirst { message -> message.messageId == it }],

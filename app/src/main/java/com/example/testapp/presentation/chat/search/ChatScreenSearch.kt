@@ -51,6 +51,16 @@ fun ChatScreenSearch(
     val chatUsersState by chatSearchViewModel.chatUsersState.collectAsState()
     val filters = remember { mutableStateListOf<SearchFilter>() }
 
+    fun triggerSearch() {
+        chatId?.let { id ->
+            chatSearchViewModel.searchMessages(
+                chatId = id,
+                query = searchQuery,
+                filters = filters
+            )
+        }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
@@ -58,21 +68,14 @@ fun ChatScreenSearch(
                 searchQuery = searchQuery,
                 onSearchQueryChange = { newValue ->
                     searchQuery = newValue
-                    chatId?.let { id ->
-                        chatSearchViewModel.searchMessages(
-                            chatId = id,
-                            query = searchQuery,
-                            filters = filters
-                        )
-                    }
+                    triggerSearch()
                 },
                 filters = filters,
                 onBackClick = { chatNavController.popBackStack() },
                 onFilterIconClick = { showBottomSheet.value = true },
                 onFilterRemove = { searchFilter ->
                     filters.remove(searchFilter)
-                    //Search Method, maybe I should separate it into a function and not call it
-                    //manually every time
+                    triggerSearch()
                 }
             )
         }
@@ -119,6 +122,7 @@ fun ChatScreenSearch(
                                     filters.removeIf { it is SearchFilter.FromUser }
                                     filters.add(SearchFilter.FromUser(userId, "from user: $userName"))
                                     currentMode = SearchScreenMode.MESSAGES
+                                    triggerSearch()
                                 }
                             )
                         }
@@ -127,7 +131,7 @@ fun ChatScreenSearch(
                 SearchScreenMode.FILTER_DIRECTION -> {
                     Row (
                         modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         InputChip(
                             selected = false,
@@ -136,6 +140,7 @@ fun ChatScreenSearch(
                                 filters.removeIf { it is SearchFilter.SortDirection }
                                 filters.add(SearchFilter.SortDirection.Descending)
                                 currentMode = SearchScreenMode.MESSAGES
+                                triggerSearch()
                             }
                         )
                         InputChip(
@@ -145,6 +150,7 @@ fun ChatScreenSearch(
                                 filters.removeIf { it is SearchFilter.SortDirection }
                                 filters.add(SearchFilter.SortDirection.Ascending)
                                 currentMode = SearchScreenMode.MESSAGES
+                                triggerSearch()
                             }
                         )
                     }
@@ -163,6 +169,7 @@ fun ChatScreenSearch(
                             val newFilter = SearchFilter.HasAttachments
                             if (filters.none { it is SearchFilter.HasAttachments }) {
                                 filters.add(newFilter)
+                                triggerSearch()
                             }
                         }
                         FilterSelectionType.SORT_DIRECTION -> {

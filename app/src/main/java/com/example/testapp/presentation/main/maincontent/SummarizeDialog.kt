@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import com.example.testapp.presentation.templates.StyledText
+import com.example.testapp.utils.MarkdownString
 import com.example.testapp.utils.Resource
 import kotlinx.coroutines.delay
 
@@ -85,8 +85,8 @@ fun SummarizeDialog(
                                 }
                             }
 
-                            StyledText(
-                                text = visibleText,
+                            Text(
+                                text = MarkdownString.parseMarkdown(visibleText, MaterialTheme.colorScheme.primary),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }

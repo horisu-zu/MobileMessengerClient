@@ -1,5 +1,6 @@
 package com.example.testapp.presentation.chat.dropdown
 
+/*
 import android.util.Log
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DropdownMenu
@@ -91,4 +92,4 @@ fun MessageDropdown(
             }, MaterialTheme.colorScheme.error)
         }
     }
-}
+}*/

@@ -84,7 +84,7 @@ fun ChatScreen(
     }
 
     LaunchedEffect(messagesState) {
-        if (chatId != null && messagesState.messages.isNotEmpty()) {
+        if (messagesState.messages.isNotEmpty()) {
             reactionViewModel.setMessageIdsInChat(
                 messagesState.messages.mapNotNull { it.messageId }
             )
@@ -92,7 +92,7 @@ fun ChatScreen(
     }
 
     LaunchedEffect(participantsState) {
-        if (participantsState is Resource.Success) {
+        if(!isInitialized.value && participantsState is Resource.Success) {
             val userIds = participantsState.data?.map { it.userId }
             userIds?.let {
                 userViewModel.getUsersByIds(userIds)
@@ -100,17 +100,8 @@ fun ChatScreen(
         }
     }
 
-    val sortedUsers by remember(userState.data, userStatusState) {
-        derivedStateOf {
-            userState.data?.sortedWith(compareByDescending<UserResponse> { user ->
-                userStatusState[user.userId]?.let { status ->
-                    if (status.onlineStatus) Long.MAX_VALUE else status.lastSeen.toEpochMilli()
-                } ?: 0L
-            })
-        }
-    }
     val otherUserData = userState.data?.find { it.userId != currentUser?.userId }
-    val otherUserStatus by remember(userStatusState, otherUserData) {
+    val otherUserStatus by remember(userStatusState) {
         derivedStateOf {
             userStatusState[otherUserData?.userId]
         }
@@ -237,8 +228,8 @@ fun ChatScreen(
             if (showBottomSheet.value) {
                 Log.d("ChatScreen", "Metadata: ${metadataState.data}, Users: ${userState.data}")
                 metadataState.data?.let { metadata ->
-                    sortedUsers?.let { usersList ->
-                        chatState.data?.let { chatData ->
+                    chatState.data?.let { chatData ->
+                        userState.data?.let { usersList ->
                             ChatBottomSheet(
                                 chatData = chatData,
                                 chatMetadata = metadata,
