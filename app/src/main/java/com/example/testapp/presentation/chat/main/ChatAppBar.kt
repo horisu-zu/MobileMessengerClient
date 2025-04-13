@@ -1,6 +1,7 @@
 package com.example.testapp.presentation.chat.main
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -80,6 +81,7 @@ fun ChatAppBar(
             }
 
             ChatDropdown(
+                isGroupChat = chatMetadata != null,
                 expanded = dropdownExpanded,
                 onDismissRequest = { dropdownExpanded = false },
                 onInfoClick = {

@@ -82,7 +82,7 @@ fun MessageList(
 
     val showButton by remember {
         derivedStateOf {
-            listState.firstVisibleItemIndex > 0
+            listState.firstVisibleItemIndex > 10
         }
     }
 
@@ -229,10 +229,10 @@ fun MessageList(
                     .background(MaterialTheme.colorScheme.surfaceVariant)
                     .clickable {
                         coroutineScope.launch {
+                            listState.scrollToItem(10)
                             listState.animateScrollToItem(0)
                         }
-                    }
-                    .padding(12.dp)
+                    }.padding(12.dp)
             ) {
                 Icon(
                     imageVector = Icons.Filled.KeyboardArrowDown,

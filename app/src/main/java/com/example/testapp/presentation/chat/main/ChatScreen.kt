@@ -1,10 +1,17 @@
 package com.example.testapp.presentation.chat.main
 
 import android.util.Log
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,10 +20,10 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -65,21 +72,18 @@ fun ChatScreen(
     val showBottomSheet = remember { mutableStateOf(false) }
     val showPersonalBottomSheet = remember { mutableStateOf(false) }
     val selectedUser = remember { mutableStateOf<UserResponse?>(null) }
-    val isInitialized = rememberSaveable { mutableStateOf(false) }
+    //val isInitialized = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(chatId) {
-        if(!isInitialized.value) {
-            chatId?.let {
-                currentUser?.userId?.let { userId ->
-                    messageViewModel.getMessagesForChat(chatId, userId)
-                    messageInputViewModel.initialize(chatId, userId)
-                }
-                chatViewModel.getChatParticipants(chatId)
-                chatViewModel.getChatById(chatId)
-                chatViewModel.getChatMetadata(chatId)
-                reactionViewModel.loadReactionsForChat(chatId)
+        chatId?.let {
+            currentUser?.userId?.let { userId ->
+                messageViewModel.getMessagesForChat(chatId, userId)
+                messageInputViewModel.initialize(chatId, userId)
             }
-            isInitialized.value = true
+            reactionViewModel.loadReactionsForChat(chatId)
+            chatViewModel.getChatParticipants(chatId)
+            chatViewModel.getChatById(chatId)
+            chatViewModel.getChatMetadata(chatId)
         }
     }
 
@@ -92,10 +96,10 @@ fun ChatScreen(
     }
 
     LaunchedEffect(participantsState) {
-        if(!isInitialized.value && participantsState is Resource.Success) {
+        if(participantsState is Resource.Success) {
             val userIds = participantsState.data?.map { it.userId }
             userIds?.let {
-                userViewModel.getUsersByIds(userIds)
+                userViewModel.getUsersByIds(userIds, chatId)
             }
         }
     }
@@ -124,9 +128,7 @@ fun ChatScreen(
                 onBackClick = { mainNavController.popBackStack() },
                 onPinClick = { /**/ },
                 onInfoClick = { showBottomSheet.value = true },
-                onSearchClick = {
-                    chatNavController.navigate("chatScreenSearch")
-                },
+                onSearchClick = { chatNavController.navigate("chatScreenSearch")},
                 onLeaveClick = {
                     chatId?.let { chatId ->
                         currentUser?.userId?.let { userId ->
@@ -141,7 +143,11 @@ fun ChatScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
+                .padding(
+                    top = innerPadding.calculateTopPadding(),
+                    start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                    end = innerPadding.calculateEndPadding(LayoutDirection.Ltr)
+                )
         ) {
             InAppNotificationHost(
                 onNotificationClick = { chatId ->
@@ -153,8 +159,7 @@ fun ChatScreen(
                 modifier = Modifier.align(Alignment.TopCenter).zIndex(1f)
             )
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
+                modifier = Modifier.fillMaxSize()
             ) {
                 Box(modifier = Modifier.weight(1f)) {
                     userState.data?.let {
@@ -219,8 +224,9 @@ fun ChatScreen(
                         },
                         onClearAttachment = { attachment ->
                             messageInputViewModel.clearAttachment(attachment)
-                        },
-                        context = context
+                        }, context = context,
+                        modifier = Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.surfaceVariant)
+                            .navigationBarsPadding().imePadding()
                     )
                 }
             }

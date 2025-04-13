@@ -61,9 +61,7 @@ fun GroupAddNavigator(
 
     LaunchedEffect(Unit) {
         chatViewModel.getUserConversations(currentUserId).collect { resource ->
-            Log.d("GroupAddNavigator", "Resource received: $resource")
             if (resource is Resource.Success) {
-                Log.d("GroupAddNavigator", "Successfully fetched conversations")
                 userViewModel.getUsersByIds(resource.data ?: emptyList())
             }
         }

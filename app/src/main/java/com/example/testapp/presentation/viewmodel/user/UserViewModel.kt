@@ -43,6 +43,7 @@ class UserViewModel @Inject constructor(
 
     private val currentUserIdFlow = dataStoreUtil.getUserId()
     private var searchJob: Job? = null
+    private var currentChatId: String? = null
 
     init {
         viewModelScope.launch {
@@ -86,12 +87,15 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    suspend fun getUsersByIds(userIds: List<String>) {
+    suspend fun getUsersByIds(userIds: List<String>, chatId: String? = null) {
         _participantsState.value = Resource.Loading()
         try {
             val usersList = userRepository.getByIds(userIds)
             _participantsState.value = Resource.Success(usersList)
-            connectWebSocket(usersList.map { it.userId })
+            if(chatId != null && chatId != currentChatId) {
+                connectWebSocket(usersList.map { it.userId })
+                currentChatId = chatId
+            }
         } catch (e: Exception) {
             _participantsState.value = Resource.Error("Failed to find users: ${e.message}")
         }

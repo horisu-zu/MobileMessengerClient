@@ -23,6 +23,7 @@ import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.domain.models.message.Message
 import com.example.testapp.utils.Converter.getAttachmentDescription
+import com.example.testapp.utils.MarkdownString
 import com.example.testapp.utils.UserColorGenerator.toColor
 
 @Composable
@@ -68,10 +69,8 @@ fun ReplyFragment(
             )
             if(replyMessage.message != null) {
                 Text(
-                    text = replyMessage.message,
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        fontSize = 12.sp
-                    ),
+                    text = MarkdownString.parseMarkdown(replyMessage.message, color = MaterialTheme.colorScheme.primary),
+                    style = MaterialTheme.typography.bodySmall.copy(fontSize = 12.sp),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )

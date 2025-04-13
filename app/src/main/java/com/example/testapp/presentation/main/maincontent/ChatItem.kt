@@ -29,6 +29,7 @@ import com.example.testapp.R
 import com.example.testapp.domain.models.chat.ChatDisplayData
 import com.example.testapp.utils.Converter.ChatAvatar
 import com.example.testapp.utils.Converter.formatTimestamp
+import com.example.testapp.utils.MarkdownString
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -91,7 +92,7 @@ fun ChatItem(
 
                 if (displayMessage != null) {
                     Text(
-                        text = displayMessage,
+                        text = MarkdownString.parseMarkdown(displayMessage, color = MaterialTheme.colorScheme.primary),
                         style = TextStyle(fontWeight = FontWeight.Light),
                         maxLines = 1,
                         fontSize = 12.sp,

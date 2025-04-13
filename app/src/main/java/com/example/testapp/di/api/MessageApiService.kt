@@ -63,12 +63,6 @@ interface MessageApiService {
         @Body request: MessageUpdateRequest
     ): Message
 
-    /*@PUT("api/messages/{messageId}/status")
-    suspend fun updateMessageStatus(
-        @Path("messageId") messageId: String,
-        @Body request: MessageStatusUpdateRequest
-    ): Message*/
-
     @DELETE("api/messages/{messageId}")
     suspend fun deleteMessage(@Path("messageId") messageId: String)
 
@@ -81,11 +75,11 @@ interface MessageApiService {
         @Body attachmentRequest: AttachmentRequest
     )
 
-    @POST("api/messages/{chatId}/{messageId}/mark-read")
+    @POST("api/messages/{chatId}/{messageId}/mark-read/{userId}")
     suspend fun markMessagesAsRead(
         @Path("chatId") chatId: String,
         @Path("messageId") messageId: String,
-        @Query("userId") userId: String
+        @Path("userId") userId: String
     )
 
     @GET("api/messages/{chatId}/{userId}/mark-read")

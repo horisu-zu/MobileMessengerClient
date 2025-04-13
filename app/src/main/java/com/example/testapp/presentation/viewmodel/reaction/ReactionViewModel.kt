@@ -115,6 +115,8 @@ class ReactionViewModel @Inject constructor(
                 currentChatId = chatId
                 _messageIdsInChat.value = emptyList()
                 _chatReactionsState.value = Resource.Loading()
+            } else if (currentPage == 0) {
+                return@launch
             }
 
             try {

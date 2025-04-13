@@ -48,6 +48,7 @@ class ChatViewModel @Inject constructor(
     val groupSearchState: StateFlow<Resource<Map<ChatMetadata, Int>>> = _groupSearchState
 
     private var searchJob: Job? = null
+    private var currentChatId: String? = null
 
     init {
         Log.d("ChatViewModel", "Initializing WebSocket subscription")
@@ -111,10 +112,12 @@ class ChatViewModel @Inject constructor(
     }
 
     suspend fun getChatById(chatId: String) {
+        if(currentChatId == chatId) return
         _chatState.value = Resource.Loading()
         try {
             val response = chatRepository.getChatById(chatId)
             _chatState.value = Resource.Success(response)
+            currentChatId = chatId
         } catch (e: Exception) {
             _chatState.value = Resource.Error(e.message ?: "Couldn't load chat data")
         }

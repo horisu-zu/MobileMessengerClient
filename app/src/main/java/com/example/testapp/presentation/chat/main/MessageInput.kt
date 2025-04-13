@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyRow
@@ -47,20 +48,17 @@ fun MessageInput(
     onAddAttachment: (LocalAttachment) -> Unit,
     onClearAttachment: (LocalAttachment) -> Unit,
     onClearReplying: () -> Unit,
-    context: Context
+    context: Context,
+    modifier: Modifier = Modifier
 ) {
     var messageAttachments by remember { mutableStateOf<List<Attachment>>(emptyList()) }
     var showMediaBottomSheet by remember { mutableStateOf(false) }
     val mediaState = mediaViewModel.mediaState.collectAsState()
 
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surfaceVariant)
-    ) {
+    Column(modifier = modifier) {
         if (messageInputState.localAttachments.isNotEmpty()) {
             LazyRow(
-                modifier = Modifier
+                modifier = modifier
                     .fillMaxWidth()
                     .padding(8.dp)
             ) {
