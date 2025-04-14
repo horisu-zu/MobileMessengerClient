@@ -80,7 +80,7 @@ fun Section(
                         value = item.value,
                         onValueChange = item.onValueChange,
                         limit = item.limit,
-                        placeholder = item.placeholder,
+                        placeholder = item.placeholder ?: "",
                         showDivider = index < items.size - 1,
                         inputFilter = item.inputFilter
                     )

@@ -3,9 +3,8 @@ package com.example.testapp.presentation.viewmodel.chat
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import chat.service.course.dto.ChatCreateResponse
 import chat.service.course.dto.ChatDBResponse
-import chat.service.course.dto.ChatJoinRequest
+import com.example.testapp.domain.dto.chat.ChatJoinRequest
 import chat.service.course.dto.GroupChatRequest
 import chat.service.course.dto.PersonalChatRequest
 import com.example.testapp.domain.models.chat.Chat
@@ -13,6 +12,7 @@ import com.example.testapp.domain.models.chat.ChatMetadata
 import com.example.testapp.domain.models.chat.ChatParticipant
 import com.example.testapp.di.api.ChatApiService
 import com.example.testapp.di.websocket.MetadataWebSocketClient
+import com.example.testapp.domain.models.chat.ChatRestriction
 import com.example.testapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -22,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
@@ -33,18 +34,21 @@ class ChatViewModel @Inject constructor(
     private val chatRepository: ChatApiService,
     private val metadataWebSocketClient: MetadataWebSocketClient
 ) : ViewModel() {
-    private val _chatState = MutableStateFlow<Resource<Chat>>(Resource.Loading())
+    private val _chatState = MutableStateFlow<Resource<Chat>>(Resource.Idle())
     val chatState: StateFlow<Resource<Chat>> = _chatState
 
-    private val _chatMetadataState = MutableStateFlow<Resource<ChatMetadata>>(Resource.Loading())
+    private val _chatMetadataState = MutableStateFlow<Resource<ChatMetadata>>(Resource.Idle())
     val chatMetadataState: StateFlow<Resource<ChatMetadata>> = _chatMetadataState
 
     private val _chatParticipantsState =
-        MutableStateFlow<Resource<List<ChatParticipant>>>(Resource.Loading())
+        MutableStateFlow<Resource<List<ChatParticipant>>>(Resource.Idle())
     val chatParticipantsState: StateFlow<Resource<List<ChatParticipant>>> = _chatParticipantsState
 
+    private val _chatUserRestrictionsState = MutableStateFlow<Resource<ChatRestriction>>(Resource.Idle())
+    val chatUserRestrictionsState = _chatUserRestrictionsState.asStateFlow()
+
     private val _groupSearchState =
-        MutableStateFlow<Resource<Map<ChatMetadata, Int>>>(Resource.Loading())
+        MutableStateFlow<Resource<Map<ChatMetadata, Int>>>(Resource.Idle())
     val groupSearchState: StateFlow<Resource<Map<ChatMetadata, Int>>> = _groupSearchState
 
     private var searchJob: Job? = null
@@ -240,8 +244,17 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-    suspend fun getParticipantsCount(chatId: String): Int {
-        return chatRepository.getParticipantsCount(chatId)
+    fun getUserRestrictionsInChat(chatId: String, userId: String) {
+        viewModelScope.launch {
+            _chatUserRestrictionsState.value = Resource.Loading()
+
+            try {
+                val userRestrictions = chatRepository.getUserRestrictionInChat(chatId, userId)
+                _chatUserRestrictionsState.value = Resource.Success(userRestrictions)
+            } catch (e: Exception) {
+                _chatUserRestrictionsState.value = Resource.Error(e.message ?: "Error getting user restrictions")
+            }
+        }
     }
 
     fun leaveGroupChat(chatId: String, userId: String) {

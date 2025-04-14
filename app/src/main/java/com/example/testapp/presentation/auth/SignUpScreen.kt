@@ -20,6 +20,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -77,124 +78,126 @@ fun SignUpScreen(
         }
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Card(
-                shape = RoundedCornerShape(24.dp),
+    Scaffold { innerPadding ->
+        Box(modifier = Modifier.fillMaxSize().padding(innerPadding)) {
+            Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 36.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer
-                )
+                    .fillMaxSize()
+                    .background(MaterialTheme.colorScheme.background),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
+                Card(
+                    shape = RoundedCornerShape(24.dp),
                     modifier = Modifier
-                        .padding(horizontal = 24.dp, vertical = 36.dp),
-                    verticalArrangement = Arrangement.Center,
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .fillMaxWidth()
+                        .padding(horizontal = 36.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
+                    )
                 ) {
-                    LogoIcon()
-                    Text(
-                        text = stringResource(id = R.string.auth_sign_label),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(vertical = 16.dp)
-                    )
+                    Column(
+                        modifier = Modifier
+                            .padding(horizontal = 24.dp, vertical = 36.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        LogoIcon()
+                        Text(
+                            text = stringResource(id = R.string.auth_sign_label),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(vertical = 16.dp)
+                        )
 
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 
-                    AuthInput(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = stringResource(id = R.string.auth_email),
-                        leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email") }
-                    )
-                    AuthInput(
-                        value = firstName,
-                        onValueChange = { firstName = it },
-                        label = stringResource(id = R.string.auth_first_name)
-                    )
-                    AuthInput(
-                        value = lastName,
-                        onValueChange = { lastName = it },
-                        label = stringResource(id = R.string.auth_last_name)
-                    )
-                    AuthInput(
-                        value = nickname,
-                        onValueChange = { newValue ->
-                            if (!newValue.contains(" ")) {
-                                nickname = newValue.lowercase()
-                            }
-                        },
-                        label = stringResource(id = R.string.auth_nickname),
-                        leadingIcon = { Icon(Icons.Default.AccountCircle, contentDescription = "Nickname") }
-                    )
-                    AuthInput(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = stringResource(id = R.string.auth_password),
-                        keyboardType = KeyboardType.Password,
-                        passwordVisibility = passwordVisibility,
-                        onPasswordVisibilityChange = { passwordVisibility = !passwordVisibility },
-                        leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Password") }
-                    )
+                        AuthInput(
+                            value = email,
+                            onValueChange = { email = it },
+                            label = stringResource(id = R.string.auth_email),
+                            leadingIcon = { Icon(Icons.Default.Email, contentDescription = "Email") }
+                        )
+                        AuthInput(
+                            value = firstName,
+                            onValueChange = { firstName = it },
+                            label = stringResource(id = R.string.auth_first_name)
+                        )
+                        AuthInput(
+                            value = lastName,
+                            onValueChange = { lastName = it },
+                            label = stringResource(id = R.string.auth_last_name)
+                        )
+                        AuthInput(
+                            value = nickname,
+                            onValueChange = { newValue ->
+                                if (!newValue.contains(" ")) {
+                                    nickname = newValue.lowercase()
+                                }
+                            },
+                            label = stringResource(id = R.string.auth_nickname),
+                            leadingIcon = { Icon(Icons.Default.AccountCircle, contentDescription = "Nickname") }
+                        )
+                        AuthInput(
+                            value = password,
+                            onValueChange = { password = it },
+                            label = stringResource(id = R.string.auth_password),
+                            keyboardType = KeyboardType.Password,
+                            passwordVisibility = passwordVisibility,
+                            onPasswordVisibilityChange = { passwordVisibility = !passwordVisibility },
+                            leadingIcon = { Icon(Icons.Default.Lock, contentDescription = "Password") }
+                        )
 
-                    OperationButton(
-                        onClick = {
-                            val userRequest = UserRequest(
-                                email = email,
-                                password_hash = password,
-                                first_name = firstName,
-                                last_name = lastName,
-                                nickname = nickname,
-                                description = null,
-                                avatar_url = "",
-                                user_color = UserColorGenerator.getUserColor()
-                            )
-                            authViewModel.signUp(userRequest, password)
-                        },
-                        label = stringResource(id = R.string.auth_sign_label),
-                        enabled = isEnabled
+                        OperationButton(
+                            onClick = {
+                                val userRequest = UserRequest(
+                                    email = email,
+                                    password_hash = password,
+                                    first_name = firstName,
+                                    last_name = lastName,
+                                    nickname = nickname,
+                                    description = null,
+                                    avatar_url = "",
+                                    user_color = UserColorGenerator.getUserColor()
+                                )
+                                authViewModel.signUp(userRequest, password)
+                            },
+                            label = stringResource(id = R.string.auth_sign_label),
+                            enabled = isEnabled
+                        )
+                    }
+                }
+                TextButton(
+                    onClick = {
+                        navController.navigate("login")
+                        //showToast = false
+                    },
+                    modifier = Modifier
+                        .wrapContentWidth()
+                        .padding(top = 16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Transparent,
+                        contentColor = MaterialTheme.colorScheme.onSurface
                     )
+                ) {
+                    Text(stringResource(id = R.string.auth_login))
                 }
             }
-            TextButton(
-                onClick = {
-                    navController.navigate("login")
-                    //showToast = false
-                },
+            Box(
                 modifier = Modifier
-                    .wrapContentWidth()
-                    .padding(top = 16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color.Transparent,
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
+                    .align(Alignment.TopStart)
+                    .padding(top = 16.dp, start = 24.dp)
             ) {
-                Text(stringResource(id = R.string.auth_login))
+                ThemeIcon(
+                    onThemeToggle = {
+                        coroutineScope.launch {
+                            val newTheme = !switchState
+                            themeViewModel.setTheme(newTheme)
+                        }
+                    },
+                    isDarkTheme = switchState
+                )
             }
-        }
-        Box(
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(top = 16.dp, start = 24.dp)
-        ) {
-            ThemeIcon(
-                onThemeToggle = {
-                    coroutineScope.launch {
-                        val newTheme = !switchState
-                        themeViewModel.setTheme(newTheme)
-                    }
-                },
-                isDarkTheme = switchState
-            )
         }
     }
 

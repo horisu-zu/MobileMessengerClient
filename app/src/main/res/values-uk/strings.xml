@@ -86,4 +86,29 @@
     <string name="cdd_info">Інформація про чат</string>
     <string name="cdd_leave">Покинути чат</string>
 
+    <!-- RestrictionBottomSheet -->
+    <plurals name="duration_days">
+        <item quantity="one">%d день</item>
+        <item quantity="few">%d дні</item>
+        <item quantity="many">%d днів</item>
+    </plurals>
+    <plurals name="duration_hours">
+        <item quantity="one">%d година</item>
+        <item quantity="few">%d години</item>
+        <item quantity="many">%d годин</item>
+    </plurals>
+    <plurals name="duration_minutes">
+        <item quantity="one">%d хвилина</item>
+        <item quantity="few">%d хвилини</item>
+        <item quantity="many">%d хвилин</item>
+    </plurals>
+    <plurals name="duration_seconds">
+        <item quantity="one">%d секунда</item>
+        <item quantity="few">%d секунди</item>
+        <item quantity="many">%d секунд</item>
+    </plurals>
+    <string name="duration_unlimited">Перманентно</string>
+    <string name="duration_title">Тривалість</string>
+    <string name="reason_title">Причина</string>
+
 </resources>

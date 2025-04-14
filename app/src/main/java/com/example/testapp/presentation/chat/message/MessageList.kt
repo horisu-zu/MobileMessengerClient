@@ -66,7 +66,7 @@ fun MessageList(
     onEditClick: (Message) -> Unit,
     onDeleteClick: (String) -> Unit,
     onTranslateClick: (String) -> Unit,
-    onAddRestriction: (String) -> Unit,
+    onAddRestriction: (UserResponse) -> Unit,
     onReactionClick: (String, String, String) -> Unit,
     onReactionLongClick: (String) -> Unit,
     onMarkMessage: (String) -> Unit,
@@ -209,7 +209,7 @@ fun MessageList(
                 onEditMessage = onEditClick,
                 onDeleteMessage = onDeleteClick,
                 onTranslateMessage = onTranslateClick,
-                onAddRestriction = onAddRestriction,
+                onAddRestriction = { userId -> onAddRestriction(usersData[userId]!!) },
                 onToggleReaction = onReactionClick
             )
         }

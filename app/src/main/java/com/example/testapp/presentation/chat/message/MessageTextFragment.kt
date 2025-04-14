@@ -1,7 +1,6 @@
 package com.example.testapp.presentation.chat.message
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.MaterialTheme

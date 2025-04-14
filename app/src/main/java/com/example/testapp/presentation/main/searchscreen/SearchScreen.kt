@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.navigation.NavController
-import chat.service.course.dto.ChatJoinRequest
+import com.example.testapp.domain.dto.chat.ChatJoinRequest
 import chat.service.course.dto.PersonalChatRequest
 import com.example.testapp.R
 import com.example.testapp.presentation.main.SearchType

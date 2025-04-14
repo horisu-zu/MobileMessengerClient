@@ -2,6 +2,9 @@ package com.example.testapp.presentation.chat.bottomsheet.chat
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -28,54 +31,39 @@ fun ChatInfo(
     chatMetadata: ChatMetadata,
     context: Context
 ) {
-    ConstraintLayout(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .padding(horizontal = 16.dp, vertical = 12.dp)
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        val (descriptionItem, dashedDivider, createdAtItem, typeItem) = createRefs()
-
         if(!chatMetadata.description.isNullOrEmpty()) {
             DescriptionItem(
                 description = chatMetadata.description,
-                modifier = Modifier.constrainAs(descriptionItem) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                },
                 context = context
             )
-            DashedDivider(
-                modifier = Modifier.constrainAs(dashedDivider) {
-                    top.linkTo(descriptionItem.bottom, margin = 12.dp)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    width = Dimension.fillToConstraints
-                }
-            )
+            DashedDivider(modifier = Modifier.fillMaxWidth())
         }
 
-        ChatInfoItem(
-            icon = Icons.Default.DateRange,
-            label = context.getString(R.string.cbs_created_at),
-            text = formatDate(chatData.createdAt),
-            textSize = 12.sp,
-            modifier = Modifier.constrainAs(createdAtItem) {
-                top.linkTo(dashedDivider.bottom, margin = 12.dp)
-                start.linkTo(parent.start)
-            }
-        )
+        Row (
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            ChatInfoItem(
+                icon = Icons.Default.DateRange,
+                label = context.getString(R.string.cbs_created_at),
+                text = formatDate(chatData.createdAt),
+                textSize = 12.sp
+            )
 
-        ChatInfoItem(
-            icon = Icons.Default.Person,
-            label = context.getString(R.string.cbs_chat_type),
-            text = if(chatMetadata.isPublic) context.getString(R.string.cbs_public_type) else context.getString(R.string.cbs_private_type),
-            textSize = 12.sp,
-            modifier = Modifier.constrainAs(typeItem) {
-                top.linkTo(dashedDivider.bottom, margin = 12.dp)
-                start.linkTo(createdAtItem.end, margin = 8.dp)
-            }
-        )
+            ChatInfoItem(
+                icon = Icons.Default.Person,
+                label = context.getString(R.string.cbs_chat_type),
+                text = if(chatMetadata.isPublic) context.getString(R.string.cbs_public_type) else context.getString(R.string.cbs_private_type),
+                textSize = 12.sp
+            )
+        }
     }
 }

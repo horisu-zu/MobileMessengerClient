@@ -63,7 +63,8 @@ class GeminiService @Inject constructor(
                 Analyze the following messages sended by one user and create his portrait.
                 Structure of this portrait must be like this:
                 2-5 characteristics and percentage that user have of it, short summary of user's portrait after it.
-                Response about characteristics should be in the following format: {emoji} {characteristic} — {percentage}%.
+                Response about characteristics MUST be strictly in the following format, without any list symbols:
+                "{emoji} {characteristic} — {percentage}%"
                 Return the response in ${locale.displayLanguage} language.
                 User Messages: $messages
             """.trimIndent()

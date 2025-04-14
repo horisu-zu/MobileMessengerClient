@@ -1,8 +1,10 @@
 package com.example.testapp.utils
 
 import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import com.example.testapp.R
 import com.example.testapp.domain.dto.message.MessageDateGroup
 import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.domain.models.message.Message
@@ -10,6 +12,7 @@ import com.example.testapp.domain.models.reaction.Reaction
 import com.example.testapp.presentation.templates.Avatar
 import java.text.ParseException
 import java.text.SimpleDateFormat
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -159,4 +162,25 @@ object Converter {
 
         return "${minutes}:${seconds.toString().padStart(2, '0')}"
     }
+
+    fun Context.formatDuration(duration: Duration): String {
+        val days = duration.toDays().toInt()
+        val hours = (duration.toHours() % 24).toInt()
+        val minutes = (duration.toMinutes() % 60).toInt()
+        val seconds = (duration.seconds % 60).toInt()
+
+        if (days == 0 && hours == 0 && minutes == 0 && seconds == 0) {
+            return getString(R.string.duration_unlimited)
+        }
+
+        val parts = mutableListOf<String>()
+        if (days > 0) parts += resources.getQuantityString(R.plurals.duration_days, days, days)
+        if (hours > 0) parts += resources.getQuantityString(R.plurals.duration_hours, hours, hours)
+        if (minutes > 0) parts += resources.getQuantityString(R.plurals.duration_minutes, minutes, minutes)
+        if (seconds > 0 && parts.isEmpty())
+            parts += resources.getQuantityString(R.plurals.duration_seconds, seconds, seconds)
+
+        return parts.joinToString(" ")
+    }
+
 }

@@ -75,7 +75,7 @@ fun UserCard(
 @Composable
 fun UserInfoItem(
     userData: UserResponse,
-    userStatus: UserStatus,
+    userStatus: UserStatus? = null,
     modifier: Modifier
 ) {
     ConstraintLayout(modifier = modifier) {
@@ -90,7 +90,7 @@ fun UserInfoItem(
                     top.linkTo(parent.top)
                     bottom.linkTo(parent.bottom)
                 },
-            userStatus = userStatus.onlineStatus
+            userStatus = userStatus?.onlineStatus
         )
 
         Column(
@@ -101,7 +101,7 @@ fun UserInfoItem(
                 }
                 .clip(RoundedCornerShape(6.dp))
                 .background(MaterialTheme.colorScheme.background)
-                .padding(4.dp),
+                .padding(horizontal = 8.dp, vertical = 6.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Text(
@@ -116,7 +116,7 @@ fun UserInfoItem(
             )
         }
 
-        if (!userStatus.onlineStatus) {
+        if (userStatus != null && !userStatus.onlineStatus) {
             Text(
                 text = calculateUserStatus(LocalContext.current, userStatus),
                 style = MaterialTheme.typography.bodySmall,

@@ -66,11 +66,13 @@ fun ChatScreen(
     val messagesState by messageViewModel.chatMessagesState.collectAsState()
     val chatState by chatViewModel.chatState.collectAsState()
     val participantsState by chatViewModel.chatParticipantsState.collectAsState()
+    val userRestrictionsState by chatViewModel.chatUserRestrictionsState.collectAsState()
     val reactionsState by reactionViewModel.chatReactionsState.collectAsState()
     val messageInputState = messageInputViewModel.messageInputState.collectAsState()
 
     val showBottomSheet = remember { mutableStateOf(false) }
     val showPersonalBottomSheet = remember { mutableStateOf(false) }
+    val showRestrictionBottomSheet = remember { mutableStateOf(false) }
     val selectedUser = remember { mutableStateOf<UserResponse?>(null) }
     //val isInitialized = rememberSaveable { mutableStateOf(false) }
 
@@ -79,6 +81,7 @@ fun ChatScreen(
             currentUser?.userId?.let { userId ->
                 messageViewModel.getMessagesForChat(chatId, userId)
                 messageInputViewModel.initialize(chatId, userId)
+                chatViewModel.getUserRestrictionsInChat(chatId, userId)
             }
             reactionViewModel.loadReactionsForChat(chatId)
             chatViewModel.getChatParticipants(chatId)
@@ -194,7 +197,10 @@ fun ChatScreen(
                                 messageViewModel.translateMessage(messageId, Locale.getDefault())
                             },
                             onReactionLongClick = { /*TODO*/ },
-                            onAddRestriction = { /*TODO*/ },
+                            onAddRestriction = { userResponse ->
+                                selectedUser.value = userResponse
+                                showRestrictionBottomSheet.value = true
+                            },
                             onLoadMore = {
                                 messageViewModel.getMessagesForChat(chatId!!, currentUser?.userId ?: "")
                                 reactionViewModel.loadReactionsForChat(chatId)
@@ -209,10 +215,12 @@ fun ChatScreen(
                     }
                 }
                 messageInputState.value?.let {
+                    Log.d("MessageInput", "Restrictions: ${userRestrictionsState.data}")
                     MessageInput(
                         userData = userState.data?.associateBy { it.userId } ?: emptyMap(),
                         mediaViewModel = mediaViewModel,
                         messageInputState = it,
+                        currentUserRestriction = userRestrictionsState.data,
                         onSendClick = { messageInputViewModel.sendMessage(context = context) },
                         onMessageInputChange = { newValue ->
                             messageInputViewModel.setMessage(newValue)
@@ -265,6 +273,18 @@ fun ChatScreen(
                                 context = context
                             )
                         }
+                    }
+                }
+            }
+            if(showRestrictionBottomSheet.value) {
+                selectedUser.value?.let { userData ->
+                    chatId?.let { chatId ->
+                        RestrictionBottomSheet(
+                            chatId = chatId,
+                            currentUserId = currentUser?.userId,
+                            userData = userData,
+                            onDismiss = { showRestrictionBottomSheet.value = false }
+                        )
                     }
                 }
             }

@@ -1,16 +1,20 @@
 package com.example.testapp.di.api
 
 import chat.service.course.dto.ChatDBResponse
-import chat.service.course.dto.ChatJoinRequest
+import com.example.testapp.domain.dto.chat.ChatJoinRequest
 import chat.service.course.dto.GroupChatRequest
 import chat.service.course.dto.PersonalChatRequest
+import com.example.testapp.domain.dto.chat.ChatRestrictionRequest
+import com.example.testapp.domain.dto.chat.ChatRestrictionUpdateRequest
 import com.example.testapp.domain.models.chat.Chat
 import com.example.testapp.domain.models.chat.ChatMetadata
 import com.example.testapp.domain.models.chat.ChatParticipant
 import com.example.testapp.domain.dto.chat.ConversationPartner
+import com.example.testapp.domain.models.chat.ChatRestriction
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.PATCH
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
@@ -67,4 +71,22 @@ interface ChatApiService {
 
     @GET("api/chats/{chatId}/participants-count")
     suspend fun getParticipantsCount(@Path("chatId") chatId: String): Int
+
+    @POST("api/chats/{chatId}/restrictions")
+    suspend fun createRestriction(
+        @Path("chatId") chatId: String,
+        @Body request: ChatRestrictionRequest
+    ): ChatRestriction
+
+    @PATCH("api/chats/restrictions/{restrictionId}")
+    suspend fun updateRestriction(
+        @Path("restrictionId") restrictionId: String,
+        @Body request: ChatRestrictionUpdateRequest
+    ): ChatRestriction
+
+    @GET("api/chats/{chatId}/restriction/{userId}")
+    suspend fun getUserRestrictionInChat(
+        @Path("chatId") chatId: String,
+        @Path("userId") userId: String
+    ): ChatRestriction
 }

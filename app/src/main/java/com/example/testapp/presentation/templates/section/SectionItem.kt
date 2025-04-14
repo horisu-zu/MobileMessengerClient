@@ -29,7 +29,7 @@ sealed class SectionItem {
         val value: String,
         val onValueChange: (String) -> Unit,
         val limit: Int? = null,
-        val placeholder: String,
+        val placeholder: String? = null,
         val inputFilter: (String) -> String = { it }
     ): SectionItem()
 }

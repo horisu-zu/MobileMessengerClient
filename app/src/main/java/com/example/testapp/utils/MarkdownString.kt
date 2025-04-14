@@ -59,7 +59,8 @@ object MarkdownString {
             }
         }
 
-        tokens.forEach { token ->
+        for(token in tokens) {
+            if(token.start < currentIndex) continue //nested styling duplicates text (and ofc doesn't apply it correctly)
             appendGapText(token.start)
 
             when(token.type) {

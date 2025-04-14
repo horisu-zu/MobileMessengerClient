@@ -13,5 +13,7 @@
 .externalNativeBuild
 .cxx
 local.properties
+secret.properties
+local.defaults.properties
 /app/src/main/java/com/example/testapp/utils/Defaults.kt
 /app/src/main/res/xml/network_security_config.xml

@@ -42,9 +42,7 @@ class MessageWebSocketClient @Inject constructor(
         val request = Request.Builder()
             .url(
                 "${baseUrl.trimEnd('/')}:${Defaults.MESSAGE_SERVICE_PORT}/ws/messages?chatIds=${
-                    chatIds.joinToString(
-                        ","
-                    )
+                    chatIds.joinToString(",")
                 }&mode=${mode.name}"
             )
             .build()
