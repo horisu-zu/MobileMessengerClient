@@ -1,4 +1,4 @@
-package com.example.testapp.presentation.chat.attachment
+package com.example.testapp.presentation.chat.message.attachment
 
 import android.content.Context
 import android.graphics.Bitmap

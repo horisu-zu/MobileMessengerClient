@@ -16,18 +16,19 @@ class UserPortraitViewModel @Inject constructor(
     private val createUserPortraitUseCase: CreateUserPortraitUseCase
 ): ViewModel() {
 
-    private val _portraitState = MutableStateFlow<Resource<UserPortrait>>(Resource.Idle())
+    private val _portraitState = MutableStateFlow<Resource<Map<String, UserPortrait>>>(Resource.Idle())
     val portraitState = _portraitState.asStateFlow()
 
     fun createUserPortrait(chatId: String, userId: String) {
         viewModelScope.launch {
+            val currentMap = _portraitState.value.data?.toMutableMap() ?: mutableMapOf()
+
             try {
                 _portraitState.value = Resource.Loading()
-
                 val response = createUserPortraitUseCase.execute(chatId, userId)
-                response.onSuccess {
-                    _portraitState.value = Resource.Success(response.getOrNull())
-                }
+
+                currentMap[userId] = response
+                _portraitState.value = Resource.Success(currentMap)
             } catch (e: Exception) {
                 _portraitState.value = Resource.Error(e.message ?: "Unknown error")
             }

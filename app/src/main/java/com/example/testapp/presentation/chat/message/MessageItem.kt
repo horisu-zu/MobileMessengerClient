@@ -32,7 +32,7 @@ import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.models.message.Attachment
 import com.example.testapp.domain.models.message.Message
 import com.example.testapp.domain.models.reaction.Reaction
-import com.example.testapp.presentation.chat.attachment.AttachmentFragment
+import com.example.testapp.presentation.chat.message.attachment.AttachmentFragment
 import com.example.testapp.presentation.templates.Avatar
 import com.example.testapp.presentation.templates.MessageSwipeBackground
 import kotlin.math.absoluteValue
@@ -91,9 +91,7 @@ fun MessageItem(
         snapshotFlow {
             try {
                 dismissState.requireOffset()
-            } catch (e: IllegalStateException) {
-                0f
-            }
+            } catch (e: IllegalStateException) { 0f }
         }.collect { offset ->
             lastKnownOffset = offset.absoluteValue
         }

@@ -62,14 +62,16 @@ class GeminiService @Inject constructor(
                 You are assistant that helps to create user portraits.
                 Analyze the following messages sended by one user and create his portrait.
                 Structure of this portrait must be like this:
-                2-5 characteristics and percentage that user have of it, short summary of user's portrait after it.
+                2-5 characteristics and percentage that user have of it.
                 Response about characteristics MUST be strictly in the following format, without any list symbols:
                 "{emoji} {characteristic} — {percentage}%"
+                After defined characteristics you need to create short summary of user.
                 Return the response in ${locale.displayLanguage} language.
                 User Messages: $messages
             """.trimIndent()
 
             val response = generativeModel.generateContent(prompt)
+            Log.d("GeminiService", "Portrait Response: ${response.text}")
             response.text ?: throw Exception("Empty Response from API")
 
             UserPortrait.parseUserPortrait(response.text!!)

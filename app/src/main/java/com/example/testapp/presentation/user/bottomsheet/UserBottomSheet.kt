@@ -79,7 +79,7 @@ fun UserBottomSheet(
                     userData = userData,
                     onMessageClick = onNavigateToChat,
                     onPortraitClick = { userId ->
-                        if(portraitState is Resource.Idle) {
+                        if(portraitState.data?.get(userId) == null) {
                             chatParticipant?.chatId?.let { chatId ->
                                 userPortraitViewModel.createUserPortrait(chatId, userId)
                             }
@@ -89,6 +89,7 @@ fun UserBottomSheet(
                 if (portraitState !is Resource.Idle) {
                     PortraitFragment(
                         portraitState = portraitState,
+                        userId = userData.userId,
                         modifier = Modifier.fillMaxWidth().weight(1f)
                             .clip(RoundedCornerShape(8.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant)

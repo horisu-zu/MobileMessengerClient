@@ -131,6 +131,34 @@ object Converter {
         }
     }
 
+    fun formatInstant(
+        lastSeenInstant: Instant?,
+        context: Context,
+        includeTime: Boolean = false
+    ): String {
+        return lastSeenInstant?.let { instant ->
+            val currentZone = ZoneId.systemDefault()
+            val currentYear = LocalDateTime.now().year
+            val instantYear = instant.atZone(currentZone).year
+
+            val pattern = buildString {
+                append("dd MMM")
+                if (instantYear != currentYear) {
+                    append(" yyyy")
+                }
+                if (includeTime) {
+                    append(", HH:mm")
+                }
+            }
+
+            val formatter = DateTimeFormatter
+                .ofPattern(pattern)
+                .withLocale(Locale.getDefault())
+
+            instant.atZone(currentZone).format(formatter)
+        } ?: context.getString(R.string.duration_unlimited)
+    }
+
     fun formatAudioProgress(currentPositionMs: Long, durationMs: Long): String {
         val currentSeconds = currentPositionMs / 1000
         val totalSeconds = durationMs / 1000

@@ -86,6 +86,7 @@
     <string name="ubs_portrait">Portrait</string>
 
     <!-- ChatDropdown -->
+    <string name="cdd_admin">Admin</string>
     <string name="cdd_search">Search</string>
     <string name="cdd_info">Chat Info</string>
     <string name="cdd_leave">Leave Chat</string>

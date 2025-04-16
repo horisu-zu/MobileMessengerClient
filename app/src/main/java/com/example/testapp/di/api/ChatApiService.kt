@@ -5,6 +5,7 @@ import com.example.testapp.domain.dto.chat.ChatJoinRequest
 import chat.service.course.dto.GroupChatRequest
 import chat.service.course.dto.PersonalChatRequest
 import com.example.testapp.domain.dto.chat.ChatRestrictionRequest
+import com.example.testapp.domain.dto.chat.RestrictionExpireType
 import com.example.testapp.domain.dto.chat.ChatRestrictionUpdateRequest
 import com.example.testapp.domain.models.chat.Chat
 import com.example.testapp.domain.models.chat.ChatMetadata
@@ -71,6 +72,12 @@ interface ChatApiService {
 
     @GET("api/chats/{chatId}/participants-count")
     suspend fun getParticipantsCount(@Path("chatId") chatId: String): Int
+
+    @GET("api/chats/{chatId}/restrictions")
+    suspend fun getChatRestrictions(
+        @Path("chatId") chatId: String,
+        @Query("expireType") expireType: RestrictionExpireType
+    ): List<ChatRestriction>
 
     @POST("api/chats/{chatId}/restrictions")
     suspend fun createRestriction(

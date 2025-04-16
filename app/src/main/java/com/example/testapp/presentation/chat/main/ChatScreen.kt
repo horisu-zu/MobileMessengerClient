@@ -41,7 +41,6 @@ import com.example.testapp.presentation.viewmodel.message.MessageViewModel
 import com.example.testapp.presentation.viewmodel.notification.NotificationViewModel
 import com.example.testapp.presentation.viewmodel.reaction.ReactionViewModel
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
-import com.example.testapp.utils.Resource
 import java.util.Locale
 
 @Composable
@@ -74,35 +73,12 @@ fun ChatScreen(
     val showPersonalBottomSheet = remember { mutableStateOf(false) }
     val showRestrictionBottomSheet = remember { mutableStateOf(false) }
     val selectedUser = remember { mutableStateOf<UserResponse?>(null) }
-    //val isInitialized = rememberSaveable { mutableStateOf(false) }
 
     LaunchedEffect(chatId) {
         chatId?.let {
             currentUser?.userId?.let { userId ->
-                messageViewModel.getMessagesForChat(chatId, userId)
                 messageInputViewModel.initialize(chatId, userId)
                 chatViewModel.getUserRestrictionsInChat(chatId, userId)
-            }
-            reactionViewModel.loadReactionsForChat(chatId)
-            chatViewModel.getChatParticipants(chatId)
-            chatViewModel.getChatById(chatId)
-            chatViewModel.getChatMetadata(chatId)
-        }
-    }
-
-    LaunchedEffect(messagesState) {
-        if (messagesState.messages.isNotEmpty()) {
-            reactionViewModel.setMessageIdsInChat(
-                messagesState.messages.mapNotNull { it.messageId }
-            )
-        }
-    }
-
-    LaunchedEffect(participantsState) {
-        if(participantsState is Resource.Success) {
-            val userIds = participantsState.data?.map { it.userId }
-            userIds?.let {
-                userViewModel.getUsersByIds(userIds, chatId)
             }
         }
     }
@@ -117,6 +93,8 @@ fun ChatScreen(
     Scaffold(
         topBar = {
             ChatAppBar(
+                currentUserRole = participantsState.data?.find { it.userId == currentUser?.userId }?.role
+                    ?: GroupRole.MEMBER,
                 chatMetadata = metadataState.data,
                 userData = otherUserData,
                 userStatus = otherUserStatus,
@@ -130,8 +108,9 @@ fun ChatScreen(
                 },
                 onBackClick = { mainNavController.popBackStack() },
                 onPinClick = { /**/ },
+                onAdminClick = { chatNavController.navigate("chatScreenAdmin") },
                 onInfoClick = { showBottomSheet.value = true },
-                onSearchClick = { chatNavController.navigate("chatScreenSearch")},
+                onSearchClick = { chatNavController.navigate("chatScreenSearch") },
                 onLeaveClick = {
                     chatId?.let { chatId ->
                         currentUser?.userId?.let { userId ->

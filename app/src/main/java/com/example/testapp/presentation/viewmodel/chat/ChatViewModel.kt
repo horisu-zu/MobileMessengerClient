@@ -246,6 +246,7 @@ class ChatViewModel @Inject constructor(
 
     fun getUserRestrictionsInChat(chatId: String, userId: String) {
         viewModelScope.launch {
+            if(currentChatId == chatId) return@launch
             _chatUserRestrictionsState.value = Resource.Loading()
 
             try {

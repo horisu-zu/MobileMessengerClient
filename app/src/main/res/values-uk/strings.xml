@@ -82,6 +82,7 @@
     <string name="ubs_portrait">Портрет</string>
 
     <!-- ChatDropdown -->
+    <string name="cdd_admin">Адміністрування</string>
     <string name="cdd_search">Шукати</string>
     <string name="cdd_info">Інформація про чат</string>
     <string name="cdd_leave">Покинути чат</string>

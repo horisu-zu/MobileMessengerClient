@@ -17,9 +17,11 @@ import com.example.testapp.R
 @Composable
 fun ChatDropdown(
     isGroupChat: Boolean,
+    isAdmin: Boolean,
     expanded: Boolean,
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
+    onAdminClick: () -> Unit,
     onInfoClick: () -> Unit,
     onSearchClick: () -> Unit,
     onLeaveClick: () -> Unit
@@ -39,6 +41,17 @@ fun ChatDropdown(
             onClick = { onSearchClick() }
         )
         if(isGroupChat) {
+            if(isAdmin) {
+                DropdownMenuItem(
+                    text = { Text(stringResource(id = R.string.cdd_admin)) },
+                    leadingIcon = { Icon(
+                        painter = painterResource(R.drawable.ic_admin),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    ) },
+                    onClick = { onAdminClick() }
+                )
+            }
             DropdownMenuItem(
                 text = { Text(stringResource(id = R.string.cdd_info)) },
                 leadingIcon = { Icon(

@@ -1,7 +1,6 @@
 package com.example.testapp.presentation.chat.main
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -32,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.example.testapp.R
 import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.models.chat.ChatMetadata
+import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.domain.models.user.UserStatus
 import com.example.testapp.presentation.chat.dropdown.ChatDropdown
 import com.example.testapp.presentation.templates.Avatar
@@ -41,12 +41,14 @@ import kotlinx.coroutines.delay
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatAppBar(
+    currentUserRole: GroupRole,
     chatMetadata: ChatMetadata?,
     userData: UserResponse?,
     userStatus: UserStatus?,
     onAvatarClick: () -> Unit,
     onBackClick: () -> Unit,
     onPinClick: () -> Unit,
+    onAdminClick: () -> Unit,
     onInfoClick: () -> Unit,
     onSearchClick: () -> Unit,
     onLeaveClick: () -> Unit,
@@ -82,8 +84,13 @@ fun ChatAppBar(
 
             ChatDropdown(
                 isGroupChat = chatMetadata != null,
+                isAdmin = currentUserRole != GroupRole.MEMBER,
                 expanded = dropdownExpanded,
                 onDismissRequest = { dropdownExpanded = false },
+                onAdminClick = {
+                    dropdownExpanded = false
+                    onAdminClick()
+                },
                 onInfoClick = {
                     dropdownExpanded = false
                     onInfoClick()

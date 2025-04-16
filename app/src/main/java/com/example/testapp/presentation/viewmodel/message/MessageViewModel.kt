@@ -174,7 +174,7 @@ class MessageViewModel @Inject constructor(
                     .indexOfFirst { it.messageId == messageId }
                 val message = _chatMessagesState.value.messages[messageIndex]
 
-                val translatedMessage = aiService.translateMessage(message.message ?: "", locale)
+                val translatedMessage = aiService.translateMessage(message.message ?: "", locale).trim()
                 Log.d("MessageViewModel", "Translated Message: $translatedMessage")
                 val updatedMessages = _chatMessagesState.value.messages.toMutableList()
                 updatedMessages[messageIndex] = message.copy(

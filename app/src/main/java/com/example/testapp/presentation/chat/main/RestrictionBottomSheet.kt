@@ -3,6 +3,7 @@ package com.example.testapp.presentation.chat.main
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +23,9 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchColors
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -32,7 +36,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -95,6 +101,12 @@ fun RestrictionBottomSheet(
                     modifier = Modifier.fillMaxWidth()
                 )
             }
+            RestrictionTypeItem(
+                currentType = inputState.type,
+                onTypeChange = { newType ->
+                    restrictionInputViewModel.updateInputState(inputState.copy(type = newType))
+                }
+            )
             RestrictionDescSection(
                 listOf(
                     SectionItem.Input(
@@ -127,6 +139,86 @@ fun RestrictionBottomSheet(
                 onClearState = {
                     restrictionInputViewModel.clearInputState()
                 }
+            )
+        }
+    }
+}
+
+@Composable
+private fun RestrictionTypeItem(
+    currentType: RestrictionType,
+    onTypeChange: (RestrictionType) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                .background(if(currentType == RestrictionType.MUTE) MaterialTheme.colorScheme.background
+                    else MaterialTheme.colorScheme.surfaceVariant)
+                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = RestrictionType.MUTE.name,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            )
+        }
+        Switch(
+            checked = currentType == RestrictionType.BAN,
+            onCheckedChange = { isChecked ->
+                val newType = if (isChecked) RestrictionType.BAN else RestrictionType.MUTE
+                onTypeChange(newType)
+            }, colors = SwitchDefaults.colors(
+                checkedIconColor = MaterialTheme.colorScheme.onSurface,
+                uncheckedIconColor = MaterialTheme.colorScheme.onSurface,
+                checkedThumbColor =  MaterialTheme.colorScheme.background,
+                uncheckedThumbColor = MaterialTheme.colorScheme.background,
+                checkedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant,
+                uncheckedBorderColor = MaterialTheme.colorScheme.outline,
+                checkedBorderColor = MaterialTheme.colorScheme.outline
+            ),
+            thumbContent = {
+                if(currentType == RestrictionType.BAN) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_ban),
+                        contentDescription = null,
+                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_mute),
+                        contentDescription = null,
+                        modifier = Modifier.size(SwitchDefaults.IconSize)
+                    )
+                }
+            }
+        )
+        Box(
+            modifier = Modifier.clip(RoundedCornerShape(8.dp))
+                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+                .background(if(currentType == RestrictionType.BAN) MaterialTheme.colorScheme.background
+                    else MaterialTheme.colorScheme.surfaceVariant)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = RestrictionType.BAN.name,
+                style = MaterialTheme.typography.bodyMedium.copy(
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
     }

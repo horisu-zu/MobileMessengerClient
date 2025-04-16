@@ -35,7 +35,8 @@ import com.example.testapp.utils.Resource
 
 @Composable
 fun PortraitFragment(
-    portraitState: Resource<UserPortrait>,
+    portraitState: Resource<Map<String, UserPortrait>>,
+    userId: String,
     modifier: Modifier = Modifier
 ) {
     Box(
@@ -56,28 +57,32 @@ fun PortraitFragment(
                 }
             }
             is Resource.Success -> {
-                Column(
-                    modifier = Modifier.fillMaxSize()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
+                val userPortrait = portraitState.data?.get(userId)
+
+                userPortrait?.let { portrait ->
                     Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(4.dp)
+                        modifier = Modifier.fillMaxSize()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        portraitState.data?.characteristics?.forEach { userCharacteristic ->
-                            CharacteristicItem(
-                                userCharacteristic = userCharacteristic
-                            )
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            portrait.characteristics.forEach { userCharacteristic ->
+                                CharacteristicItem(
+                                    userCharacteristic = userCharacteristic
+                                )
+                            }
                         }
+                        Text(
+                            text = MarkdownString.parseMarkdown(
+                                text = portrait.portraitSummary,
+                                color = MaterialTheme.colorScheme.primary
+                            ),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
-                    Text(
-                        text = MarkdownString.parseMarkdown(
-                            text = portraitState.data?.portraitSummary ?: "...",
-                            color = MaterialTheme.colorScheme.primary
-                        ),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
                 }
             }
             else -> {
