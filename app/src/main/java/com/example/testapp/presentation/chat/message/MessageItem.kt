@@ -232,7 +232,10 @@ fun MessageItem(
                             } else {
                                 start.linkTo(messageSurface.start)
                             }
-                        }
+                        }.padding(
+                            start = if(isCurrentUser) 56.dp else 0.dp,
+                            end = if(isCurrentUser) 0.dp else 56.dp
+                        )
                     )
                 }
             }

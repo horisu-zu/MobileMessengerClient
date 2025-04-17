@@ -115,6 +115,7 @@ fun ChatNavigator(
         ) {
             ChatAdminScreen(
                 chatId = chatId,
+                currentUserId = currentUserData?.userId,
                 userViewModel = userViewModel,
                 chatNavController = chatNavController
             )

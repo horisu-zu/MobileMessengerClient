@@ -1,7 +1,6 @@
 package com.example.testapp.presentation.chat.main
 
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -24,7 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchColors
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
@@ -38,7 +36,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -54,6 +51,7 @@ import com.example.testapp.presentation.viewmodel.chat.ChatRestrictionInputViewM
 import com.example.testapp.utils.Converter.formatDuration
 import com.example.testapp.utils.Resource
 import java.time.Duration
+import java.time.Instant
 import kotlin.math.roundToInt
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -61,8 +59,10 @@ import kotlin.math.roundToInt
 fun RestrictionBottomSheet(
     chatId: String,
     currentUserId: String?,
+    existingRestriction: ChatRestriction? = null,
     userData: UserResponse,
     onDismiss: () -> Unit,
+    onUpdate: ((ChatRestriction) -> Unit)? = null,
     restrictionInputViewModel: ChatRestrictionInputViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -71,15 +71,43 @@ fun RestrictionBottomSheet(
     val restrictionState by restrictionInputViewModel.restrictionState.collectAsState()
 
     LaunchedEffect(Unit) {
-        restrictionInputViewModel.updateInputState(
-            ChatRestrictionRequest(
-                userId = userData.userId,
-                type = RestrictionType.MUTE,
-                duration = Duration.ZERO.toString(),
-                reason = "",
-                createdBy = currentUserId ?: ""
+        if(existingRestriction == null) {
+            restrictionInputViewModel.updateInputState(
+                ChatRestrictionRequest(
+                    userId = userData.userId,
+                    type = RestrictionType.MUTE,
+                    duration = Duration.ZERO.toString(),
+                    reason = "",
+                    createdBy = currentUserId ?: ""
+                )
             )
-        )
+        } else {
+            val currentTime = Instant.now()
+            val expiresAtInstant = existingRestriction.expiresAt ?: Instant.now()
+
+            val remainingDuration = if (expiresAtInstant.isAfter(currentTime)) {
+                Duration.between(currentTime, expiresAtInstant)
+            } else {
+                Duration.ZERO
+            }
+
+            restrictionInputViewModel.updateInputState(
+                ChatRestrictionRequest(
+                    userId = existingRestriction.userId,
+                    type = RestrictionType.valueOf(existingRestriction.type),
+                    duration = remainingDuration.toString(),
+                    reason = existingRestriction.reason,
+                    createdBy = existingRestriction.createdBy!!
+                )
+            )
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        restrictionInputViewModel.completionEvent.collect { updatedRestriction ->
+            onDismiss()
+            onUpdate?.invoke(updatedRestriction)
+        }
     }
 
     ModalBottomSheet(
@@ -102,12 +130,14 @@ fun RestrictionBottomSheet(
                 )
             }
             RestrictionTypeItem(
+                isUpdating = existingRestriction != null,
                 currentType = inputState.type,
                 onTypeChange = { newType ->
                     restrictionInputViewModel.updateInputState(inputState.copy(type = newType))
                 }
             )
             RestrictionDescSection(
+                isUpdating = existingRestriction != null,
                 listOf(
                     SectionItem.Input(
                         label = "Reason",
@@ -126,19 +156,19 @@ fun RestrictionBottomSheet(
                 }
             )
             ChangeRow(
+                isUpdating = existingRestriction != null,
                 restrictionState = restrictionState,
                 onSave = {
-                    restrictionInputViewModel.createUserRestriction(chatId, inputState)
-                        .invokeOnCompletion { throwable ->
-                            when(throwable) {
-                                null -> onDismiss()
-                                else -> Toast.makeText(context, "Error: ${throwable.message}", Toast.LENGTH_SHORT).show()
-                            }
+                    if(existingRestriction == null) {
+                        restrictionInputViewModel.createUserRestriction(chatId, inputState)
+                    } else {
+                        restrictionInputViewModel.updateRestriction(
+                            existingRestriction.restrictionId,
+                            Duration.parse(inputState.duration)
+                        )
                     }
                 },
-                onClearState = {
-                    restrictionInputViewModel.clearInputState()
-                }
+                onClearState = { restrictionInputViewModel.clearInputState() }
             )
         }
     }
@@ -146,6 +176,7 @@ fun RestrictionBottomSheet(
 
 @Composable
 private fun RestrictionTypeItem(
+    isUpdating: Boolean,
     currentType: RestrictionType,
     onTypeChange: (RestrictionType) -> Unit,
     modifier: Modifier = Modifier
@@ -158,23 +189,12 @@ private fun RestrictionTypeItem(
         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Box(
-            modifier = Modifier.clip(RoundedCornerShape(8.dp))
-                .background(if(currentType == RestrictionType.MUTE) MaterialTheme.colorScheme.background
-                    else MaterialTheme.colorScheme.surfaceVariant)
-                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = RestrictionType.MUTE.name,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        }
+        RestrictionTypeItem(
+            title = RestrictionType.MUTE.name,
+            isCurrentType = currentType == RestrictionType.MUTE
+        )
         Switch(
+            enabled = !isUpdating,
             checked = currentType == RestrictionType.BAN,
             onCheckedChange = { isChecked ->
                 val newType = if (isChecked) RestrictionType.BAN else RestrictionType.MUTE
@@ -205,22 +225,33 @@ private fun RestrictionTypeItem(
                 }
             }
         )
-        Box(
-            modifier = Modifier.clip(RoundedCornerShape(8.dp))
-                .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
-                .background(if(currentType == RestrictionType.BAN) MaterialTheme.colorScheme.background
-                    else MaterialTheme.colorScheme.surfaceVariant)
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = RestrictionType.BAN.name,
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
+        RestrictionTypeItem(
+            title = RestrictionType.BAN.name,
+            isCurrentType = currentType == RestrictionType.BAN
+        )
+    }
+}
+
+@Composable
+private fun RestrictionTypeItem(
+    title: String,
+    isCurrentType: Boolean
+) {
+    Box(
+        modifier = Modifier.clip(RoundedCornerShape(8.dp))
+            .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(8.dp))
+            .background(if(isCurrentType) MaterialTheme.colorScheme.background
+                else MaterialTheme.colorScheme.surfaceVariant)
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyMedium.copy(
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
             )
-        }
+        )
     }
 }
 
@@ -275,6 +306,7 @@ private fun RestrictionSlider(
 
 @Composable
 private fun RestrictionDescSection(
+    isUpdating: Boolean,
     sectionItems: List<SectionItem.Input>
 ) {
     Column(
@@ -285,6 +317,7 @@ private fun RestrictionDescSection(
     ) {
         sectionItems.forEach { item ->
             RestrictionDescInputItem(
+                isUpdating = isUpdating,
                 title = item.label,
                 value = item.value,
                 onValueChange = item.onValueChange
@@ -295,6 +328,7 @@ private fun RestrictionDescSection(
 
 @Composable
 private fun RestrictionDescInputItem(
+    isUpdating: Boolean,
     title: String,
     value: String,
     onValueChange: (String) -> Unit
@@ -309,13 +343,15 @@ private fun RestrictionDescInputItem(
         BasicTextInput(
             value = value,
             onValueChange = onValueChange,
-            minLines = 3
+            minLines = 3,
+            enabled = !isUpdating
         )
     }
 }
 
 @Composable
 private fun ChangeRow(
+    isUpdating: Boolean,
     onSave: () -> Unit,
     onClearState: () -> Unit,
     restrictionState: Resource<ChatRestriction>,
@@ -328,15 +364,17 @@ private fun ChangeRow(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End)
     ) {
-        IconButton(
-            onClick = onClearState
-        ) {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                tint = MaterialTheme.colorScheme.error,
-                contentDescription = null,
-                modifier = Modifier.size(36.dp)
-            )
+        if(isUpdating) {
+            IconButton(
+                onClick = onClearState
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Delete,
+                    tint = MaterialTheme.colorScheme.error,
+                    contentDescription = null,
+                    modifier = Modifier.size(36.dp)
+                )
+            }
         }
         Box(
             modifier = Modifier

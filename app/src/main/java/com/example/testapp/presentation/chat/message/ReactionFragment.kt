@@ -59,9 +59,8 @@ fun ReactionFragment(
 
     FlowRow(
         modifier = modifier
-            .padding(top = 2.dp)
+            .padding(top = 1.dp)
             .animateContentSize(),
-        horizontalArrangement = Arrangement.spacedBy(2.dp),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         groupedReactions.forEach { (emoji, reactionList) ->
@@ -89,12 +88,8 @@ fun ReactionFragment(
                         usersData = reactionUsers,
                         hasCurrentUserReacted = hasCurrentUserReacted,
                         totalReactions = totalReactions,
-                        onClick = {
-                            onReactionClick(messageId, currentUserId, emoji)
-                        },
-                        onLongClick = {
-                            onReactionLongClick(emoji)
-                        }
+                        onClick = { onReactionClick(messageId, currentUserId, emoji) },
+                        onLongClick = { onReactionLongClick(emoji) }
                     )
                 }
             }

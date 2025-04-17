@@ -8,11 +8,15 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +24,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Icon
@@ -31,6 +36,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,6 +44,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -46,6 +53,7 @@ import com.example.testapp.R
 import com.example.testapp.domain.dto.chat.RestrictionExpireType
 import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.models.chat.ChatRestriction
+import com.example.testapp.presentation.chat.main.RestrictionBottomSheet
 import com.example.testapp.presentation.templates.Avatar
 import com.example.testapp.presentation.viewmodel.chat.ChatRestrictionViewModel
 import com.example.testapp.utils.Converter
@@ -55,6 +63,8 @@ import java.time.Instant
 fun ChatRestrictionsPage(
     expireType: RestrictionExpireType,
     usersList: List<UserResponse>,
+    onClearRestriction: (String) -> Unit,
+    onUpdateRestriction: (ChatRestriction) -> Unit,
     chatRestrictionViewModel: ChatRestrictionViewModel = hiltViewModel()
 ) {
     val restrictionsState by chatRestrictionViewModel.restrictionState.collectAsState()
@@ -72,7 +82,9 @@ fun ChatRestrictionsPage(
                 userData = usersList.first { it.userId == restriction.userId },
                 applierData = usersList.first { it.userId == restriction.createdBy },
                 isExpired = isExpired,
-                context = context
+                context = context,
+                onUpdateRestriction = onUpdateRestriction,
+                onClearRestriction = onClearRestriction
             )
         }
     }
@@ -85,9 +97,11 @@ private fun ChatRestrictionItem(
     applierData: UserResponse,
     isExpired: Boolean,
     context: Context,
+    onUpdateRestriction: (ChatRestriction) -> Unit,
+    onClearRestriction: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var isExpanded by remember { mutableStateOf(false) }
+    var isExpanded by rememberSaveable { mutableStateOf(false) }
     val rotationState by animateFloatAsState(
         targetValue = if (isExpanded) 180f else 0f,
         label = "Arrow rotation"
@@ -190,9 +204,47 @@ private fun ChatRestrictionItem(
                         )
                     }
                 }
-                /*if(!isExpired) {
-
-                }*/
+                if(!isExpired) {
+                    Row(
+                        Modifier.fillMaxWidth()
+                            .height(IntrinsicSize.Min)
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Clear,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.fillMaxHeight().clip(RoundedCornerShape(8.dp))
+                                .clickable { onClearRestriction(restriction.restrictionId) }
+                                .background(MaterialTheme.colorScheme.background)
+                                .padding(4.dp)
+                        )
+                        Row(
+                            Modifier.fillMaxHeight().clip(RoundedCornerShape(8.dp))
+                                .background(MaterialTheme.colorScheme.background)
+                                .clickable { onUpdateRestriction(restriction) }
+                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_update),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Text(
+                                text = stringResource(R.string.crp_update),
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            )
+                        }
+                    }
+                }
             }
         }
     }

@@ -29,16 +29,20 @@ import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.testapp.domain.dto.chat.RestrictionExpireType
+import com.example.testapp.domain.models.chat.ChatRestriction
+import com.example.testapp.presentation.chat.main.RestrictionBottomSheet
 import com.example.testapp.presentation.templates.BasicTextInput
 import com.example.testapp.presentation.viewmodel.chat.ChatRestrictionViewModel
 import com.example.testapp.presentation.viewmodel.user.UserViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.Duration
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatAdminScreen(
     chatId: String?,
+    currentUserId: String?,
     chatNavController: NavController,
     userViewModel: UserViewModel,
     chatRestrictionViewModel: ChatRestrictionViewModel = hiltViewModel()
@@ -52,6 +56,9 @@ fun ChatAdminScreen(
     var isRefreshing by remember { mutableStateOf(false) }
     val search = remember { mutableStateOf("") }
     val usersState by userViewModel.participantsState.collectAsState()
+
+    var selectedRestriction by remember { mutableStateOf<ChatRestriction?>(null) }
+    val showBottomSheet = remember { mutableStateOf(false) }
 
     Log.d("ChatAdminScreen", "UsersList: ${usersState.data}")
 
@@ -131,9 +138,34 @@ fun ChatAdminScreen(
                     ChatRestrictionsPage(
                         expireType = expireType,
                         usersList = usersState.data ?: emptyList(),
+                        onUpdateRestriction = { restriction ->
+                            selectedRestriction = restriction
+                            showBottomSheet.value = true
+                        },
+                        onClearRestriction = { restrictionId ->
+                            chatRestrictionViewModel.updateRestriction(restrictionId, Duration.ZERO)
+                        },
                         chatRestrictionViewModel = chatRestrictionViewModel
                     )
                 }
+            }
+        }
+
+        showBottomSheet.value.let {
+            selectedRestriction?.let {
+                RestrictionBottomSheet(
+                    chatId = chatId!!,
+                    existingRestriction = selectedRestriction,
+                    userData = usersState.data!!.first { it.userId == selectedRestriction!!.userId },
+                    currentUserId = currentUserId,
+                    onDismiss = {
+                        showBottomSheet.value = false
+                        selectedRestriction = null
+                    },
+                    onUpdate = { restriction ->
+                        chatRestrictionViewModel.updateLocalRestriction(restriction)
+                    }
+                )
             }
         }
     }

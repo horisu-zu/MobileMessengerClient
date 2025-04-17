@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.testapp.di.api.ChatApiService
+import com.example.testapp.domain.dto.chat.ChatRestrictionUpdateRequest
 import com.example.testapp.domain.dto.chat.RestrictionExpireType
 import com.example.testapp.domain.models.chat.ChatRestriction
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -11,6 +12,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.time.Duration
+import java.time.Instant
 import javax.inject.Inject
 
 @HiltViewModel
@@ -45,6 +48,46 @@ class ChatRestrictionViewModel @Inject constructor(
             } catch (e: Exception) {
                 Log.e("ChatRestrictionViewModel", e.message ?: "Unknown Error")
             }
+        }
+    }
+
+    fun updateRestriction(
+        restrictionId: String,
+        newDuration: Duration
+    ) {
+        viewModelScope.launch {
+            try {
+                val response = chatRepository.updateRestriction(
+                    restrictionId,
+                    ChatRestrictionUpdateRequest(newDuration.toString())
+                )
+
+                updateLocalRestriction(response)
+            } catch (e: Exception) {
+                Log.e("ChatRestrictionViewModel", e.message ?: "Unknown Error")
+            }
+        }
+    }
+
+    fun updateLocalRestriction(updatedRestriction: ChatRestriction) {
+        _restrictionsState.update { currentMap ->
+            val mutableMap = currentMap.toMutableMap()
+
+            RestrictionExpireType.entries.forEach { type ->
+                val currentList = mutableMap[type] ?: emptyList()
+                mutableMap[type] = currentList.filter { it.restrictionId != updatedRestriction.restrictionId }
+            }
+
+            val expireType = if (updatedRestriction.expiresAt!!.isBefore(Instant.now())) {
+                RestrictionExpireType.EXPIRED
+            } else {
+                RestrictionExpireType.ACTIVE
+            }
+
+            val updatedList = mutableMap[expireType] ?: emptyList()
+            mutableMap[expireType] = listOf(updatedRestriction) + updatedList
+
+            mutableMap
         }
     }
 }

@@ -112,4 +112,7 @@
     <string name="duration_title">Тривалість</string>
     <string name="reason_title">Причина</string>
 
+    <!-- ChatRestrictionsPage -->
+    <string name="crp_update">Оновити обмеження</string>
+
 </resources>

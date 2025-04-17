@@ -112,4 +112,7 @@
     <string name="duration_title">Duration</string>
     <string name="reason_title">Reason</string>
 
+    <!-- ChatRestrictionsPage -->
+    <string name="crp_update">Update Restriction</string>
+
 </resources>
