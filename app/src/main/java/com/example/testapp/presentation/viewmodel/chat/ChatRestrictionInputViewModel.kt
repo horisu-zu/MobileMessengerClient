@@ -8,7 +8,6 @@ import com.example.testapp.domain.models.chat.ChatRestriction
 import com.example.testapp.domain.models.chat.RestrictionType
 import com.example.testapp.domain.usecase.CreateChatRestrictionUseCase
 import com.example.testapp.domain.usecase.UpdateChatRestrictionUseCase
-import com.example.testapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,24 +37,18 @@ class ChatRestrictionInputViewModel @Inject constructor(
     private val _completionEvent = MutableSharedFlow<ChatRestriction>(0)
     val completionEvent = _completionEvent.asSharedFlow()
 
-    private val _restrictionState = MutableStateFlow<Resource<ChatRestriction>>(Resource.Idle())
-    val restrictionState = _restrictionState.asStateFlow()
-
     fun createUserRestriction(
         chatId: String,
         chatRestrictionRequest: ChatRestrictionRequest
     ) = viewModelScope.launch {
-        _restrictionState.value = Resource.Loading()
 
         val response = createChatRestrictionUseCase.execute(chatId, chatRestrictionRequest)
         response.fold(
             onSuccess = { restriction ->
-                _restrictionState.value = Resource.Success(restriction)
                 _completionEvent.emit(restriction)
             },
             onFailure = { error ->
                 Log.e("ChatRestrictionInputViewModel", "Error: ${error.message}")
-                _restrictionState.value = Resource.Error(error.message ?: "Unknown Error")
             }
         )
     }
@@ -64,18 +57,15 @@ class ChatRestrictionInputViewModel @Inject constructor(
         restrictionId: String,
         newDuration: Duration
     ) = viewModelScope.launch {
-        _restrictionState.value = Resource.Loading()
 
         try {
             val response = updateChatRestrictionUseCase.execute(restrictionId, newDuration)
             response.fold(
                 onSuccess = { restriction ->
-                    _restrictionState.value = Resource.Success(restriction)
                     _completionEvent.emit(restriction)
                 },
                 onFailure = { error ->
                     Log.e("ChatRestrictionInputViewModel", "Error: ${error.message}")
-                    _restrictionState.value = Resource.Error(error.message ?: "Unknown Error")
                 }
             )
         } catch (e: Exception) {

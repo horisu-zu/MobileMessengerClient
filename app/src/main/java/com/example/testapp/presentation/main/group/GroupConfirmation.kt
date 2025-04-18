@@ -21,9 +21,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import chat.service.course.dto.GroupChatRequest
-import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.R
 import com.example.testapp.domain.dto.user.UserResponse
+import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.presentation.main.group.groupconfirmation.GroupInfoItem
 import com.example.testapp.presentation.main.group.groupcustomization.AvatarComponent
 import com.example.testapp.presentation.main.group.groupcustomization.MemberItem

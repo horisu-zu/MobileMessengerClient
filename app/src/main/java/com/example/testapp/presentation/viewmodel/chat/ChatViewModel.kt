@@ -9,9 +9,9 @@ import chat.service.course.dto.GroupChatRequest
 import chat.service.course.dto.PersonalChatRequest
 import com.example.testapp.domain.models.chat.Chat
 import com.example.testapp.domain.models.chat.ChatMetadata
-import com.example.testapp.domain.models.chat.ChatParticipant
 import com.example.testapp.di.api.ChatApiService
 import com.example.testapp.di.websocket.MetadataWebSocketClient
+import com.example.testapp.domain.models.chat.ChatParticipant
 import com.example.testapp.domain.models.chat.ChatRestriction
 import com.example.testapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel

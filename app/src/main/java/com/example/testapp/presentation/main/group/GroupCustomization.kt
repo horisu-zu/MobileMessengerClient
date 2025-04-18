@@ -25,8 +25,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import chat.service.course.dto.GroupChatRequest
-import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.domain.dto.user.UserResponse
+import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.presentation.main.group.groupcustomization.AvatarComponent
 import com.example.testapp.presentation.main.group.groupcustomization.ImageSourceDialog
 import com.example.testapp.presentation.main.group.groupcustomization.MemberItem

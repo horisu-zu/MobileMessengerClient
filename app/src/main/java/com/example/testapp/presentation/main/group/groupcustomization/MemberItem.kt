@@ -26,8 +26,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.domain.dto.user.UserResponse
+import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.presentation.templates.Avatar
 
 @Composable

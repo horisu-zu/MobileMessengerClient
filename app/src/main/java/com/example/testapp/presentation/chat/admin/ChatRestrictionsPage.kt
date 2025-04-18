@@ -16,11 +16,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -32,10 +30,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -48,26 +44,24 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.itemKey
 import com.example.testapp.R
 import com.example.testapp.domain.dto.chat.RestrictionExpireType
 import com.example.testapp.domain.dto.user.UserResponse
 import com.example.testapp.domain.models.chat.ChatRestriction
-import com.example.testapp.presentation.chat.main.RestrictionBottomSheet
 import com.example.testapp.presentation.templates.Avatar
-import com.example.testapp.presentation.viewmodel.chat.ChatRestrictionViewModel
 import com.example.testapp.utils.Converter
 import java.time.Instant
 
 @Composable
 fun ChatRestrictionsPage(
+    restrictionItems: LazyPagingItems<ChatRestriction>,
     expireType: RestrictionExpireType,
     usersList: List<UserResponse>,
     onClearRestriction: (String) -> Unit,
     onUpdateRestriction: (ChatRestriction) -> Unit,
-    chatRestrictionViewModel: ChatRestrictionViewModel = hiltViewModel()
 ) {
-    val restrictionsState by chatRestrictionViewModel.restrictionState.collectAsState()
     val isExpired = expireType == RestrictionExpireType.EXPIRED
     val context = LocalContext.current
 
@@ -76,16 +70,23 @@ fun ChatRestrictionsPage(
         contentPadding = PaddingValues(horizontal = 18.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top)
     ) {
-        items(restrictionsState[expireType] ?: emptyList()) { restriction ->
-            ChatRestrictionItem(
-                restriction = restriction,
-                userData = usersList.first { it.userId == restriction.userId },
-                applierData = usersList.first { it.userId == restriction.createdBy },
-                isExpired = isExpired,
-                context = context,
-                onUpdateRestriction = onUpdateRestriction,
-                onClearRestriction = onClearRestriction
-            )
+        items(
+            count = restrictionItems.itemCount,
+            key = restrictionItems.itemKey { it.restrictionId }
+        ) { index ->
+            val restriction = restrictionItems[index]
+
+            restriction?.let {
+                ChatRestrictionItem(
+                    restriction = it,
+                    userData = usersList.first { it.userId == restriction.userId },
+                    applierData = usersList.first { it.userId == restriction.createdBy },
+                    isExpired = isExpired,
+                    context = context,
+                    onUpdateRestriction = onUpdateRestriction,
+                    onClearRestriction = onClearRestriction
+                )
+            }
         }
     }
 }

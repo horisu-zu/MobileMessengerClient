@@ -1,9 +1,9 @@
 package com.example.testapp.domain.usecase
 
+import com.example.testapp.domain.models.chat.ChatDisplayData
 import com.example.testapp.di.api.MessageApiService
 import com.example.testapp.di.api.UserApiService
 import com.example.testapp.domain.dto.message.MessageEvent
-import com.example.testapp.domain.models.chat.ChatDisplayData
 import javax.inject.Inject
 
 class ProcessMessageUpdatesUseCase @Inject constructor(

@@ -28,7 +28,6 @@ import androidx.compose.ui.zIndex
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.testapp.domain.dto.user.UserResponse
-import com.example.testapp.domain.models.chat.ChatType
 import com.example.testapp.domain.models.chat.GroupRole
 import com.example.testapp.presentation.chat.bottomsheet.chat.ChatBottomSheet
 import com.example.testapp.presentation.chat.message.MessageList
@@ -146,7 +145,7 @@ fun ChatScreen(
                 Box(modifier = Modifier.weight(1f)) {
                     userState.data?.let {
                         MessageList(
-                            chatType = chatState.data?.chatType ?: ChatType.PERSONAL,
+                            chatType = chatState.data?.chatType ?: com.example.testapp.domain.models.chat.ChatType.PERSONAL,
                             currentUserRole = participantsState.data?.find { it.userId == currentUser?.userId }?.role ?: GroupRole.MEMBER,
                             currentUserId = currentUser?.userId ?: "bruh",
                             messages = messagesState.messages,
@@ -244,7 +243,7 @@ fun ChatScreen(
                                 userData = userData,
                                 userStatus = userStatus,
                                 isInChat = true,
-                                chatParticipant = participantsState.data?.find { it.userId == userData.userId },
+                                chatParticipant = participantsState.data?.find { it?.userId == userData.userId },
                                 avatarUrl = metadataState.data?.avatar,
                                 onDismiss = { showPersonalBottomSheet.value = false },
                                 showBottomSheet = showPersonalBottomSheet.value,

@@ -31,8 +31,8 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.testapp.domain.models.chat.ChatMetadata
 import com.example.testapp.R
+import com.example.testapp.domain.models.chat.ChatMetadata
 import com.example.testapp.presentation.templates.Avatar
 import com.example.testapp.presentation.viewmodel.chat.ChatViewModel
 import com.example.testapp.utils.Resource

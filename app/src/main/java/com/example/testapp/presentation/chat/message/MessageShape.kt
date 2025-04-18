@@ -2,7 +2,6 @@ package com.example.testapp.presentation.chat.message
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 fun messageShape(

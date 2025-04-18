@@ -30,6 +30,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -49,7 +52,6 @@ import com.example.testapp.presentation.templates.section.SectionItem
 import com.example.testapp.presentation.user.bottomsheet.UserInfoItem
 import com.example.testapp.presentation.viewmodel.chat.ChatRestrictionInputViewModel
 import com.example.testapp.utils.Converter.formatDuration
-import com.example.testapp.utils.Resource
 import java.time.Duration
 import java.time.Instant
 import kotlin.math.roundToInt
@@ -68,7 +70,6 @@ fun RestrictionBottomSheet(
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState()
     val inputState by restrictionInputViewModel.inputState.collectAsState()
-    val restrictionState by restrictionInputViewModel.restrictionState.collectAsState()
 
     LaunchedEffect(Unit) {
         if(existingRestriction == null) {
@@ -157,7 +158,6 @@ fun RestrictionBottomSheet(
             )
             ChangeRow(
                 isUpdating = existingRestriction != null,
-                restrictionState = restrictionState,
                 onSave = {
                     if(existingRestriction == null) {
                         restrictionInputViewModel.createUserRestriction(chatId, inputState)
@@ -354,9 +354,10 @@ private fun ChangeRow(
     isUpdating: Boolean,
     onSave: () -> Unit,
     onClearState: () -> Unit,
-    restrictionState: Resource<ChatRestriction>,
     modifier: Modifier = Modifier
 ) {
+    var isLoading by remember { mutableStateOf(false) }
+
     Row(
         modifier = modifier.fillMaxWidth()
             .clip(RoundedCornerShape(8.dp))
@@ -364,7 +365,7 @@ private fun ChangeRow(
             .padding(horizontal = 12.dp, vertical = 8.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End)
     ) {
-        if(isUpdating) {
+        if(!isUpdating) {
             IconButton(
                 onClick = onClearState
             ) {
@@ -383,14 +384,17 @@ private fun ChangeRow(
                 .size(48.dp),
             contentAlignment = Alignment.Center
         ) {
-            if (restrictionState is Resource.Loading) {
+            if (isLoading) {
                 CircularProgressIndicator(
                     modifier = Modifier.size(24.dp),
                     color = MaterialTheme.colorScheme.primary
                 )
             } else {
                 IconButton(
-                    onClick = onSave
+                    onClick = {
+                        isLoading = true
+                        onSave()
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Outlined.CheckCircle,

@@ -4,13 +4,13 @@ import chat.service.course.dto.ChatDBResponse
 import com.example.testapp.domain.dto.chat.ChatJoinRequest
 import chat.service.course.dto.GroupChatRequest
 import chat.service.course.dto.PersonalChatRequest
+import com.example.testapp.domain.models.chat.Chat
+import com.example.testapp.domain.models.chat.ChatMetadata
 import com.example.testapp.domain.dto.chat.ChatRestrictionRequest
 import com.example.testapp.domain.dto.chat.RestrictionExpireType
 import com.example.testapp.domain.dto.chat.ChatRestrictionUpdateRequest
-import com.example.testapp.domain.models.chat.Chat
-import com.example.testapp.domain.models.chat.ChatMetadata
-import com.example.testapp.domain.models.chat.ChatParticipant
 import com.example.testapp.domain.dto.chat.ConversationPartner
+import com.example.testapp.domain.models.chat.ChatParticipant
 import com.example.testapp.domain.models.chat.ChatRestriction
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -76,7 +76,9 @@ interface ChatApiService {
     @GET("api/chats/{chatId}/restrictions")
     suspend fun getChatRestrictions(
         @Path("chatId") chatId: String,
-        @Query("expireType") expireType: RestrictionExpireType
+        @Query("expireType") expireType: RestrictionExpireType,
+        @Query("page") page: Int,
+        @Query("size") size: Int
     ): List<ChatRestriction>
 
     @POST("api/chats/{chatId}/restrictions")

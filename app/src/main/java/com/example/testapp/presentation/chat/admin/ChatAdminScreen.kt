@@ -28,6 +28,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.paging.compose.collectAsLazyPagingItems
+import com.example.testapp.data.local.entity.ChatRestrictionEntity.Companion.toEntity
 import com.example.testapp.domain.dto.chat.RestrictionExpireType
 import com.example.testapp.domain.models.chat.ChatRestriction
 import com.example.testapp.presentation.chat.main.RestrictionBottomSheet
@@ -59,8 +61,6 @@ fun ChatAdminScreen(
 
     var selectedRestriction by remember { mutableStateOf<ChatRestriction?>(null) }
     val showBottomSheet = remember { mutableStateOf(false) }
-
-    Log.d("ChatAdminScreen", "UsersList: ${usersState.data}")
 
     Scaffold(
         topBar = {
@@ -105,13 +105,13 @@ fun ChatAdminScreen(
                 modifier = Modifier.weight(1f)
             ) { page ->
                 val expireType = tabs[page].first
+                val restrictionItems = chatId?.let {
+                    chatRestrictionViewModel.getChatRestrictionsFlow(it, expireType)
+                }?.collectAsLazyPagingItems()
 
-                LaunchedEffect(expireType) {
-                    chatId?.let { id ->
-                        chatRestrictionViewModel.getChatRestrictions(
-                            chatId = id,
-                            expire = expireType
-                        )
+                LaunchedEffect(Unit) {
+                    chatRestrictionViewModel.updateEvent.collect { affectedType ->
+                        restrictionItems?.refresh()
                     }
                 }
 
@@ -119,34 +119,27 @@ fun ChatAdminScreen(
                     isRefreshing = isRefreshing,
                     onRefresh = {
                         scope.launch {
-                            try {
-                                isRefreshing = true
-                                delay(300)
-                                chatId?.let { id ->
-                                    chatRestrictionViewModel.getChatRestrictions(
-                                        chatId = id,
-                                        expire = expireType,
-                                        isReloading = true
-                                    )
-                                }
-                            } finally {
-                                isRefreshing = false
-                            }
+                            isRefreshing = true
+                            restrictionItems?.refresh()
+                            delay(300)
+                            isRefreshing = false
                         }
                     }
                 ) {
-                    ChatRestrictionsPage(
-                        expireType = expireType,
-                        usersList = usersState.data ?: emptyList(),
-                        onUpdateRestriction = { restriction ->
-                            selectedRestriction = restriction
-                            showBottomSheet.value = true
-                        },
-                        onClearRestriction = { restrictionId ->
-                            chatRestrictionViewModel.updateRestriction(restrictionId, Duration.ZERO)
-                        },
-                        chatRestrictionViewModel = chatRestrictionViewModel
-                    )
+                    restrictionItems?.let {
+                        ChatRestrictionsPage(
+                            restrictionItems = it,
+                            expireType = expireType,
+                            usersList = usersState.data ?: emptyList(),
+                            onUpdateRestriction = { restriction ->
+                                selectedRestriction = restriction
+                                showBottomSheet.value = true
+                            },
+                            onClearRestriction = { restrictionId ->
+                                chatRestrictionViewModel.updateRestriction(restrictionId, Duration.ZERO)
+                            }
+                        )
+                    }
                 }
             }
         }
@@ -163,7 +156,7 @@ fun ChatAdminScreen(
                         selectedRestriction = null
                     },
                     onUpdate = { restriction ->
-                        chatRestrictionViewModel.updateLocalRestriction(restriction)
+                        chatRestrictionViewModel.updateLocalRestriction(restriction.toEntity())
                     }
                 )
             }

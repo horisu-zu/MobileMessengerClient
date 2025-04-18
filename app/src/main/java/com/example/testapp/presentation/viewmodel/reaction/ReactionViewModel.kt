@@ -7,7 +7,6 @@ import com.example.testapp.di.api.ReactionApiService
 import com.example.testapp.di.websocket.ReactionWebSocketClient
 import com.example.testapp.domain.dto.reaction.ReactionEvent
 import com.example.testapp.domain.dto.reaction.ReactionRequest
-import com.example.testapp.domain.dto.reaction.ReactionState
 import com.example.testapp.domain.models.reaction.Reaction
 import com.example.testapp.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel

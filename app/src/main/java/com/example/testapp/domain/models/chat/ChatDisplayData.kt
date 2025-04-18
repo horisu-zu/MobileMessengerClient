@@ -6,7 +6,7 @@ data class ChatDisplayData(
     val chatId: String,
     val chatTypeId: Int,
     val name: String,
-    val senderName: String = "Placeholder",
+    val senderName: String = "...",
     val avatarUrl: String?,
     val lastMessage: Message? = null,
     val unreadCount: Int = 0,

@@ -49,8 +49,7 @@ class UserViewModel @Inject constructor(
         viewModelScope.launch {
             launch {
                 webSocketClient.getStatusUpdates()
-                    .catch { e ->
-                    }
+                    .catch { e -> }
                     .collect { newStatuses ->
                         _userStatusState.update { currentMap ->
                             currentMap.toMutableMap().apply {
@@ -87,17 +86,19 @@ class UserViewModel @Inject constructor(
         }
     }
 
-    suspend fun getUsersByIds(userIds: List<String>, chatId: String? = null) {
-        _participantsState.value = Resource.Loading()
-        try {
-            val usersList = userRepository.getByIds(userIds)
-            _participantsState.value = Resource.Success(usersList)
-            if(chatId != null && chatId != currentChatId) {
-                connectWebSocket(usersList.map { it.userId })
-                currentChatId = chatId
+    fun getUsersByIds(userIds: List<String>, chatId: String? = null) {
+        viewModelScope.launch {
+            _participantsState.value = Resource.Loading()
+            try {
+                val usersList = userRepository.getByIds(userIds)
+                _participantsState.value = Resource.Success(usersList)
+                if(chatId != null && chatId != currentChatId) {
+                    connectWebSocket(usersList.map { it.userId })
+                    currentChatId = chatId
+                }
+            } catch (e: Exception) {
+                _participantsState.value = Resource.Error("Failed to find users: ${e.message}")
             }
-        } catch (e: Exception) {
-            _participantsState.value = Resource.Error("Failed to find users: ${e.message}")
         }
     }
 

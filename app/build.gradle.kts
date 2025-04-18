@@ -3,7 +3,8 @@ plugins {
     alias(libs.plugins.jetbrains.kotlin.android)
     alias(libs.plugins.google.services)
     alias(libs.plugins.hilt)
-    id("kotlin-kapt")
+    //id("kotlin-kapt")
+    id("com.google.devtools.ksp")
     alias(libs.plugins.compose.compiler)
     id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
@@ -116,8 +117,8 @@ dependencies {
 
     //Hilt
     implementation (libs.hilt.android)
-    kapt (libs.hilt.android.compiler)
     implementation(libs.hilt.navigation.compose)
+    ksp (libs.hilt.android.compiler)
 
     //Constraint
     implementation (libs.androidx.constraintlayout.compose)
@@ -135,4 +136,12 @@ dependencies {
     implementation(libs.androidx.media3.ui)
     implementation(libs.androidx.media3.datasource)
     implementation(libs.androidx.media3.datasource.okhttp)
+
+    //Paging3
+    implementation(libs.androidx.paging.compose)
+
+    //Room
+    implementation(libs.androidx.room.runtime)
+    implementation(libs.androidx.room.paging)
+    ksp(libs.androidx.room.compiler)
 }

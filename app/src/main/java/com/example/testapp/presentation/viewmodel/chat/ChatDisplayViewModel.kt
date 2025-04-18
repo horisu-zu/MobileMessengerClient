@@ -3,10 +3,10 @@ package com.example.testapp.presentation.viewmodel.chat
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.testapp.domain.models.chat.ChatDisplayData
 import com.example.testapp.di.websocket.MessageWebSocketClient
 import com.example.testapp.domain.dto.message.MessageEvent
 import com.example.testapp.domain.dto.message.MessageStreamMode
-import com.example.testapp.domain.models.chat.ChatDisplayData
 import com.example.testapp.domain.usecase.GetUserChatsUseCase
 import com.example.testapp.domain.usecase.ProcessMessageUpdatesUseCase
 import com.example.testapp.utils.DataStoreUtil
