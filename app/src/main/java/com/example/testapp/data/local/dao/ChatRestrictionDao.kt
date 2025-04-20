@@ -32,4 +32,50 @@ interface ChatRestrictionDao {
 
     @Query("SELECT * FROM chat_restriction WHERE restrictionId = :restrictionId")
     suspend fun getRestrictionById(restrictionId: String): ChatRestrictionEntity?
+
+    @Query("""
+        SELECT * FROM chat_restriction 
+        WHERE chatId = :chatId 
+        AND (expiresAt IS NULL OR expiresAt > :currentTime)
+        AND (:fromUserId IS NULL OR createdBy = :fromUserId)
+        AND (:appliedToUserId IS NULL OR userId = :appliedToUserId)
+        ORDER BY 
+        CASE 
+            WHEN :sortField = 'created_at' AND :sortDirection = 'ASC' THEN createdAt 
+        END ASC,
+        CASE 
+            WHEN :sortField = 'created_at' AND :sortDirection = 'DESC' THEN createdAt
+        END DESC
+    """)
+    fun getActiveRestrictionsPagingSource(
+        chatId: String,
+        currentTime: Instant,
+        fromUserId: String?,
+        appliedToUserId: String?,
+        sortField: String,
+        sortDirection: String
+    ): PagingSource<Int, ChatRestrictionEntity>
+
+    @Query("""
+        SELECT * FROM chat_restriction 
+        WHERE chatId = :chatId 
+        AND (expiresAt IS NULL OR expiresAt <= :currentTime)
+        AND (:fromUserId IS NULL OR createdBy = :fromUserId)
+        AND (:appliedToUserId IS NULL OR userId = :appliedToUserId)
+        ORDER BY 
+        CASE 
+            WHEN :sortField = 'created_at' AND :sortDirection = 'ASC' THEN createdAt 
+        END ASC,
+        CASE 
+            WHEN :sortField = 'created_at' AND :sortDirection = 'DESC' THEN createdAt
+        END DESC
+    """)
+    fun getExpiredRestrictionsPagingSource(
+        chatId: String,
+        currentTime: Instant,
+        fromUserId: String?,
+        appliedToUserId: String?,
+        sortField: String,
+        sortDirection: String
+    ): PagingSource<Int, ChatRestrictionEntity>
 }

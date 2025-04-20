@@ -1,22 +1,17 @@
 package com.example.testapp.presentation.chat.search
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material3.InputChip
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -24,16 +19,19 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.example.testapp.domain.dto.chat.SearchFilter
+import com.example.testapp.domain.dto.chat.FilterCriterion
+import com.example.testapp.domain.dto.chat.SearchMenuOption
+import com.example.testapp.domain.dto.chat.SortBy
 import com.example.testapp.presentation.viewmodel.message.ChatSearchViewModel
+import com.example.testapp.presentation.viewmodel.user.UserViewModel
 
 @Composable
 fun ChatScreenSearch(
     chatId: String?,
+    userViewModel: UserViewModel,
     chatSearchViewModel: ChatSearchViewModel = hiltViewModel(),
     chatNavController: NavController
 ) {
@@ -41,21 +39,32 @@ fun ChatScreenSearch(
     var searchQuery by remember { mutableStateOf("") }
     val showBottomSheet = remember { mutableStateOf(false) }
 
-    LaunchedEffect(chatId) {
-        chatId?.let { chatSearchViewModel.getChatUsers(it) }
-    }
-
     val searchMessagesState by chatSearchViewModel.searchMessagesState.collectAsState()
-    val searchUsersState by chatSearchViewModel.searchUsersState.collectAsState()
-    val chatUsersState by chatSearchViewModel.chatUsersState.collectAsState()
-    val filters = remember { mutableStateListOf<SearchFilter>() }
+    val usersState by userViewModel.participantsState.collectAsState()
+    val filters = remember { mutableStateListOf<FilterCriterion>() }
+    var sortBy: SortBy? by remember { mutableStateOf(null) }
+
+    val messageSearchOptions: List<SearchMenuOption> = remember {
+        listOf(
+            SearchMenuOption.AddFilter(
+                FilterCriterion.FromUser::class,
+                prefix = "from:", description = "From User", icon = Icons.Default.Person
+            ),
+            SearchMenuOption.AddFilter(
+                FilterCriterion.HasAttachments::class,
+                prefix = "has:", description = "Has Attachments", icon = Icons.Default.Email
+            ),
+            SearchMenuOption.ConfigureSort
+        )
+    }
 
     fun triggerSearch() {
         chatId?.let { id ->
             chatSearchViewModel.searchMessages(
                 chatId = id,
                 query = searchQuery,
-                filters = filters
+                filters = filters,
+                sortBy = sortBy
             )
         }
     }
@@ -70,17 +79,26 @@ fun ChatScreenSearch(
                     triggerSearch()
                 },
                 filters = filters,
+                sortBy = sortBy,
                 onBackClick = { chatNavController.popBackStack() },
                 onFilterIconClick = { showBottomSheet.value = true },
                 onFilterRemove = { searchFilter ->
                     filters.remove(searchFilter)
+                    triggerSearch()
+                },
+                onSortRemove = {
+                    sortBy = null
                     triggerSearch()
                 }
             )
         }
     ) { innerPadding ->
         Box(
-            modifier = Modifier.fillMaxSize().padding(innerPadding)
+            modifier = Modifier.fillMaxSize().padding(
+                top = innerPadding.calculateTopPadding(),
+                start = innerPadding.calculateStartPadding(LayoutDirection.Ltr),
+                end = innerPadding.calculateEndPadding(LayoutDirection.Ltr)
+            )
         ) {
             when(currentMode) {
                 SearchScreenMode.MESSAGES -> {
@@ -89,9 +107,9 @@ fun ChatScreenSearch(
                         modifier = Modifier.fillMaxSize()
                     ) {
                         items(searchMessagesState.messages) { message ->
-                            val senderData = searchUsersState.firstOrNull { it.userId == message.senderId }
+                            val senderData = usersState.data?.firstOrNull { it.userId == message.senderId }
                             val replyMessage = searchMessagesState.replyMessages[message.replyTo]
-                            val replyUserData = searchUsersState.firstOrNull { it.userId == replyMessage?.senderId }
+                            val replyUserData = usersState.data?.firstOrNull { it.userId == replyMessage?.senderId }
                             val messageAttachments = searchMessagesState.attachments[message.messageId]
 
                             senderData?.let { userData ->
@@ -101,81 +119,60 @@ fun ChatScreenSearch(
                                     messageAttachments = messageAttachments,
                                     replyMessage = replyMessage,
                                     replyUserData = replyUserData,
-                                    onMessageClick = { messageid ->
-                                        // Navigate to Chat Main Screen
-                                    }
+                                    onMessageClick = { messageid -> }
                                 )
                             }
                         }
                     }
                 }
                 SearchScreenMode.FILTER_USERS -> {
-                    LazyColumn(
-                        reverseLayout = false,
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(chatUsersState) { user ->
-                            SearchUserItem(
-                                userData = user,
-                                onUserClick = { userId, userName ->
-                                    filters.removeIf { it is SearchFilter.FromUser }
-                                    filters.add(SearchFilter.FromUser(userId, "from user: $userName"))
-                                    currentMode = SearchScreenMode.MESSAGES
-                                    triggerSearch()
-                                }
-                            )
+                    FilterUsersScreen(
+                        usersList = usersState.data ?: emptyList(),
+                        onUserClick = { userId, userName ->
+                            val userFilter = FilterCriterion.FromUser(userId, userName)
+                            filters.removeIf { it is FilterCriterion.FromUser }
+                            filters.add(userFilter)
+
+                            currentMode = SearchScreenMode.MESSAGES
+                            triggerSearch()
                         }
-                    }
+                    )
                 }
                 SearchScreenMode.FILTER_DIRECTION -> {
-                    Row (
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-                        horizontalArrangement = Arrangement.SpaceEvenly
-                    ) {
-                        InputChip(
-                            selected = false,
-                            label = { Text(text = "Newest") },
-                            onClick = {
-                                filters.removeIf { it is SearchFilter.SortDirection }
-                                filters.add(SearchFilter.SortDirection.Descending)
-                                currentMode = SearchScreenMode.MESSAGES
-                                triggerSearch()
-                            }
-                        )
-                        InputChip(
-                            selected = false,
-                            label = { Text(text = "Oldest") },
-                            onClick = {
-                                filters.removeIf { it is SearchFilter.SortDirection }
-                                filters.add(SearchFilter.SortDirection.Ascending)
-                                currentMode = SearchScreenMode.MESSAGES
-                                triggerSearch()
-                            }
-                        )
-                    }
+                    FilterDirectionScreen(
+                        sortBy = sortBy,
+                        onClick = { sortCriterion ->
+                            sortBy = sortCriterion
+                            currentMode = SearchScreenMode.MESSAGES
+                        }
+                    )
                 }
             }
         }
         if (showBottomSheet.value) {
             SearchFilterBottomSheet(
-                onDismiss = { showBottomSheet.value = false },
-                onFilterClick = { filterType ->
-                    when(filterType) {
-                        FilterSelectionType.FROM_USER -> {
-                            currentMode = SearchScreenMode.FILTER_USERS
-                        }
-                        FilterSelectionType.HAS_ATTACHMENTS -> {
-                            val newFilter = SearchFilter.HasAttachments
-                            if (filters.none { it is SearchFilter.HasAttachments }) {
-                                filters.add(newFilter)
-                                triggerSearch()
+                options = messageSearchOptions,
+                onOptionSelected = { selectedOption ->
+                    when(selectedOption) {
+                        is SearchMenuOption.AddFilter -> {
+                            if (selectedOption.filterCriterionType == FilterCriterion.HasAttachments::class) {
+                                if (filters.none { it is FilterCriterion.HasAttachments }) {
+                                    filters.add(FilterCriterion.HasAttachments)
+                                    triggerSearch()
+                                }
+                            } else {
+                                when (selectedOption.filterCriterionType) {
+                                    FilterCriterion.FromUser::class -> currentMode = SearchScreenMode.FILTER_USERS
+                                }
                             }
                         }
-                        FilterSelectionType.SORT_DIRECTION -> {
+                        is SearchMenuOption.ConfigureSort -> {
                             currentMode = SearchScreenMode.FILTER_DIRECTION
                         }
                     }
-                }
+                    showBottomSheet.value = false
+                },
+                onDismiss = { showBottomSheet.value = false }
             )
         }
     }
@@ -185,22 +182,4 @@ private enum class SearchScreenMode {
     MESSAGES,
     FILTER_USERS,
     FILTER_DIRECTION
-}
-
-enum class FilterSelectionType(val prefix: String, val description: String, val icon: ImageVector) {
-    FROM_USER(
-        prefix = "from:",
-        description = "From User",
-        icon = Icons.Default.Person
-    ),
-    HAS_ATTACHMENTS(
-        prefix = "hasAttachments",
-        description = "Has Attachments",
-        icon = Icons.Default.Email
-    ),
-    SORT_DIRECTION(
-        prefix = "direction:",
-        description = "Sort Direction",
-        icon = Icons.AutoMirrored.Filled.List
-    )
 }

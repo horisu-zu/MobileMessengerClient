@@ -16,14 +16,17 @@ import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
 
-
 @OptIn(ExperimentalPagingApi::class)
 class ChatRestrictionMediator @Inject constructor(
     private val roomDatabase: AppRoomDatabase,
     private val chatRepository: ChatApiService,
     private val chatRestrictionDao: ChatRestrictionDao,
     private val chatId: String,
-    private val expireType: RestrictionExpireType
+    private val expireType: RestrictionExpireType,
+    private val fromUserId: String? = null,
+    private val appliedToUserId: String? = null,
+    private val sortField: String = "created_at",
+    private val sortDirection: String = "DESC"
 ): RemoteMediator<Int, ChatRestrictionEntity>() {
     override suspend fun load(
         loadType: LoadType,
@@ -36,7 +39,6 @@ class ChatRestrictionMediator @Inject constructor(
                 LoadType.APPEND -> {
                     val lastItem = state.lastItemOrNull()
                         ?: return MediatorResult.Success(endOfPaginationReached = true)
-
                     state.pages.size
                 }
             }
@@ -45,7 +47,11 @@ class ChatRestrictionMediator @Inject constructor(
                 chatId = chatId,
                 expireType = expireType,
                 page = page,
-                size = state.config.pageSize
+                size = state.config.pageSize,
+                fromUserId = fromUserId,
+                appliedToUserId = appliedToUserId,
+                sortBy = sortField,
+                sortDirection = sortDirection
             )
 
             val endOfPaginationReached = response.isEmpty() || response.size < state.config.pageSize

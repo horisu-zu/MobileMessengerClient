@@ -8,10 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
-import androidx.compose.material.icons.filled.Email
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,15 +22,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.testapp.domain.dto.chat.SearchMenuOption
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchFilterBottomSheet(
-    onDismiss: () -> Unit,
-    onFilterClick: (FilterSelectionType) -> Unit
+    options: List<SearchMenuOption>,
+    onOptionSelected: (SearchMenuOption) -> Unit,
+    onDismiss: () -> Unit
 ) {
     val sheetState = rememberModalBottomSheetState()
-    val filterOptions = FilterSelectionType.entries
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -47,15 +44,14 @@ fun SearchFilterBottomSheet(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.Top)
         ) {
-            filterOptions.forEach { filterType ->
+            options.forEach { filterType ->
                 Row(
                     modifier = Modifier.fillMaxWidth().clip(RoundedCornerShape(16.dp))
                         .border(1.dp, MaterialTheme.colorScheme.outline, RoundedCornerShape(16.dp))
                         .clickable {
-                            onFilterClick(filterType)
+                            onOptionSelected(filterType)
                             onDismiss()
-                        }
-                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                        }.padding(horizontal = 12.dp, vertical = 8.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.Start)
                 ) {

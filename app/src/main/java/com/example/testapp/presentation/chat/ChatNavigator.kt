@@ -103,6 +103,7 @@ fun ChatNavigator(
         ) {
             ChatScreenSearch(
                 chatId = chatId,
+                userViewModel = userViewModel,
                 chatNavController = chatNavController
             )
         }

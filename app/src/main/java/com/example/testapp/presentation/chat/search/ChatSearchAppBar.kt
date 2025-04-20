@@ -9,17 +9,20 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.painterResource
 import com.example.testapp.R
-import com.example.testapp.domain.dto.chat.SearchFilter
+import com.example.testapp.domain.dto.chat.FilterOption
+import com.example.testapp.domain.dto.chat.SortBy
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ChatSearchAppBar(
     searchQuery: String,
     onSearchQueryChange: (String) -> Unit,
-    filters: List<SearchFilter>,
+    filters: List<FilterOption>,
+    sortBy: SortBy?,
     onBackClick: () -> Unit,
     onFilterIconClick: () -> Unit,
-    onFilterRemove: (SearchFilter) -> Unit
+    onFilterRemove: (FilterOption) -> Unit,
+    onSortRemove: () -> Unit
 ) {
     TopAppBar(
         title = {
@@ -27,7 +30,9 @@ fun ChatSearchAppBar(
                 query = searchQuery,
                 onQueryChange = { query -> onSearchQueryChange(query) },
                 filters = filters,
-                onFilterRemove = { filterItem -> onFilterRemove(filterItem) }
+                sortBy = sortBy,
+                onFilterRemove = { filterItem -> onFilterRemove(filterItem) },
+                onSortRemove = onSortRemove
             )
         },
         navigationIcon = {

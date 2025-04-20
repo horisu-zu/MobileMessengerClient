@@ -78,7 +78,11 @@ interface ChatApiService {
         @Path("chatId") chatId: String,
         @Query("expireType") expireType: RestrictionExpireType,
         @Query("page") page: Int,
-        @Query("size") size: Int
+        @Query("size") size: Int,
+        @Query("fromUserId") fromUserId: String? = null,
+        @Query("appliedToUserId") appliedToUserId: String? = null,
+        @Query("sortBy") sortBy: String = "created_at",
+        @Query("sortDirection") sortDirection: String = "DESC"
     ): List<ChatRestriction>
 
     @POST("api/chats/{chatId}/restrictions")

@@ -18,12 +18,14 @@ import com.example.testapp.data.local.entity.ChatRestrictionEntity.Companion.toM
 import com.example.testapp.data.remote.ChatRestrictionMediator
 import com.example.testapp.di.api.ChatApiService
 import com.example.testapp.domain.dto.chat.ChatRestrictionUpdateRequest
+import com.example.testapp.domain.dto.chat.FilterCriterion
 import com.example.testapp.domain.dto.chat.RestrictionExpireType
+import com.example.testapp.domain.dto.chat.SortBy
+import com.example.testapp.domain.dto.chat.SortDirection
+import com.example.testapp.domain.dto.chat.SortField
 import com.example.testapp.domain.models.chat.ChatRestriction
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.Duration
@@ -38,20 +40,37 @@ class ChatRestrictionViewModel @Inject constructor(
     private val roomDatabase: AppRoomDatabase
 ): ViewModel() {
 
-    private val _pagingDataMap = mutableMapOf<RestrictionExpireType, Flow<PagingData<ChatRestriction>>>()
+    private val _pagingDataMap = mutableMapOf<PagerKey, Flow<PagingData<ChatRestriction>>>()
 
-    private val _updateEvent = MutableSharedFlow<RestrictionExpireType>(replay = 0)
-    val updateEvent = _updateEvent.asSharedFlow()
+    private data class PagerKey(
+        val expireType: RestrictionExpireType,
+        val fromUser: String?,
+        val toUser: String?,
+        val sortBy: SortBy
+    )
 
-    fun getChatRestrictionsFlow(
+    fun getChatRestrictions(
         chatId: String,
-        expire: RestrictionExpireType
+        expire: RestrictionExpireType,
+        filters: List<FilterCriterion> = emptyList(),
+        sortBy: SortBy = SortBy(SortField.Date, SortDirection.Descending)
     ): Flow<PagingData<ChatRestriction>> {
-        return _pagingDataMap.getOrPut(expire) {
+        val fromUser = filters.filterIsInstance<FilterCriterion.FromUser>().firstOrNull()
+        val appliedTo = filters.filterIsInstance<FilterCriterion.AppliedTo>().firstOrNull()
+
+        val pagerKey = PagerKey(
+            expireType = expire,
+            fromUser = fromUser?.userId,
+            toUser = appliedTo?.userId,
+            sortBy = sortBy
+        )
+
+        return _pagingDataMap.getOrPut(pagerKey) {
             Pager(
                 config = PagingConfig(
                     pageSize = 20,
                     enablePlaceholders = true,
+                    prefetchDistance = 5,
                     initialLoadSize = 20
                 ),
                 remoteMediator = ChatRestrictionMediator(
@@ -59,12 +78,22 @@ class ChatRestrictionViewModel @Inject constructor(
                     chatRepository = chatRepository,
                     chatRestrictionDao = chatRestrictionDao,
                     chatId = chatId,
-                    expireType = expire
+                    expireType = expire,
+                    fromUserId = fromUser?.userId,
+                    appliedToUserId = appliedTo?.userId,
+                    sortField = sortBy.field.value,
+                    sortDirection = sortBy.direction.value
                 ),
                 pagingSourceFactory = {
                     when(expire) {
-                        RestrictionExpireType.EXPIRED -> chatRestrictionDao.getExpiredRestrictionsPagingSource(chatId, Instant.now())
-                        RestrictionExpireType.ACTIVE -> chatRestrictionDao.getActiveRestrictionsPagingSource(chatId, Instant.now())
+                        RestrictionExpireType.EXPIRED -> chatRestrictionDao.getExpiredRestrictionsPagingSource(
+                            chatId, Instant.now(), fromUser?.userId, appliedTo?.userId,
+                            sortBy.field.value, sortBy.direction.value
+                        )
+                        RestrictionExpireType.ACTIVE -> chatRestrictionDao.getActiveRestrictionsPagingSource(
+                            chatId, Instant.now(), fromUser?.userId, appliedTo?.userId,
+                            sortBy.field.value, sortBy.direction.value
+                        )
                     }
                 }
             ).flow
@@ -102,11 +131,6 @@ class ChatRestrictionViewModel @Inject constructor(
                 chatRestrictionDao.deleteRestriction(updatedRestriction.restrictionId)
                 chatRestrictionDao.insert(updatedRestriction)
             }
-
-            val isExpired = !updatedRestriction.expiresAt!!.isAfter(Instant.now())
-            val expireType = if (isExpired) RestrictionExpireType.EXPIRED
-                else RestrictionExpireType.ACTIVE
-            _updateEvent.emit(expireType)
         }
     }
 }
